@@ -137,7 +137,7 @@ const SidebarRight = () =>
         children: [
           Header(),
           QuickSettings(),
-          //                Cava({barHeight: 200, smooth: true}),
+          Cava({ barHeight: 200, smooth: true }),
           Calendar(),
         ],
       }),

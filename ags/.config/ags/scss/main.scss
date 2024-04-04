@@ -1,9 +1,11 @@
-label, button, box, centerbox, window{
+label,
+button,
+box,
+centerbox,
+window {
   all: unset;
-  font-family: JetBrains Mono Light
+  font-family: JetBrains Mono Light;
 }
-
-
 
 //general
 @import "colors";
@@ -12,6 +14,7 @@ label, button, box, centerbox, window{
 //modules
 @import "audio";
 @import "bar";
+// @import "battery";
 @import "clock";
 @import "indicator";
 @import "launcher";
