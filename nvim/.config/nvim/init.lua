@@ -143,14 +143,26 @@ require("lazy").setup({
 	--
 	--  This is equivalent to:
 	--    require('Comment').setup({})
-
+	{
+		"WhoIsSethDaniel/mason-tool-installer.nvim",
+		dependencies = {
+			{ "williamboman/mason.nvim", opts = true },
+			{ "williamboman/mason-lspconfig.nvim", opts = true },
+		},
+		opts = {
+			ensure_installed = {
+				"pyright", -- LSP for python
+				"ruff-lsp", -- linter for python (includes flake8, pep8, etc.)
+				"debugpy", -- debugger
+				"black", -- formatter
+				"isort", -- organize imports
+				"taplo", -- LSP for toml (for pyproject.toml files)
+			},
+		},
+	},
 	-- "gc" to comment visual regions/lines
 	{ "numToStr/Comment.nvim", opts = {} },
 
-	-- Here is a more advanced example where we pass configuration
-	-- options to `gitsigns.nvim`. This is equivalent to the following Lua:
-	--    require('gitsigns').setup({ ... })
-	--
 	-- See `:help gitsigns` to understand what the configuration keys do
 	{ -- Adds git related signs to the gutter, as well as utilities for managing changes
 		"lewis6991/gitsigns.nvim",
