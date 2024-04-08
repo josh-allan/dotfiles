@@ -1,7 +1,7 @@
 import Widget from "resource:///com/github/Aylur/ags/widget.js";
 import Battery from "resource:///com/github/Aylur/ags/service/battery.js";
 
-const batteryProgress = Widget.CircularProgress({
+const batteryIndicator = Widget.CircularProgress({
   child: Widget.Icon({
     icon: Battery.bind("icon-name"),
   }),
@@ -12,4 +12,7 @@ const batteryProgress = Widget.CircularProgress({
   ),
 });
 
-export default batteryProgress;
+// const batteryIndicator = Widget.ProgressBar({
+//   value: Battery.bind("percent").as((p) => p / 100),
+// });
+export default batteryIndicator;

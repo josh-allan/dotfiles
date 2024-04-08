@@ -202,5 +202,4 @@ zstyle ':vcs_info:git:*' formats 'on %b'
 source /usr/share/nvm/init-nvm.sh
 export DEVBOX_HOME=/home/josh/git/devbox/
 export PATH=/home/josh/.nvm/versions/node/v18.16.0/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/home/josh/git/devbox/cli/bin:/home/josh/bin:/home/josh/git/devbox/modules/cli/bin:/cli/bin:/home/josh/bin:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/cli/bin:~/bin
-#source ~/.devboxrc
-#source ~/.promptline.sh
+eval "$(zoxide init bash)"
