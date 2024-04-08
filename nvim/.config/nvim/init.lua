@@ -104,26 +104,26 @@ vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper win
 vim.keymap.set("n", "<C-,>", "<cmd>BufferPrevious<CR>")
 
 -- Move to previous/next
-map("n", "<A-,>", "<Cmd>BufferPrevious<CR>", opts)
-map("n", "<A-.>", "<Cmd>BufferNext<CR>", opts)
+map("n", "<C-,>", "<Cmd>BufferPrevious<CR>", opts)
+map("n", "<C-.>", "<Cmd>BufferNext<CR>", opts)
 -- Re-order to previous/next
-map("n", "<A-<>", "<Cmd>BufferMovePrevious<CR>", opts)
-map("n", "<A->>", "<Cmd>BufferMoveNext<CR>", opts)
+map("n", "<C-<>", "<Cmd>BufferMovePrevious<CR>", opts)
+map("n", "<C->>", "<Cmd>BufferMoveNext<CR>", opts)
 -- Goto buffer in position...
-map("n", "<A-1>", "<Cmd>BufferGoto 1<CR>", opts)
-map("n", "<A-2>", "<Cmd>BufferGoto 2<CR>", opts)
-map("n", "<A-3>", "<Cmd>BufferGoto 3<CR>", opts)
-map("n", "<A-4>", "<Cmd>BufferGoto 4<CR>", opts)
-map("n", "<A-5>", "<Cmd>BufferGoto 5<CR>", opts)
-map("n", "<A-6>", "<Cmd>BufferGoto 6<CR>", opts)
-map("n", "<A-7>", "<Cmd>BufferGoto 7<CR>", opts)
-map("n", "<A-8>", "<Cmd>BufferGoto 8<CR>", opts)
-map("n", "<A-9>", "<Cmd>BufferGoto 9<CR>", opts)
-map("n", "<A-0>", "<Cmd>BufferLast<CR>", opts)
+map("n", "<C-1>", "<Cmd>BufferGoto 1<CR>", opts)
+map("n", "<C-2>", "<Cmd>BufferGoto 2<CR>", opts)
+map("n", "<C-3>", "<Cmd>BufferGoto 3<CR>", opts)
+map("n", "<C-4>", "<Cmd>BufferGoto 4<CR>", opts)
+map("n", "<C-5>", "<Cmd>BufferGoto 5<CR>", opts)
+map("n", "<C-6>", "<Cmd>BufferGoto 6<CR>", opts)
+map("n", "<C-7>", "<Cmd>BufferGoto 7<CR>", opts)
+map("n", "<C-8>", "<Cmd>BufferGoto 8<CR>", opts)
+map("n", "<C-9>", "<Cmd>BufferGoto 9<CR>", opts)
+map("n", "<C-0>", "<Cmd>BufferLast<CR>", opts)
 -- Pin/unpin buffer
-map("n", "<A-p>", "<Cmd>BufferPin<CR>", opts)
+map("n", "<C-p>", "<Cmd>BufferPin<CR>", opts)
 -- Close buffer
-map("n", "<A-c>", "<Cmd>BufferClose<CR>", opts)
+map("n", "<C-c>", "<Cmd>BufferClose<CR>", opts)
 -- Wipeout buffer
 --                 :BufferWipeout
 -- Close commands
@@ -153,13 +153,13 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
 	local lazyrepo = "https://github.com/folke/lazy.nvim.git"
 	vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
-
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run
@@ -173,11 +173,6 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
 	"tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
-
-	-- NOTE: Plugins can also be added by using a table,
-	-- with the first argument being the link and the following
-	-- keys can be used to configure plugin behavior/loading/etc.
-	--
 	-- Use `opts = {}` to force a plugin to be loaded.
 	--
 	--  This is equivalent to:
@@ -198,6 +193,13 @@ require("lazy").setup({
 				"taplo", -- LSP for toml (for pyproject.toml files)
 			},
 		},
+	},
+	{
+		"windwp/nvim-autopairs",
+		event = "InsertEnter",
+		config = true,
+		-- use opts = {} for passing setup options
+		-- this is equalent to setup({}) function
 	},
 	-- "gc" to comment visual regions/lines
 	{ "numToStr/Comment.nvim", opts = {} },
@@ -500,6 +502,7 @@ require("lazy").setup({
 						})
 					end
 				end,
+				require("lspconfig").marksman.setup({}),
 			})
 
 			-- LSP servers and clients are able to communicate to each other what features they support.
@@ -530,7 +533,6 @@ require("lazy").setup({
 				--
 				-- But for many setups, the LSP (`tsserver`) will work just fine
 				tsserver = {},
-				--
 
 				lua_ls = {
 					-- cmd = {...},
@@ -540,6 +542,9 @@ require("lazy").setup({
 						Lua = {
 							completion = {
 								callSnippet = "Replace",
+							},
+							workspaces = {
+								checkThirdParty = "Disable",
 							},
 							-- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
 							-- diagnostics = { disable = { 'missing-fields' } },
