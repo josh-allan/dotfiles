@@ -67,6 +67,10 @@ vim.opt.scrolloff = 10
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
+vim.o.tabstop = 4 -- A TAB character looks like 4 spaces
+vim.o.expandtab = true -- Pressing the TAB key will insert spaces instead of a TAB character
+vim.o.softtabstop = 4 -- Number of spaces inserted instead of a TAB character
+vim.o.shiftwidth = 4 -- Number of spaces inserted when indenting
 
 local map = vim.api.nvim_set_keymap
 local opts = { noremap = true, silent = true }
@@ -203,6 +207,50 @@ require("lazy").setup({
 	},
 	-- "gc" to comment visual regions/lines
 	{ "numToStr/Comment.nvim", opts = {} },
+	-- Nvterm installation
+	{
+		"NvChad/nvterm",
+		config = function()
+			require("nvterm").setup()
+			local terminal = require("nvterm.terminal")
+
+			local toggle_modes = { "n", "t" }
+			local mappings = {
+				-- {
+				-- 	"n",
+				-- 	"<S-l>",
+				-- 	function()
+				-- 		terminal.send(ft_cmds[vim.bo.filetype])
+				-- 	end,
+				-- },
+				{
+					toggle_modes,
+					"<A-h>",
+					function()
+						terminal.toggle("horizontal")
+					end,
+				},
+				{
+					toggle_modes,
+					"<A-v>",
+					function()
+						terminal.toggle("vertical")
+					end,
+				},
+				{
+					toggle_modes,
+					"<A-i>",
+					function()
+						terminal.toggle("float")
+					end,
+				},
+			}
+			local opts = { noremap = true, silent = true }
+			for _, mapping in ipairs(mappings) do
+				vim.keymap.set(mapping[1], mapping[2], mapping[3], opts)
+			end
+		end,
+	},
 
 	-- See `:help gitsigns` to understand what the configuration keys do
 	{ -- Adds git related signs to the gutter, as well as utilities for managing changes
@@ -216,8 +264,59 @@ require("lazy").setup({
 				changedelete = { text = "~" },
 			},
 		},
-	},
+		on_attach = function(bufnr)
+			local gitsigns = require("gitsigns")
 
+			local function map(mode, l, r, opts)
+				opts = opts or {}
+				opts.buffer = bufnr
+				vim.keymap.set(mode, l, r, opts)
+			end
+
+			-- Navigation
+			map("n", "]c", function()
+				if vim.wo.diff then
+					vim.cmd.normal({ "]c", bang = true })
+				else
+					gitsigns.nav_hunk("next")
+				end
+			end)
+
+			map("n", "[c", function()
+				if vim.wo.diff then
+					vim.cmd.normal({ "[c", bang = true })
+				else
+					gitsigns.nav_hunk("prev")
+				end
+			end)
+
+			-- Actions
+			map("n", "<leader>hs", gitsigns.stage_hunk)
+			map("n", "<leader>hr", gitsigns.reset_hunk)
+			map("v", "<leader>hs", function()
+				gitsigns.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
+			end)
+			map("v", "<leader>hr", function()
+				gitsigns.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
+			end)
+			map("n", "<leader>hS", gitsigns.stage_buffer)
+			map("n", "<leader>hu", gitsigns.undo_stage_hunk)
+			map("n", "<leader>hR", gitsigns.reset_buffer)
+			map("n", "<leader>hp", gitsigns.preview_hunk)
+			map("n", "<leader>hb", function()
+				gitsigns.blame_line({ full = true })
+			end)
+			map("n", "<leader>tb", gitsigns.toggle_current_line_blame)
+			map("n", "<leader>hd", gitsigns.diffthis)
+			map("n", "<leader>hD", function()
+				gitsigns.diffthis("~")
+			end)
+			map("n", "<leader>td", gitsigns.toggle_deleted)
+
+			-- Text object
+			map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>")
+		end,
+	},
 	--
 	-- This is often very useful to both group configuration, as well as handle
 	-- lazy loading plugins that don't need to be loaded immediately at startup.
@@ -902,7 +1001,19 @@ require("lazy").setup({
 		"nvim-treesitter/nvim-treesitter",
 		build = ":TSUpdate",
 		opts = {
-			ensure_installed = { "bash", "c", "html", "lua", "luadoc", "markdown", "python", "vim", "vimdoc" },
+			ensure_installed = {
+				"bash",
+				"c",
+				"html",
+				"hcl",
+				"lua",
+				"luadoc",
+				"markdown",
+				"python",
+				"terraform",
+				"vim",
+				"vimdoc",
+			},
 			-- Autoinstall languages that are not installed
 			auto_install = true,
 			highlight = {
