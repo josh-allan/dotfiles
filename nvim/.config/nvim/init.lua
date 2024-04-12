@@ -68,11 +68,11 @@ vim.opt.scrolloff = 10
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
 
--- Make the tab sizes more sane.
-vim.o.tabstop = 4 -- A TAB character looks like 4 spaces
-vim.o.expandtab = true -- Pressing the TAB key will insert spaces instead of a TAB character
-vim.o.softtabstop = 4 -- Number of spaces inserted instead of a TAB character
-vim.o.shiftwidth = 4 -- Number of spaces inserted when indenting
+-- -- Make the tab sizes more sane.
+vim.opt.tabstop = 4 -- A TAB character looks like 4 spaces
+vim.opt.expandtab = true -- Pressing the TAB key will insert spaces instead of a TAB character
+vim.opt.softtabstop = 4 -- Number of spaces inserted instead of a TAB character
+vim.opt.shiftwidth = 4 -- Number of spaces inserted when indenting
 
 local map = vim.api.nvim_set_keymap
 local opts = { noremap = true, silent = true }
@@ -110,7 +110,7 @@ vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper win
 vim.keymap.set("n", "<C-,>", "<cmd>BufferPrevious<CR>")
 
 -- Move to previous/next
-map("n", "<C-<>", "<Cmd>BufferMovePrevious<CR>", opts)
+
 map("n", "<C->>", "<Cmd>BufferMoveNext<CR>", opts)
 -- Goto buffer in position...
 map("n", "<C-1>", "<Cmd>BufferGoto 1<CR>", opts)
@@ -175,7 +175,6 @@ vim.opt.rtp:prepend(lazypath)
 --
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-	"tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
 	-- Use `opts = {}` to force a plugin to be loaded.
 	--
 	--  This is equivalent to:
