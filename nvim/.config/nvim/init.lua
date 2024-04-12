@@ -110,9 +110,6 @@ vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper win
 vim.keymap.set("n", "<C-,>", "<cmd>BufferPrevious<CR>")
 
 -- Move to previous/next
-map("n", "<C-,>", "<Cmd>BufferPrevious<CR>", opts)
-map("n", "<C-.>", "<Cmd>BufferNext<CR>", opts)
--- Re-order to previous/next
 map("n", "<C-<>", "<Cmd>BufferMovePrevious<CR>", opts)
 map("n", "<C->>", "<Cmd>BufferMoveNext<CR>", opts)
 -- Goto buffer in position...
@@ -322,24 +319,56 @@ require("lazy").setup({
 	--
 	-- Use the `dependencies` key to specify the dependencies of a particular plugin
 	-- Tab line
-	--	Barbar setup
 	{
-		"romgrk/barbar.nvim",
-		dependencies = {
-			"lewis6991/gitsigns.nvim", -- OPTIONAL: for git status
-			"nvim-tree/nvim-web-devicons", -- OPTIONAL: for file icons
+		"akinsho/bufferline.nvim",
+		version = "*",
+		dependencies = "nvim-tree/nvim-web-devicons",
+		keys = {
+			{ "<leader>bp", "<Cmd>BufferLineTogglePin<CR>", desc = "Toggle Pin" },
+			{ "<leader>bP", "<Cmd>BufferLineGroupClose ungrouped<CR>", desc = "Delete Non-Pinned Buffers" },
+			{ "<leader>bo", "<Cmd>BufferLineCloseOthers<CR>", desc = "Delete Other Buffers" },
+			{ "<leader>br", "<Cmd>BufferLineCloseRight<CR>", desc = "Delete Buffers to the Right" },
+			{ "<leader>bl", "<Cmd>BufferLineCloseLeft<CR>", desc = "Delete Buffers to the Left" },
+			{ "<C-,>", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev Buffer" },
+			{ "<C-.>", "<cmd>BufferLineCycleNext<cr>", desc = "Next Buffer" },
 		},
-		init = function()
-			vim.g.barbar_auto_setup = true
-		end,
 		opts = {
-			-- lazy.nvim will automatically call setup for you. put your options here, anything missing will use the default:
-			animation = true,
-			insert_at_start = true,
-			-- …etc.
+			options = {
+      -- stylua: ignore
+      close_command = function(n) require("mini.bufremove").delete(n, false) end,
+      -- stylua: ignore
+      right_mouse_command = function(n) require("mini.bufremove").delete(n, false) end,
+				diagnostics = "nvim_lsp",
+				always_show_bufferline = true,
+				-- diagnostics_indicator = function(_, _, diag)
+				-- 	local icons = require("lazyvim.config").icons.diagnostics
+				-- 	local ret = (diag.error and icons.Error .. diag.error .. " " or "")
+				-- 		.. (diag.warning and icons.Warn .. diag.warning or "")
+				-- 	return vim.trim(ret)
+				-- end,
+				offsets = {
+					{
+						filetype = "neo-tree",
+						text = "Neo-tree",
+						highlight = "Directory",
+						text_align = "left",
+					},
+				},
+			},
 		},
-		version = "^1.0.0", -- optional: only update when a new 1.x version is released
+		config = function(_, opts)
+			require("bufferline").setup(opts)
+			-- Fix bufferline when restoring a session
+			vim.api.nvim_create_autocmd("BufAdd", {
+				callback = function()
+					vim.schedule(function()
+						pcall(nvim_bufferline)
+					end)
+				end,
+			})
+		end,
 	},
+
 	-- Git setup
 	{ "tpope/vim-fugitive" },
 	{ -- Fuzzy Finder (files, lsp, etc)
@@ -681,12 +710,49 @@ require("lazy").setup({
 				lua = { "stylua" },
 				-- Conform can also run multiple formatters sequentially
 				python = { "ruff" },
+				terraform = { "terraform fmt" },
 				--
 				-- You can use a sub-list to tell conform to run *until* a formatter
 				-- is found.
 				-- javascript = { { "prettierd", "prettier" } },
 			},
 		},
+	},
+	-- lazy.nvim
+	{
+		"folke/noice.nvim",
+		event = "VeryLazy",
+		opts = {
+			-- add any options here
+		},
+		dependencies = {
+			-- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
+			"MunifTanjim/nui.nvim",
+			-- OPTIONAL:
+			--   `nvim-notify` is only needed, if you want to use the notification view.
+			--   If not available, we use `mini` as the fallback
+			"rcarriga/nvim-notify",
+		},
+		config = function()
+			require("noice").setup({
+				lsp = {
+					-- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+					override = {
+						["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+						["vim.lsp.util.stylize_markdown"] = true,
+						["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
+					},
+				},
+				-- you can enable a preset for easier configuration
+				presets = {
+					bottom_search = true, -- use a classic bottom cmdline for search
+					command_palette = true, -- position the cmdline and popupmenu together
+					long_message_to_split = true, -- long messages will be sent to a split
+					inc_rename = false, -- enables an input dialog for inc-rename.nvim
+					lsp_doc_border = false, -- add a border to hover docs and signature help
+				},
+			})
+		end,
 	},
 
 	{ -- Autocompletion
