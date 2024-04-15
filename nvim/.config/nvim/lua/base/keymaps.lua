@@ -1,3 +1,5 @@
+local M = {}
+
 local map = vim.api.nvim_set_keymap
 local opts = { noremap = true, silent = true }
 local keymap = vim.keymap
@@ -31,7 +33,7 @@ keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnosti
 -- or just use <C-\><C-n> to exit terminal mode
 keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
--- TIP: Disable arrow keys in normal mode
+-- Disable arrow keys in normal mode
 keymap.set("n", "<left>", '<cmd>echo "Use h to move!!"<CR>')
 keymap.set("n", "<right>", '<cmd>echo "Use l to move!!"<CR>')
 keymap.set("n", "<up>", '<cmd>echo "Use k to move!!"<CR>')
@@ -86,6 +88,9 @@ map("n", "<Space>bw", "<Cmd>BufferOrderByWindowNumber<CR>", opts)
 -- Remove pesky trailing whitespaces
 keymap.set("n", "<Leader>wt", [[:%s/\s\+$//e<cr>]])
 
+-- Nvim Tree stuff
+keymap.set("n", "<leader>e", "<cmd> NvimTreeToggle <CR>")
+keymap.set("n", "<C-n", "<cmd> NvimTreeFocus <CR>")
 -- Custom autocmds
 
 -- Yank with highlight
