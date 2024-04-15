@@ -10,7 +10,6 @@ Dotfiles repository that contains all of my configs for my Arch Linux setup.
 
 - Build an AUR helper and then install packages from minimum_packages.lst
 - aur helper: `git clone https://aur.archlinux.org/yay-bin.git && cd yay-bin && makepkg -si`
-- Install NVChad to bootstrap neovim and install plugins
   `git clone https://github.com/NvChad/NvChad ~/.config/nvim --depth 1 && nvim` followed by `:MasonInstallAll`
 - run Stow from inside the dotfiles folder and these should symlink to the correct location
 - `stow $appname`
