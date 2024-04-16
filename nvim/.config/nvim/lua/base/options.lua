@@ -1,6 +1,5 @@
 local opt = vim.opt
 
--- Set to true if you have a Nerd Font installed
 vim.g.have_nerd_font = true
 
 -- Make line numbers default
@@ -15,7 +14,6 @@ opt.showmode = false
 
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
 opt.clipboard = "unnamedplus"
 
 -- Enable break indent
@@ -43,8 +41,6 @@ opt.splitright = true
 opt.splitbelow = true
 
 -- Sets how neovim will display certain whitespace characters in the editor.
---  See `:help 'list'`
---  and `:help 'listchars'`
 opt.list = true
 opt.listchars = { tab = "» ", trail = "x", nbsp = "␣" }
 -- Preview substitutions live, as you type!
@@ -57,7 +53,6 @@ opt.cursorline = true
 opt.scrolloff = 10
 
 -- [[ Basic Keymaps ]]
---  See `:help vim.keymap.set()`
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 opt.hlsearch = true

@@ -1,5 +1,3 @@
-local M = {}
-
 local map = vim.api.nvim_set_keymap
 local opts = { noremap = true, silent = true }
 local keymap = vim.keymap
@@ -29,8 +27,6 @@ keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnosti
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.
 --
--- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
--- or just use <C-\><C-n> to exit terminal mode
 keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- Disable arrow keys in normal mode
@@ -91,6 +87,54 @@ keymap.set("n", "<Leader>wt", [[:%s/\s\+$//e<cr>]])
 -- Nvim Tree stuff
 keymap.set("n", "<leader>e", "<cmd> NvimTreeToggle <CR>")
 keymap.set("n", "<C-n", "<cmd> NvimTreeFocus <CR>")
+
+-- Telescope
+local builtin = require("telescope.builtin")
+vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "[S]earch [H]elp" })
+vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "[S]earch [K]eymaps" })
+vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "[S]earch [F]iles" })
+vim.keymap.set("n", "<leader>sf", builtin.builtin, { desc = "[S]earch [S]elect Telescope" })
+vim.keymap.set("n", "<leader>sw", builtin.grep_string, { desc = "[S]earch current [W]ord" })
+vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "[S]earch by [G]rep" })
+vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "[S]earch [D]iagnostics" })
+vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "[S]earch [R]esume" })
+vim.keymap.set("n", "<leader>s.", builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+vim.keymap.set("n", "<leader><leader>", builtin.buffers, { desc = "[ ] Find existing buffers" })
+
+-- Debugger keybinds
+local dap = require("dap")
+local dapui = require("dapui")
+vim.keymap.set("n", "<leader>dc", dap.continue, { desc = "Debug: Start/Continue" })
+vim.keymap.set("n", "<leader>di", dap.step_into, { desc = "Debug: Step Into" })
+vim.keymap.set("n", "<leader>do", dap.step_over, { desc = "Debug: Step Over" })
+vim.keymap.set("n", "<leader>db", dap.step_out, { desc = "Debug: Step Out" })
+vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { desc = "Debug: Toggle Breakpoint" })
+vim.keymap.set("n", "<leader>B", function()
+	dap.set_breakpoint(vim.fn.input("Breakpoint condition: "))
+end, { desc = "Debug: Set Breakpoint" })
+
+-- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
+vim.keymap.set("n", "<F7>", dapui.toggle, { desc = "Debug: See last session result." })
+
+-- Slightly advanced example of overriding default behavior and theme
+vim.keymap.set("n", "<leader>/", function()
+	builtin.current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
+		winblend = 10,
+		previewer = false,
+	}))
+end, { desc = "[/] Fuzzily search in current buffer" })
+
+vim.keymap.set("n", "<leader>s/", function()
+	builtin.live_grep({
+		grep_open_files = true,
+		prompt_title = "Live Grep in Open Files",
+	})
+end, { desc = "[S]earch [/] in Open Files" })
+
+-- Searching through the entire config
+vim.keymap.set("n", "<leader>sn", function()
+	builtin.find_files({ cwd = vim.fn.stdpath("config") })
+end, { desc = "[S]earch [N]eovim files" })
 -- Custom autocmds
 
 -- Yank with highlight

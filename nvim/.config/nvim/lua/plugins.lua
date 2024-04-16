@@ -12,7 +12,7 @@ return {
 				"debugpy", -- debugger
 				"black", -- formatter
 				"isort", -- organize imports
-				"taplo", -- LSP for toml (for pyproject.toml files)
+				"taplo", -- LSP for toml (for pyproject.toml files)plugins
 			},
 		},
 	},
@@ -466,8 +466,14 @@ return {
 			--    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 		end,
 	},
+	{ -- Add indentation guides even on blank lines
+		"lukas-reineke/indent-blankline.nvim",
+		-- Enable `lukas-reineke/indent-blankline.nvim`
+		-- See `:help ibl`
+		main = "ibl",
+		opts = {},
+	},
 	require("configs.debug"),
-	require("configs.indent_line"),
 	require("configs.lint"),
 }, {
 	ui = {
