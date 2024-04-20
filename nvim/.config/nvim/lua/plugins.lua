@@ -23,11 +23,8 @@ return {
 		"windwp/nvim-autopairs",
 		event = "InsertEnter",
 		config = true,
-		-- use opts = {} for passing setup options
-		-- this is equalent to setup({}) function
 	},
 
-	-- Nvterm installation
 	{
 		"NvChad/nvterm",
 		config = function()
@@ -45,11 +42,6 @@ return {
 		event = { "BufReadPre", "BufNewFile" },
 	},
 	--
-	--
-	-- Then, because we use the `config` key, the configuration only runs
-	-- after the plugin has been loaded:
-	--  config = function() ... end
-
 	{ -- Useful plugin to show you pending keybinds.
 		"folke/which-key.nvim",
 		event = "VimEnter", -- Sets the loading event to 'VimEnter'
@@ -213,6 +205,21 @@ return {
 				-- javascript = { { "prettierd", "prettier" } },
 			},
 		},
+	},
+
+	{
+		"max397574/better-escape.nvim",
+		config = function()
+			require("better_escape").setup({
+				mapping = { "jk", "jj" }, -- a table with mappings to use
+				timeout = vim.o.timeoutlen, -- the time in which the keys must be hit in ms. Use option timeoutlen by default
+				clear_empty_lines = false, -- clear line after escaping if there is only whitespace
+				keys = "<Esc>", -- keys used for escaping, if it is a function will use the result everytime
+				-- example(recommended)
+				-- keys = function()
+				--   return vim.api.nvim_win_get_cursor(0)[2] > 1 and '<esc>l' or '<esc>'
+			})
+		end,
 	},
 
 	{
@@ -445,9 +452,6 @@ return {
 			auto_install = true,
 			highlight = {
 				enable = true,
-				-- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-				--  If you are experiencing weird indenting issues, add the language to
-				--  the list of additional_vim_regex_highlighting and disabled languages for indent.
 				additional_vim_regex_highlighting = { "ruby" },
 			},
 			indent = { enable = true, disable = { "ruby" } },
@@ -457,13 +461,6 @@ return {
 
 			---@diagnostic disable-next-line: missing-fields
 			require("nvim-treesitter.configs").setup(opts)
-
-			-- There are additional nvim-treesitter modules that you can use to interact
-			-- with nvim-treesitter. You should go explore a few and see what interests you:
-			--
-			--    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-			--    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-			--    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 		end,
 	},
 	{ -- Add indentation guides even on blank lines
@@ -473,12 +470,23 @@ return {
 		main = "ibl",
 		opts = {},
 	},
+	-- jsbeautify
+	{ "maksimr/vim-jsbeautify", event = "FuncUndefined" },
+	{
+		"epwalsh/obsidian.nvim",
+		version = "*",
+		lazy = true,
+		ft = "markdown",
+		dependencies = "nvim-lua/plenary.nvim",
+		config = function()
+			require("configs.obsidian")
+		end,
+	},
+
 	require("configs.debug"),
 	require("configs.lint"),
 }, {
 	ui = {
-		-- If you are using a Nerd Font: set icons to an empty table which will use the
-		-- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
 		icons = vim.g.have_nerd_font and {} or {
 			cmd = "⌘",
 			config = "🛠",
