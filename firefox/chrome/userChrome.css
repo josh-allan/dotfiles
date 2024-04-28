@@ -1,50 +1,73 @@
-/*
-*/
+/* hides the native tabs */
+#TabsToolbar {
+  visibility: collapse;
+}
 
-@-moz-document url("chrome://browser/content/browser.xhtml")
-{
-  /* To bring back OS title bar with min/max/close buttons, some users might
-   * consider setting browser.tabs.drawInTitlebar to false in about:config
-   */
+/* Some variables for quick configuration - play with numbers to find a perfect match for your setup */
+:root {
+    --sidebar-width: 7.9vw;
+    --panel-width: 91.5vw;
+    --panel-hide-offset: -30px;
+    --opacity-when-hidden: 0.05;
+}
 
-  /* Tab bar font size */
-  /*
-  .tab-text.tab-label{
 
-      font-size: 12px;
-  }
-*/
+/* Auto-hide address bar */
+#navigator-toolbox{
+  position: fixed !important;
+  /* Comment out following line to get 'slide-page-down' reveal, like in F11 fullscreen mode */ 
+  display: block; 
+  transition: margin-top 82ms 33ms linear, opacity 82ms 33ms linear !important; 
+  z-index: 1;
+  opacity: 1;
+  /* Spacing on the left for sidebar */
+  margin-left: var(--sidebar-width);
+  /* Disabled the borders, as the bottom one seemed to have unwanted top padding sometimes */
+  border: none !important;
+}
 
-  /* sidebar header */
+#navigator-toolbox,
+#navigator-toolbox > *{
+  /* Reduced width for panel in order to not overflow the screen on the right side */
+   width:  var(--panel-width); 
+}
+
+#navigator-toolbox:not(:focus-within):not(:hover){
+  margin-top: var(--panel-hide-offset);
+  opacity: var(--opacity-when-hidden);
+}
+
+
+/* Disable auto-hiding when in 'customize' mode */
+:root[customizing] #navigator-toolbox{
+  position: relative !important;
+  opacity: 1 !important;
+  margin-top: 0px;
+}
+
+
+/* sidebar header */
   #sidebar-header {
     /* visibility: hidden; 
     padding: 10 !important; */
-    background-color: #1c1b22 !important;
+    background-color: #1c1b22 !important; 
     opacity: 0.7 !important;
   }
 
   #sidebar-header:not(:hover) #sidebar-close {
     /* BAD NEWS: display: none !important; */
     opacity: 0 !important;
-  }
+}
 
-  /* Hides tabs bar */
-  #TabsToolbar {
-    visibility: collapse !important;
-  }
 
-  #main-window[chromehidden*="toolbar"] #nav-bar {
-    visibility: collapse !important;
-  }
-
-  /* Autohide Side Bar Variables */
+/* Autohide Side Bar Variables */
   :root {
     --custom-sidebar-collapsed-width: 35px;
     --custom-sidebar-full-width: 15vw;
     --custom-sidebar-border: 0px solid #404040;
   }
 
-  /* Autohide side bar */
+/* Autohide side bar */
 
   :root[titlepreface="᠎"] #navigator-toolbox {
     border-bottom: 0 !important;
@@ -65,8 +88,8 @@
     max-width: var(--custom-sidebar-full-width) !important;
     width: var(--custom-sidebar-collapsed-width) !important;
     height: 100%;
-    transition: all 0.2s ease;
-    transition-delay: 0.5s; /* 1s delay when mouse moves out */
+    transition: all 0.2s ease; 
+    transition-delay: 0.5s; /* 1s delay when mouse moves out */ 
   }
 
   :root[titlepreface="᠎"] #sidebar-box:hover,
@@ -88,154 +111,6 @@
     margin-left: var(--custom-sidebar-collapsed-width);
   }
 
-  :root[titlepreface="᠎"]
-    #sidebar-box:not([hidden])
-    ~ #appcontent
-    .findbar-container {
-    min-width: calc(
-      100vw - 48px - var(--custom-sidebar-collapsed-width)
-    ) !important;
+  :root[titlepreface="᠎"] #sidebar-box:not([hidden]) ~ #appcontent .findbar-container {
+    min-width: calc(100vw - 48px - var(--custom-sidebar-collapsed-width)) !important;
   }
-
-  /* Sidebar on the right */
-  /*
-  #sidebar-box[positionend="true"]:not([hidden]) {
-    right: 0;
-  }
-
-  #sidebar-box[positionend="true"]:not([hidden]) ~ #appcontent {
-    margin-left: 0;
-    margin-right: var(--custom-sidebar-collapsed-width);
-    border-right: 0;
-    border-left: var(--custom-sidebar-border);
-  }
-*/
-  /* Full screen */
-  /*
-  #main-window[inFullscreen][inDOMFullscreen] #appcontent {
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-  /* Place sidebar header at the bottom */
-  /*
-  #sidebar-box:not([hidden]) {
-    flex-direction: column-reverse;
-  }
-  */
-
-  /* Collapsible sidebar header
-   * works best when positioned at the bottom
-   */
-  /*
-  #sidebar-header {
-    border: 0 !important;
-    padding: 0 !important;
-    height: 1px;
-    opacity: 0;
-  }
-  
-  #sidebar-header:hover {
-    padding: 8px !important;
-    height: auto;
-    opacity: 1;
-  }
-  */
-
-  /* Source file https://github.com/MrOtherGuy/firefox-csshacks/tree/master/chrome/autohide_toolbox.css made available under Mozilla Public License v. 2.0
-See the above repository for updates as well as full license text. */
-
-  /* Hide the whole toolbar area unless urlbar is focused or cursor is over the toolbar */
-  /* Dimensions on non-Win10 OS probably needs to be adjusted */
-
-  /* Compatibility options for hide_tabs_toolbar.css and tabs_on_bottom.css at the end of this file */
-
-  :root {
-    --uc-autohide-toolbox-delay: 500ms; /* Wait 0.1s before hiding toolbars */
-    --uc-toolbox-rotation: 75deg; /* This may need to be lower on mac - like 75 or so */
-  }
-
-  :root[sizemode="maximized"] {
-    --uc-toolbox-rotation: 88.5deg;
-  }
-
-  @media (-moz-platform: windows) {
-    #navigator-toolbox:not(:-moz-lwtheme) {
-      background-color: -moz-dialog !important;
-    }
-  }
-
-  :root[sizemode="fullscreen"],
-  #navigator-toolbox[inFullscreen] {
-    margin-top: 0 !important;
-  }
-
-  #navigator-toolbox {
-    position: fixed !important;
-    display: block;
-    background-color: var(--lwt-accent-color, black) !important;
-    transition:
-      transform 82ms linear,
-      opacity 82ms linear !important;
-    transition-delay: var(--uc-autohide-toolbox-delay) !important;
-    transform-origin: top;
-    transform: rotateX(var(--uc-toolbox-rotation));
-    opacity: 0;
-    line-height: 0;
-    z-index: 1;
-    pointer-events: none;
-  }
-
-  /* #mainPopupSet:hover ~ toolbox, */
-  /* Uncomment the above line to make toolbar visible if some popup is hovered */
-  #navigator-toolbox:hover,
-  #navigator-toolbox:focus-within {
-    transition-delay: 33ms !important;
-    transform: rotateX(0);
-    opacity: 1;
-  }
-
-  #navigator-toolbox > * {
-    line-height: normal;
-    pointer-events: auto;
-  }
-
-  #navigator-toolbox,
-  #navigator-toolbox > * {
-    width: 100vw;
-    -moz-appearance: none !important;
-  }
-
-  /* These two exist for oneliner compatibility */
-  #nav-bar {
-    width: var(--uc-navigationbar-width, 100vw);
-  }
-  #TabsToolbar {
-    width: calc(100vw - var(--uc-navigationbar-width, 0px));
-  }
-
-  /* Don't apply transform before window has been fully created */
-  :root:not([sessionrestored]) #navigator-toolbox {
-    transform: none !important;
-  }
-
-  :root[customizing] #navigator-toolbox {
-    position: relative !important;
-    transform: none !important;
-    opacity: 1 !important;
-  }
-
-  #navigator-toolbox[inFullscreen] > #PersonalToolbar,
-  #PersonalToolbar[collapsed="true"] {
-    display: none;
-  }
-
-  /* Uncomment this if tabs toolbar is hidden with hide_tabs_toolbar.css */
-  /*#titlebar{ margin-bottom: -9px }*/
-
-  /* Uncomment the following for compatibility with tabs_on_bottom.css - this isn't well tested though */
-  /*
-#navigator-toolbox{ flex-direction: column; display: flex; }
-#titlebar{ order: 2 }
-*/
-}
