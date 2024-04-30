@@ -17,7 +17,49 @@ return {
 		},
 	},
 	-- "gc" to comment visual regions/lines
-	{ "numToStr/Comment.nvim", opts = {} },
+	{
+		"numToStr/Comment.nvim",
+		keys = {
+			{ "gcc", mode = "n", desc = "Comment toggle current line" },
+			{ "gc", mode = { "n", "o" }, desc = "Comment toggle linewise" },
+			{ "gc", mode = "x", desc = "Comment toggle linewise (visual)" },
+			{ "gbc", mode = "n", desc = "Comment toggle current block" },
+			{ "gb", mode = { "n", "o" }, desc = "Comment toggle blockwise" },
+			{ "b", mode = "x", desc = "Comment toggle blockwise (visual)" },
+		},
+		opts = {},
+	},
+
+	{
+		"letieu/wezterm-move.nvim",
+		keys = { -- Lazy loading, don't need call setup() function
+			{
+				"<C-h>",
+				function()
+					require("wezterm-move").move("h")
+				end,
+			},
+			{
+				"<C-j>",
+				function()
+					require("wezterm-move").move("j")
+				end,
+			},
+			{
+				"<C-k>",
+				function()
+					require("wezterm-move").move("k")
+				end,
+			},
+			{
+				"<C-l>",
+				function()
+					require("wezterm-move").move("l")
+				end,
+			},
+		},
+	},
+
 	-- autopairs config
 	{
 		"windwp/nvim-autopairs",
