@@ -12,6 +12,8 @@ return {
 				"debugpy", -- debugger
 				"black", -- formatter
 				"isort", -- organize imports
+				"terraform-ls",
+				"gopls", -- Go language server
 				"taplo", -- LSP for toml (for pyproject.toml files)plugins
 			},
 		},
@@ -481,6 +483,7 @@ return {
 			ensure_installed = {
 				"bash",
 				"c",
+				"go",
 				"html",
 				"hcl",
 				"lua",
