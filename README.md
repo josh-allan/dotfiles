@@ -1,6 +1,6 @@
-# Arch Linux wayland dotfiles.
+# Wayland dotfiles.
 
-Dotfiles repository that contains all of my configs for my Arch Linux setup.
+Dotfiles repository that contains all of my configs.
 
 ---
 
