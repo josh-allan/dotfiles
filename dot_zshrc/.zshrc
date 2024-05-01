@@ -49,6 +49,10 @@ setopt PROMPT_SUBST
 setopt SHARE_HISTORY # share history between sessions ???
 unset BEEP #remove the beep
 
+# Remove the annoying and wildly unhelpful autocorrect that zsh ships with by default
+unsetopt correct_all
+
+
 bindkey '^[^[[1;3D' backward-word
 bindkey '^[^[[1;3C' forward-word
 bindkey '^[[1;5D' beginning-of-line
@@ -81,7 +85,6 @@ alias reload='source ~/.zshrc' #reload the shell config
 alias sdn='shutdown now'
 alias sdr='sudo reboot now'
 alias tree='eza -Tlh --git'
-alias untar='tar -zxvf' #tar extractor
 alias updt='sudo aura -Syu && sudo -aura -Auax'
 alias vim='nvim' #replace vim with neovim
 alias yeet='sudo reboot now'

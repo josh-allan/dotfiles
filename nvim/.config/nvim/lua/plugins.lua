@@ -473,6 +473,7 @@ return {
 			require("configs.mini")
 		end,
 	},
+	{ "maksimr/vim-jsbeautify", event = "FuncUndefined" },
 	{ -- Highlight, edit, and navigate code
 		"nvim-treesitter/nvim-treesitter",
 		build = ":TSUpdate",
