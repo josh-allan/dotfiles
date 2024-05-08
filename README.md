@@ -9,8 +9,7 @@ Dotfiles repository that contains all of my configs.
 ---
 
 - Build an AUR helper and then install packages from minimum_packages.lst
-- aur helper: `git clone https://aur.archlinux.org/yay-bin.git && cd yay-bin && makepkg -si`
-  `git clone https://github.com/NvChad/NvChad ~/.config/nvim --depth 1 && nvim` followed by `:MasonInstallAll`
+- aur helper: `git clone https://aur.archlinux.org/yay-bin.git && cd yay-bin && makepkg -si` && yay -S - < minimum_packages.lst
 - run Stow from inside the dotfiles folder and these should symlink to the correct location
 - `stow $appname`
 - There's some cruftiness involved to get the powerlevel10k fonts installed correctly, see `https://dane-bulat.medium.com/powerline-on-linux-an-integration-guide-c097831106f6.`

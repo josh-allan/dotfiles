@@ -63,6 +63,13 @@ return {
 	split_nav("resize", "k"),
 	split_nav("resize", "l"),
 
+	-- Move to start of line
+	{
+		key = "LeftArrow",
+		mods = "CTRL",
+		action = wezterm.action.CopyMode("MoveToStartOfLine"),
+	},
+
 	-- split panes
 	{
 		key = "-",
