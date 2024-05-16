@@ -110,6 +110,21 @@ vim.keymap.set("n", "<leader>B", function()
 	dap.set_breakpoint(vim.fn.input("Breakpoint condition: "))
 end, { desc = "Debug: Set Breakpoint" })
 
+-- Nvim git
+
+keymap.set("n", "<leader>gb", function()
+	MiniExtra.pickers.git_commits({ path = vim.fn.expand("%:p") })
+end, { desc = "Git Log this File" })
+keymap.set("n", "<leader>gl", "<cmd>terminal lazygit<cr>", { noremap = true, silent = true, desc = "Lazygit" })
+keymap.set("n", "<leader>gp", "<cmd>terminal git pull<cr>", { noremap = true, silent = true, desc = "Git Push" })
+keymap.set("n", "<leader>gs", "<cmd>terminal git push<cr>", { noremap = true, silent = true, desc = "Git Pull" })
+keymap.set("n", "<leader>ga", "<cmd>terminal git add .<cr>", { noremap = true, silent = true, desc = "Git Add All" })
+keymap.set(
+	"n",
+	"<leader>gc",
+	'<cmd>terminal git commit -m "Autocommit from nvim"<cr>',
+	{ noremap = true, silent = true, desc = "Git Autocommit" }
+)
 -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
 vim.keymap.set("n", "<F7>", dapui.toggle, { desc = "Debug: See last session result." })
 
