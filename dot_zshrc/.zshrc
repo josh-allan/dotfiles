@@ -8,12 +8,6 @@ if [[ "$OSTYPE" =~ ^darwin ]]; then
     export PATH=/Library/Frameworks/Python.framework/Versions/3.10/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:/Users/$USERNAME/.local/bin:/Users/$USERNAME/Documents/git/devbox/modules/cli/bin:/Users/$USERNAME/Documents/git/devbox/cli/bin:~/bin:$GOROOT/bin:$GOPATH/bin:/Users/$USERNAME/.cargo/bin:$WEZPATH/bin
 fi 
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
 
 zstyle :compinstall filename '/home/josh/.zshrc'
 
@@ -157,6 +151,9 @@ function forcekill() {
     kill `ps ax | grep -i $1 | awk '{ print $1 }'`
 }
 
+export STARSHIP_CONFIG=~/.config/starship/starship.toml
+eval "$(starship init zsh)"
+
 # ex - archive extractor
 # usage: ex <file>
 function ex ()
@@ -197,8 +194,6 @@ export editor='nvim'
 export SUDO_EDITOR="nvim"
 alias "sudoedit"='function _sudoedit(){sudo -e "$1";};_sudoedit'
 
-source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
-
 # SSH in terminals are broken now for some reason, this fixes it
 export TERM=ansi
 
@@ -219,12 +214,9 @@ zstyle ':vcs_info:git:*' formats 'on %b'
 #PROMPT='%n in ${PWD/#$HOME/~} RPROMPT=\$vcs_info_msg_0_
 #%# '
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
 #set -x >> ~/shell_debug.log
 
 source /usr/share/nvm/init-nvm.sh
 export DEVBOX_HOME=/home/josh/git/devbox/
 export PATH=/home/josh/.nvm/versions/node/v18.16.0/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/home/josh/git/devbox/cli/bin:/home/josh/bin:/home/josh/git/devbox/modules/cli/bin:/cli/bin:/home/josh/bin:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/cli/bin:~/bin
-eval "$(zoxide init bash --cmd cd)"
+eval "$(zoxide init zsh --cmd cd)"
