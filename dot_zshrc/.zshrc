@@ -68,6 +68,7 @@ alias dk='ssh desktop'
 alias ga="git add ."
 alias gc='git commit -m' #git committer
 alias gp='git push' #git pusher
+alias goimports='goimports-reviser'
 alias grep='rg'
 alias h='history | grep' #history grepper
 alias hl="dbus-launch Hyprland"
