@@ -2,10 +2,21 @@
 if [[ "$OSTYPE" =~ ^darwin ]]; then
 
     path+=('/Users/$USERNAME/.local/bin','')
-    source /Users/$USERNAME/.config/broot/launcher/bash/br
     export GOPATH=$HOME/dev/go
     export WEZPATH="$PATH:/Applications/WezTerm.app/Contents/MacOS"
     export PATH=/Library/Frameworks/Python.framework/Versions/3.10/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:/Users/$USERNAME/.local/bin:/Users/$USERNAME/Documents/git/devbox/modules/cli/bin:/Users/$USERNAME/Documents/git/devbox/cli/bin:~/bin:$GOROOT/bin:$GOPATH/bin:/Users/$USERNAME/.cargo/bin:$WEZPATH/bin
+
+elif [[ "$OSTYPE" =~ ^linux ]]; then
+
+    export PATH=/home/josh/.nvm/versions/node/v18.16.0/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/home/josh/git/devbox/cli/bin:/home/josh/bin:/home/josh/git/devbox/modules/cli/bin:/cli/bin:/home/josh/bin:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/cli/bin:~/bin:$PATH
+    export PATH=$PATH:/home/josh/.spicetify
+    source /usr/share/nvm/init-nvm.sh
+
+    # SSH in terminals are broken now for some reason, this fixes it
+    export TERM=ansi
+
+    export PATH="$PATH:/home/josh/.local/bin"
+
 fi 
 
 
@@ -23,8 +34,6 @@ zle -N down-line-or-beginning-search
 
 
 PS1='%m %~ $ '
-
-export PATH="$PATH:/home/josh/.local/bin"
 
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
@@ -195,18 +204,13 @@ export editor='nvim'
 export SUDO_EDITOR="nvim"
 alias "sudoedit"='function _sudoedit(){sudo -e "$1";};_sudoedit'
 
-# SSH in terminals are broken now for some reason, this fixes it
-export TERM=ansi
-
-
 # Commenting this out while I trial hyprland. May no longer be needed..
 #export SWAYSOCK=$(gawk 'BEGIN {RS="\0"; FS="="} $1 == "SWAYSOCK" {print $2}' /proc/$(pgrep -o swaybg)/environ)
-export PATH=$PATH:/home/josh/.spicetify
 
-# Git prompt so I know what branch I'm on.
-# Load version control information
-autoload -Uz vcs_info
-precmd() { vcs_info }
+# # Git prompt so I know what branch I'm on.
+# # Load version control information
+ autoload -Uz vcs_info
+ precmd() { vcs_info }
 
 # Format the vcs_info_msg_0_ variable
 zstyle ':vcs_info:git:*' formats 'on %b'
@@ -216,8 +220,4 @@ zstyle ':vcs_info:git:*' formats 'on %b'
 #%# '
 
 #set -x >> ~/shell_debug.log
-
-source /usr/share/nvm/init-nvm.sh
-export DEVBOX_HOME=/home/josh/git/devbox/
-export PATH=/home/josh/.nvm/versions/node/v18.16.0/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/home/josh/git/devbox/cli/bin:/home/josh/bin:/home/josh/git/devbox/modules/cli/bin:/cli/bin:/home/josh/bin:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/cli/bin:~/bin
 eval "$(zoxide init zsh --cmd cd)"
