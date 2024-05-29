@@ -78,18 +78,12 @@ map("n", "<Space>bw", "<Cmd>BufferOrderByWindowNumber<CR>", opts)
 -- Remove pesky trailing whitespaces
 keymap.set("n", "<Leader>wt", [[:%s/\s\+$//e<cr>]])
 
--- -- Mini Files Open
--- keymap.set("n", "<leader>e", ":lua MiniFiles.open()<CR>")
--- vim.api.nvim_set_keymap(
--- 	"n",
--- 	"<leader>nf",
--- 	':lua require("mini.files").actions.create_new_file()<CR>',
--- 	{ noremap = true, silent = true }
--- )
+-- Mini Files Open
+keymap.set("n", "<leader>e", ":lua MiniFiles.open()<CR>")
 
 -- Nvim Tree stuff
-keymap.set("n", "<leader>e", "<cmd> NvimTreeToggle <CR>")
-keymap.set("n", "<C-n", "<cmd> NvimTreeFocus <CR>")
+-- keymap.set("n", "<leader>e", "<cmd> NvimTreeToggle <CR>")
+-- keymap.set("n", "<C-n", "<cmd> NvimTreeFocus <CR>")
 --
 -- Telescope
 local builtin = require("telescope.builtin")
