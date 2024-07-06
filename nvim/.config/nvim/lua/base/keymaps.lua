@@ -2,6 +2,18 @@ local map = vim.api.nvim_set_keymap
 local opts = { noremap = true, silent = true }
 local keymap = vim.keymap
 
+local helpers = require("base.helpers")
+
+local nmap = helpers.nmap
+local vmap = helpers.vmap
+local xmap = helpers.xmap
+local omap = helpers.omap
+local noremap = helpers.noremap
+local nnoremap = helpers.nnoremap
+local inoremap = helpers.inoremap
+local vnoremap = helpers.vnoremap
+local xnoremap = helpers.xnoremap
+local onoremap = helpers.onoremap
 -- Set <space> as the leader key
 -- See `:help mapleader`
 vim.g.mapleader = " "
@@ -75,20 +87,22 @@ map("n", "<Space>bd", "<Cmd>BufferOrderByDirectory<CR>", opts)
 map("n", "<Space>bl", "<Cmd>BufferOrderByLanguage<CR>", opts)
 map("n", "<Space>bw", "<Cmd>BufferOrderByWindowNumber<CR>", opts)
 
+-- make 'Y' yank from current character to end of line
+noremap("Y", "y$")
+vnoremap("y", "ygv<ESC>")
+
+-- Better indenting
+
+nmap("<", "V<gv")
+nmap(">", "V>gv")
+xnoremap("<", "<gv")
+xnoremap(">", ">gv")
+
 -- Remove pesky trailing whitespaces
 keymap.set("n", "<Leader>wt", [[:%s/\s\+$//e<cr>]])
 
--- -- Mini Files Open
--- keymap.set("n", "<leader>e", ":lua MiniFiles.open()<CR>")
--- vim.api.nvim_set_keymap(
--- 	"n",
--- 	"<leader>nf",
--- 	':lua require("mini.files").actions.create_new_file()<CR>',
--- 	{ noremap = true, silent = true }
--- )
-
 -- Nvim Tree stuff
-keymap.set("n", "<leader>e", "<cmd> NvimTreeToggle <CR>")
+keymap.set("n", "<leader>e", "<cmd> Neotree toggle<CR>")
 keymap.set("n", "<C-n", "<cmd> NvimTreeFocus <CR>")
 --
 -- Telescope
