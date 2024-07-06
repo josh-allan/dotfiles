@@ -93,18 +93,28 @@ return {
 			require("configs.which-key")
 		end,
 	},
+	-- {
+	-- 	"nvim-tree/nvim-tree.lua",
+	-- 	version = "*",
+	-- 	lazy = false,
+	-- 	dependencies = {
+	-- 		"nvim-tree/nvim-web-devicons",
+	-- 	},
+	-- 	config = function()
+	-- 		require("configs.nvim-tree")
+	-- 	end,
+	-- },
 	{
-		"nvim-tree/nvim-tree.lua",
-		version = "*",
-		lazy = false,
-		dependencies = {
-			"nvim-tree/nvim-web-devicons",
+		"nvim-neo-tree/neo-tree.nvim",
+		requires = {
+			"nvim-lua/plenary.nvim",
+			"nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+			"MunifTanjim/nui.nvim",
 		},
 		config = function()
-			require("configs.nvim-tree")
+			require("configs.neotree")
 		end,
 	},
-
 	-- Tab line
 	{
 		"akinsho/bufferline.nvim",
@@ -266,7 +276,6 @@ return {
 		ft = { "go", "gomod" },
 		build = ':lua require("go.install").update_all_sync()', -- if you need to install/update all binaries
 	},
-
 	{
 		"max397574/better-escape.nvim",
 		config = function()
