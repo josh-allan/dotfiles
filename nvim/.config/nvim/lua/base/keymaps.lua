@@ -149,7 +149,7 @@ keymap.set(
 vim.keymap.set("n", "<F7>", dapui.toggle, { desc = "Debug: See last session result." })
 
 -- Slightly advanced example of overriding default behavior and theme
-vim.keymap.set("n", "<leader>/", function()
+vim.keymap.set("n", "<leader>fz", function()
 	builtin.current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
 		winblend = 10,
 		previewer = false,
