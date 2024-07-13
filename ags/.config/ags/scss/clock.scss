@@ -1,11 +1,13 @@
 .clock-container {
-  background-color: $primary_bg_t;
+  background-color: $surface;
   padding-right: 8px;
+
   .clock-date {
-    font-size: 1rem;
-    color: $primary_fg;
+    font-size: 1.0rem;
+    color: $primary;
   }
+
   .clock-time {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 }

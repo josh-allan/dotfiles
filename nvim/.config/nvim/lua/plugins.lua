@@ -395,8 +395,7 @@ return {
 		keys = {
 			{ ",v", "<cmd>VenvSelect<cr>" },
 		},
-	},
-	-- Docstring creation
+	}, -- Docstring creation
 	-- - quickly create docstrings via `<leader>a`
 	{
 		"danymat/neogen",
