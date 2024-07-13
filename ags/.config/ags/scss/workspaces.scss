@@ -1,41 +1,49 @@
 .ws-container {
-  background-color: $primary_bg_t;
+  background-color: $surface;
   padding: 3px;
+
   .ws-button {
     transition: all 200ms;
 
     &.occupied {
-      background-color: $primary_bg;
-      border-top: 1px solid $primary_fg;
-      border-bottom: 1px solid $primary_fg;
+      background-color: $surface_container_low;
+      border-top: 1px solid $primary;
+      border-bottom: 1px solid $primary;
 
       &.occupied-left {
         border-bottom-left-radius: 1rem;
         border-top-left-radius: 1rem;
-        border-left: 1px solid $primary_fg;
+        border-left: 1px solid $primary;
       }
 
       &.occupied-right {
         border-bottom-right-radius: 1rem;
         border-top-right-radius: 1rem;
-        border-right: 1px solid $primary_fg;
+        border-right: 1px solid $primary;
       }
     }
 
-    &:not(.occupied) {
-      border-radius: 1rem;
-    }
 
     &.active {
       .ws-button-label {
-        background-color: $primary_fg;
-        color: $primary_bg;
-        border-radius: 1rem;
+        background-color: $primary;
+        color: $on_primary;
       }
+      &.active-left .ws-button-label {
+        border-bottom-left-radius: 1rem;
+        border-top-left-radius: 1rem;
+      }
+
+      &.active-right .ws-button-label {
+        border-bottom-right-radius: 1rem;
+        border-top-right-radius: 1rem;
+      }
+
     }
 
     .ws-button-label {
       min-width: 2rem;
     }
+
   }
 }

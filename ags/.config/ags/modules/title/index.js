@@ -1,34 +1,25 @@
-import Widget from 'resource:///com/github/Aylur/ags/widget.js'
-import Hyprland from 'resource:///com/github/Aylur/ags/service/hyprland.js'
 
-const FocusedTitle = () => Widget.EventBox({
-    class_name: 'title-container',
-    child: Widget.Box({
-        vertical: true,
-        class_name: 'title-box',
-        children: [
-            Widget.Label({
-                hpack: "end",
-                class_name: 'title-class',
-                truncate: 'end',
-                max_width_chars: 22,
-                connections: [[Hyprland.active.client, label => {
-                    label.label = Hyprland.active.client.class.length === 0 ? 'Desktop' : Hyprland.active.client.class;
-                }]],
-            }),
-            Widget.Label({
-                hpack: "end",
-                class_name: 'title-title',
-                truncate: 'end',
-                max_width_chars: 22,
-                connections: [
-                    [Hyprland.active.client, label => {
-                        label.label = Hyprland.active.client.title.length === 0 ? `Workspace ${Hyprland.active.workspace.id}` : Hyprland.active.client.title;
-                    }]
-                ],
-            })
-        ]
-    }),
-})
+import Config from "../config/index.js";
 
+let FocusedTitle;
+
+switch(Config.wm) {
+  case "Hyprland":
+    const hl = (await import("./hyprland.js"));
+    FocusedTitle = hl.default;
+    break;
+  case "river":
+    const riv = (await import("./river.js"));
+    FocusedTitle = riv.default;
+    break;
+  default:
+    console.warn("could not determine compositor. Make sure the XDG_CURRENT_DESKTOP environment variable is set correctly.");
+    FocusedTitle = () => Widget.Box();
+    break;
+
+}
+
+export {
+  FocusedTitle
+};
 export default FocusedTitle;

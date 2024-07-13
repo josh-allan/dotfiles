@@ -1,74 +1,97 @@
-import { exec } from "resource:///com/github/Aylur/ags/utils.js";
+#!/usr/bin/ags -c
+import GLib from "gi://GLib";
+import {exec, idle, monitorFile} from "resource:///com/github/Aylur/ags/utils.js";
+import "./utils.js";
 import Bar from "./modules/bar/index.js";
 import {
-    CornerTopleft,
-    CornerTopright,
-    CornerBottomright,
-    CornerBottomleft,
+  CornerTopleft,
+  CornerTopright,
+  CornerBottomright,
+  CornerBottomleft
 } from "./modules/roundedCorner/index.js";
-import { IndicatorWidget } from "./modules/indicator/index.js";
-import Sidepanel from "./modules/sidepanel/index.js";
+import {IndicatorWidget} from "./modules/indicator/index.js";
+import Quicksettings from "./modules/quicksettings/index.js";
 import Launcher from "./modules/applauncher/index.js";
 import PowerMenu from "./modules/powermenu/index.js";
-import { PopupNotifications } from "./modules/notifications/index.js";
-import DirectoryMonitorService from "./directoryMonitorService.js";
-
+import {PopupNotifications} from "./modules/notifications/index.js";
 import App from "resource:///com/github/Aylur/ags/app.js";
-import Battery from "resource:///com/github/Aylur/ags/service/battery.js";
-import Applications from "resource:///com/github/Aylur/ags/service/applications.js";
-import Audio from "resource:///com/github/Aylur/ags/service/audio.js";
-import Bluetooth from "resource:///com/github/Aylur/ags/service/bluetooth.js";
-import Hyprland from "resource:///com/github/Aylur/ags/service/hyprland.js";
-import Mpris from "resource:///com/github/Aylur/ags/service/mpris.js";
-import Network from "resource:///com/github/Aylur/ags/service/network.js";
+import Gio from "gi://Gio";
+import Gdk from "gi://Gdk";
 import Notifications from "resource:///com/github/Aylur/ags/service/notifications.js";
-import SystemTray from "resource:///com/github/Aylur/ags/service/systemtray.js";
+import ConfigService from "./modules/config/index.js";
 
-//export service for use in ags -r
-globalThis.Battery = Battery;
-globalThis.App = App;
-globalThis.Applications = Applications;
-globalThis.Audio = Audio;
-globalThis.Bluetooth = Bluetooth;
-globalThis.Hyprland = Hyprland;
-globalThis.Mpris = Mpris;
-globalThis.Network = Network;
-globalThis.Notifications = Notifications;
-globalThis.SystemTray = SystemTray;
+/**
+ * @param {import('types/@girs/gtk-3.0/gtk-3.0').Gtk.Window[]} windows
+  */
+function addWindows(windows) {
+  windows.forEach(win => App.addWindow(win));
+}
 
-exec(`sassc ${App.configDir}/scss/main.scss ${App.configDir}/style.css`);
+globalThis.monitorCounter = 0;
 
-const applyScss = () => {
-    // Compile scss
-    exec(`sassc ${App.configDir}/scss/main.scss ${App.configDir}/style.css`);
-    console.log("Scss compiled");
-
-    // Apply compiled css
-    App.resetCss();
-    App.applyCss(`${App.configDir}/style.css`);
-    console.log("Compiled css applied");
+globalThis.toggleBars = () => {
+  App.windows.forEach(win => {
+    if(win.name?.startsWith("bar")) {
+      App.toggleWindow(win.name);
+    }
+  });
 };
 
-DirectoryMonitorService.connect("changed", () => applyScss());
+function addMonitorWindows(monitor) {
+  addWindows([
+    Bar(monitor),
+    CornerTopleft(monitor),
+    CornerTopright(monitor),
+    CornerBottomleft(monitor),
+    CornerBottomright(monitor),
+  ]);
+  monitorCounter++;
+}
 
-export default {
-    style: `${App.configDir}/style.css`,
-    closeWindowDelay: {
-        sideright: 350,
-        launcher: 350,
-        bar0: 350,
-    },
-    windows: [
-        Bar(0),
-        Bar(1),
-        CornerTopleft(),
-        CornerTopright(),
-        CornerBottomleft(),
-        CornerBottomright(),
-        IndicatorWidget(),
-        Sidepanel(),
-        Launcher(),
-        PowerMenu(),
-        PopupNotifications(),
-    ],
-};
+idle(async () => {
+  addWindows([
+    IndicatorWidget(),
+    Quicksettings(),
+    await Launcher(),
+    PowerMenu(),
+    PopupNotifications(),
+  ]);
+
+  const display = Gdk.Display.get_default();
+  for (let m = 0;  m < display?.get_n_monitors();  m++) {
+    const monitor = display?.get_monitor(m);
+    addMonitorWindows(monitor);
+  }
+
+  display?.connect("monitor-added", (disp, monitor) => {
+    addMonitorWindows(monitor);
+  });
+
+  display?.connect("monitor-removed", (disp, monitor) => {
+    App.windows.forEach(win => {
+      if(win.gdkmonitor === monitor) App.removeWindow(win);
+    });
+  });
+
+
+});
+
+
+//config
+Notifications.popupTimeout = 5000;
+Notifications.forceTimeout = true;
+
+
+App.config({
+  style: "./style.css",
+  icons: "./modules/icons",
+  closeWindowDelay: {
+    sideright: 350,
+    quicksettings: 500,
+    launcher: 500,
+    session: 350,
+    indicator: 200,
+    popupNotifications: 200,
+  },
+});
+

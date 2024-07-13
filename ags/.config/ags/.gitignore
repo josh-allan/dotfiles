@@ -1,7 +1,9 @@
+keys.js
+style.css
+highlight.css
+lockstyle.css
 node_modules
 types
-eslint.config.mjs
-package.json
-package-lock.json
-tsconfig.json
-
+.idea
+.editorconfig
+*.css.map

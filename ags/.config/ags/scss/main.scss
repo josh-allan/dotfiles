@@ -1,28 +1,29 @@
-label,
-button,
-box,
-centerbox,
-window {
-  all: unset;
-  font-family: JetBrains Mono Light;
+@import "colors";
+
+
+* {
+  font-family: "CaskaydiaCove Nerd Font";
+  color: $on_surface;
 }
 
 //general
-@import "colors";
 @import "common";
 
 //modules
 @import "audio";
 @import "bar";
-// @import "battery";
+@import "chatGPT";
 @import "clock";
 @import "indicator";
 @import "launcher";
 @import "mpris";
+@import "network";
 @import "notifications";
 @import "powermenu";
+@import "quicksettings";
 @import "roundedCorner";
-@import "sidepanel";
 @import "systemtray";
 @import "title";
+@import "weather";
 @import "workspaces";
+
