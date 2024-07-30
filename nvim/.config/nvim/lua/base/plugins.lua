@@ -174,31 +174,31 @@ return {
 	{ "tpope/vim-fugitive" },
 	{ -- Fuzzy Finder (files, lsp, etc)
 		"nvim-telescope/telescope.nvim",
-		event = "VimEnter",
+	event = "VimEnter",
 		branch = "0.1.x",
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			{ -- If encountering errors, see telescope-fzf-native README for installation instructions
 				"nvim-telescope/telescope-fzf-native.nvim",
 
-				-- `build` is used to run some command when the plugin is installed/updated.
-				-- This is only run then, not every time Neovim starts up.
-				build = "make",
+			-- `build` is used to run some command when the plugin is installed/updated.
+			-- This is only run then, not every time Neovim starts up.
+			build = "make",
 
-				-- `cond` is a condition used to determine whether this plugin should be
-				-- installed and loaded.
-				cond = function()
-					return vim.fn.executable("make") == 1
-				end,
-			},
-			{ "nvim-telescope/telescope-ui-select.nvim" },
-
-			-- Useful for getting pretty icons, but requires a Nerd Font.
-			{ "nvim-tree/nvim-web-devicons", enabled = vim.g.have_nerd_font },
+			-- `cond` is a condition used to determine whether this plugin should be
+			-- installed and loaded.
+			cond = function()
+				return vim.fn.executable("make") == 1
+			end,
 		},
-		config = function()
-			require("configs.telescope")
-		end,
+		{ "nvim-telescope/telescope-ui-select.nvim" },
+
+		-- Useful for getting pretty icons, but requires a Nerd Font.
+		{ "nvim-tree/nvim-web-devicons", enabled = vim.g.have_nerd_font },
+	},
+	config = function()
+		require("configs.telescope")
+	end,
 	},
 
 	{ -- LSP Configuration & Plugins
@@ -543,36 +543,36 @@ return {
 		opts = {},
 	},
 	-- jsbeautify
-	{ "maksimr/vim-jsbeautify", event = "FuncUndefined" },
-	{
-		"epwalsh/obsidian.nvim",
-		version = "*",
-		lazy = true,
-		ft = "markdown",
-		dependencies = "nvim-lua/plenary.nvim",
-		config = function()
-			require("configs.obsidian")
-		end,
-	},
-
-	require("configs.debug"),
-	require("configs.lint"),
-}, {
-	ui = {
-		icons = vim.g.have_nerd_font and {} or {
-			cmd = "⌘",
-			config = "🛠",
-			event = "📅",
-			ft = "📂",
-			init = "⚙",
-			keys = "🗝",
-			plugin = "🔌",
-			runtime = "💻",
-			require = "🌙",
-			source = "📄",
-			start = "🚀",
-			task = "📌",
-			lazy = "💤 ",
-		},
-	},
+	 { "maksimr/vim-jsbeautify", event = "FuncUndefined" },
+ {
+	 	"epwalsh/obsidian.nvim",
+	 	version = "*",
+	 	lazy = true,
+	 	ft = "markdown",
+	 	dependencies = "nvim-lua/plenary.nvim",
+	 	config = function()
+	 		require("configs.obsidian")
+	 	end,
+	 },
+	--
+	 require("configs.debug"),
+	 require("configs.lint"),
 }
+-- }, {
+-- 	ui = {
+-- 		icons = vim.g.have_nerd_font and {} or {
+-- 			cmd = "⌘",
+-- 			config = "🛠",
+-- 			event = "📅",
+-- 			ft = "📂",
+-- 			init = "⚙",
+-- 			keys = "🗝",
+-- 			plugin = "🔌",
+-- 			runtime = "💻",
+-- 			require = "🌙",
+-- 			source = "📄",
+-- 			start = "🚀",
+-- 			task = "📌",
+-- 			lazy = "💤 ",
+-- 		},
+  -- 		}
