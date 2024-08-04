@@ -1,4 +1,7 @@
 return {
+	require("configs.debug"),
+	-- require("configs.lint"),
+
 	{
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
 		dependencies = {
@@ -174,31 +177,31 @@ return {
 	{ "tpope/vim-fugitive" },
 	{ -- Fuzzy Finder (files, lsp, etc)
 		"nvim-telescope/telescope.nvim",
-	event = "VimEnter",
+		event = "VimEnter",
 		branch = "0.1.x",
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			{ -- If encountering errors, see telescope-fzf-native README for installation instructions
 				"nvim-telescope/telescope-fzf-native.nvim",
 
-			-- `build` is used to run some command when the plugin is installed/updated.
-			-- This is only run then, not every time Neovim starts up.
-			build = "make",
+				-- `build` is used to run some command when the plugin is installed/updated.
+				-- This is only run then, not every time Neovim starts up.
+				build = "make",
 
-			-- `cond` is a condition used to determine whether this plugin should be
-			-- installed and loaded.
-			cond = function()
-				return vim.fn.executable("make") == 1
-			end,
+				-- `cond` is a condition used to determine whether this plugin should be
+				-- installed and loaded.
+				cond = function()
+					return vim.fn.executable("make") == 1
+				end,
+			},
+			{ "nvim-telescope/telescope-ui-select.nvim" },
+
+			-- Useful for getting pretty icons, but requires a Nerd Font.
+			{ "nvim-tree/nvim-web-devicons", enabled = vim.g.have_nerd_font },
 		},
-		{ "nvim-telescope/telescope-ui-select.nvim" },
-
-		-- Useful for getting pretty icons, but requires a Nerd Font.
-		{ "nvim-tree/nvim-web-devicons", enabled = vim.g.have_nerd_font },
-	},
-	config = function()
-		require("configs.telescope")
-	end,
+		config = function()
+			require("configs.telescope")
+		end,
 	},
 
 	{ -- LSP Configuration & Plugins
@@ -543,36 +546,69 @@ return {
 		opts = {},
 	},
 	-- jsbeautify
-	 { "maksimr/vim-jsbeautify", event = "FuncUndefined" },
- {
-	 	"epwalsh/obsidian.nvim",
-	 	version = "*",
-	 	lazy = true,
-	 	ft = "markdown",
-	 	dependencies = "nvim-lua/plenary.nvim",
-	 	config = function()
-	 		require("configs.obsidian")
-	 	end,
-	 },
-	--
-	 require("configs.debug"),
-	 require("configs.lint"),
+	{ "maksimr/vim-jsbeautify", event = "FuncUndefined" },
+	{
+		"epwalsh/obsidian.nvim",
+		version = "*",
+		lazy = true,
+		ft = "markdown",
+		dependencies = "nvim-lua/plenary.nvim",
+		config = function()
+			require("configs.obsidian")
+		end,
+	},
+	{
+		"ThePrimeagen/harpoon",
+		branch = "harpoon2",
+		dependencies = { "nvim-lua/plenary.nvim" },
+		config = function()
+			require("configs.harpoon")
+		end,
+	},
+	{
+		"MeanderingProgrammer/markdown.nvim",
+		main = "render-markdown",
+		opts = {},
+		name = "render-markdown", -- Only needed if you have another plugin named markdown.nvim
+		dependencies = { "nvim-treesitter/nvim-treesitter", "echasnovski/mini.nvim" }, -- if you use the mini.nvim suite
+	},
+	{
+		{
+			"folke/trouble.nvim",
+			opts = {}, -- for default options, refer to the configuration section for custom setup.
+			cmd = "Trouble",
+			keys = {
+				{
+					"<leader>xx",
+					"<cmd>Trouble diagnostics toggle<cr>",
+					desc = "Diagnostics (Trouble)",
+				},
+				{
+					"<leader>xX",
+					"<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+					desc = "Buffer Diagnostics (Trouble)",
+				},
+				{
+					"<leader>cs",
+					"<cmd>Trouble symbols toggle focus=false<cr>",
+					desc = "Symbols (Trouble)",
+				},
+				{
+					"<leader>cl",
+					"<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
+					desc = "LSP Definitions / references / ... (Trouble)",
+				},
+				{
+					"<leader>xL",
+					"<cmd>Trouble loclist toggle<cr>",
+					desc = "Location List (Trouble)",
+				},
+				{
+					"<leader>xQ",
+					"<cmd>Trouble qflist toggle<cr>",
+					desc = "Quickfix List (Trouble)",
+				},
+			},
+		},
+	},
 }
--- }, {
--- 	ui = {
--- 		icons = vim.g.have_nerd_font and {} or {
--- 			cmd = "⌘",
--- 			config = "🛠",
--- 			event = "📅",
--- 			ft = "📂",
--- 			init = "⚙",
--- 			keys = "🗝",
--- 			plugin = "🔌",
--- 			runtime = "💻",
--- 			require = "🌙",
--- 			source = "📄",
--- 			start = "🚀",
--- 			task = "📌",
--- 			lazy = "💤 ",
--- 		},
-  -- 		}
