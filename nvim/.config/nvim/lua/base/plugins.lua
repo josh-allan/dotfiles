@@ -511,15 +511,16 @@ return {
 		opts = {
 			ensure_installed = {
 				"bash",
-				"c",
 				"go",
 				"html",
 				"hcl",
+				"javascript",
 				"lua",
 				"luadoc",
 				"markdown",
 				"python",
 				"terraform",
+				"typescript",
 				"vim",
 				"vimdoc",
 			},
