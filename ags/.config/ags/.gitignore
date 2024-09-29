@@ -1,9 +1,2 @@
-keys.js
-style.css
-highlight.css
-lockstyle.css
-node_modules
-types
-.idea
-.editorconfig
-*.css.map
+@girs/
+node_modules/

@@ -1,20 +1,25 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ES2022",
-    "lib": [
-      "ES2022"
-    ],
-    "allowJs": true,
-    "checkJs": true,
-    "strict": true,
-    "noImplicitAny": false,
-    "baseUrl": ".",
-    "typeRoots": [
-      "./node_modules/@girs",
-      "./types"
-    ],
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
-  }
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "compilerOptions": {
+        "target": "ES2023",
+        "module": "ES2022",
+        "lib": [
+            "ES2023"
+        ],
+        "strict": true,
+        "moduleResolution": "Bundler",
+        "skipLibCheck": true,
+        "checkJs": true,
+        "allowJs": true,
+        "jsx": "react-jsx",
+        "jsxImportSource": "/usr/share/astal/gjs/src/jsx",
+        "paths": {
+            "astal": [
+                "/usr/share/astal/gjs"
+            ],
+            "astal/*": [
+                "/usr/share/astal/gjs/src/*"
+            ]
+        },
+    }
 }
