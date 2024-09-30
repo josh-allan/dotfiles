@@ -1,20 +1,11 @@
 // Styles
 .battery-container {
-  background-color: $primary_bg_t;
-  overflow: hidden;
+  background-color: $surface;
+  font-size: 1.2rem;
 }
 
 .battery-inner {
-  width: 100%;
-  height: 100%;
-  background-color: $primary_bg_t;
+  background-color: $primary;
+  font-size: 1.9rem;
 }
 
-// Example usage
-.example-battery {
-  @extend .battery-container;
-
-  .battery-inner {
-    width: 80%; // Adjust this value based on battery level
-  }
-}
