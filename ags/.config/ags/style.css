@@ -36,7 +36,7 @@ textview text selection {
 entry {
   border-radius: 1rem;
   margin-bottom: 5px;
-  padding: 8px;
+  padding: 10px;
   border: 1px solid #8e9099;
 }
 entry:focus {
@@ -164,7 +164,17 @@ spinbutton button.down {
 }
 
 .bar-revealer {
-  min-height: 2px;
+  min-height: 4px;
+}
+
+.battery-container {
+  background-color: #111318;
+  font-size: 1.2rem;
+}
+
+.battery-inner {
+  background-color: #abc7ff;
+  font-size: 1.9rem;
 }
 
 .ai-container .settings-container {
@@ -587,7 +597,7 @@ spinbutton button.down {
   padding-left: 8px;
 }
 .title-container .title-box .title-class {
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: #abc7ff;
 }
 .title-container .title-box .title-title {
