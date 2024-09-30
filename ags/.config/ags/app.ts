@@ -1,11 +1,10 @@
+
 import { App } from "astal"
-import style from "inline:./style.css"
+import style from "./style.scss"
 import Bar from "./widget/Bar"
 
 App.start({
     css: style,
-    main() {
-        Bar(0)
-        // Bar(1) // initialize other monitors
-    },
+    main: () => App.get_monitors().map(Bar),
 })
+
