@@ -7,10 +7,10 @@ if wezterm.config_builder then
 	config = wezterm.config_builder()
 end
 
-config.font_size = 14.0
+config.font_size = 12.0
 config.line_height = 1.2
 
-config.window_decorations = "RESIZE"
+-- config.window_decorations = "RESIZE"
 config.initial_rows = 45
 config.initial_cols = 200
 
@@ -33,6 +33,7 @@ config.font = wezterm.font("JetBrains Mono", { weight = "Bold" })
 config.color_scheme = "Tokyo Night"
 config.colors = require("color")
 config.window_background_opacity = 0.8
+config.enable_wayland = false
 --config.macos_window_background_blur = 75
 
 local function tab_title(tab_info)
