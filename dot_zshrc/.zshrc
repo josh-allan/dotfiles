@@ -1,24 +1,23 @@
-# Set some specific MacOS variables
-if [[ "$OSTYPE" =~ ^darwin ]]; then
-
-    path+=('/Users/$USERNAME/.local/bin','')
-    export GOPATH=$HOME/dev/go
-    export WEZPATH="$PATH:/Applications/WezTerm.app/Contents/MacOS"
-    export PATH=/Library/Frameworks/Python.framework/Versions/3.10/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:/Users/$USERNAME/.local/bin:/Users/$USERNAME/Documents/git/devbox/modules/cli/bin:/Users/$USERNAME/Documents/git/devbox/cli/bin:~/bin:$GOROOT/bin:$GOPATH/bin:/Users/$USERNAME/.cargo/bin:$WEZPATH/bin
-
-elif [[ "$OSTYPE" =~ ^linux ]]; then
-
-    export PATH=/home/josh/.nvm/versions/node/v18.16.0/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/home/josh/git/devbox/cli/bin:/home/josh/bin:/home/josh/git/devbox/modules/cli/bin:/cli/bin:/home/josh/bin:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/cli/bin:~/bin:$PATH
-    export PATH=$PATH:/home/josh/.spicetify
-    source /usr/share/nvm/init-nvm.sh
-
-    # SSH in terminals are broken now for some reason, this fixes it
-    export TERM=ansi
-
-    export PATH="$PATH:/home/josh/.local/bin"
-
-fi 
-
+# # Set some specific MacOS variables
+# if [[ "$OSTYPE" =~ ^darwin ]]; then
+#
+#     path+=('/Users/$USERNAME/.local/bin','')
+#     export GOPATH=$HOME/dev/go
+#     export WEZPATH="$PATH:/Applications/WezTerm.app/Contents/MacOS"
+#     export PATH=/Library/Frameworks/Python.framework/Versions/3.10/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:/Users/$USERNAME/.local/bin:/Users/$USERNAME/Documents/git/devbox/modules/cli/bin:/Users/$USERNAME/Documents/git/devbox/cli/bin:~/bin:$GOROOT/bin:$GOPATH/bin:/Users/$USERNAME/.cargo/bin:$WEZPATH/bin
+#
+# elif [[ "$OSTYPE" =~ ^linux ]]; then
+#
+#     export PATH=$PATH:/home/josh/.spicetify
+#     source /usr/share/nvm/init-nvm.sh
+#
+#     # SSH in terminals are broken now for some reason, this fixes it
+#     export TERM=ansi
+#
+#     export PATH="$PATH:/home/josh/.local/bin"
+#
+# fi 
+#
 
 zstyle :compinstall filename '/home/josh/.zshrc'
 
@@ -77,6 +76,7 @@ alias dk='ssh desktop'
 alias ga="git add ."
 alias gc='git commit -m' #git committer
 alias gco='git checkout'
+alias gcob='git checkout -b'
 alias gp='git push' #git pusher
 alias goimports='goimports-reviser'
 alias grep='rg'
@@ -191,7 +191,7 @@ function ex ()
 
 function addToPath() {
     if [[ "$PATH" != *"$1"* ]]; then
-        export PATH=$PATH:$1
+        export PATH=$PATH:$1 >> ~/.zshrc
     fi
 }
 
@@ -223,6 +223,9 @@ zstyle ':vcs_info:git:*' formats 'on %b'
 #set -x >> ~/shell_debug.log
 eval "$(zoxide init zsh --cmd cd)"
 
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export GOLONG_HOME=/home/josh/git/golong
+export PATH=/home/josh/.nvm/versions/node/v18.16.0/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/home/josh/git/devbox/cli/bin:/home/josh/bin:/home/josh/git/devbox/modules/cli/bin:/cli/bin:/home/josh/bin:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/cli/bin:/home/josh/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/usr/lib/rustup/bin:/home/josh/git/golong/cli/bin

@@ -95,7 +95,7 @@ class ChatGPTService extends Service {
     /** @type {ChatGPTMessage[]} */
     _messages = [];
     _decoder = new TextDecoder();
-    _model = "gpt-4o-mini";
+    _model = "gpt-4o";
     _temperature = 1;
     url = GLib.Uri.parse("https://api.openai.com/v1/chat/completions", GLib.UriFlags.NONE);
 
@@ -108,7 +108,7 @@ class ChatGPTService extends Service {
 
     getModels() {
         return [
-            "gpt-4o-mini",
+            "gpt-4o",
             "gpt-4-turbo",
             "gpt-3.5-turbo"
         ];
