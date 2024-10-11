@@ -15,6 +15,7 @@ Dotfiles repository that contains all of my configs.
 - There's some cruftiness involved to get the powerlevel10k fonts installed correctly, see `https://dane-bulat.medium.com/powerline-on-linux-an-integration-guide-c097831106f6.`
 - zsh and powerlevel10k: `https://davidtsadler.com/posts/arch/2020-09-07/installing-zsh-and-powerlevel10k-on-arch-linux/`
 - Some liberties and scripts have been borrowed from @Viqueen's Devbox repo and added into `.zshrc`
+- Some credit to @macintacos ffor a helpful neovim keybinds remapping helper function
 
 ## Custom services
 
