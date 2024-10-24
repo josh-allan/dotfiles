@@ -167,7 +167,7 @@ eval "$(starship init zsh)"
 
 # ex - archive extractor
 # usage: ex <file>
-function ex ()
+function extract ()
 {
   if [ -f $1 ] ; then
     case $1 in
