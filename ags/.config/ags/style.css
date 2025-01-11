@@ -97,7 +97,7 @@ scale highlight {
   background-color: #abc7ff;
 }
 scale:disabled highlight {
-  background-color: #303746;
+  background-color: rgb(47.8, 55, 70.2);
 }
 
 combobox arrow {
@@ -112,7 +112,7 @@ combobox button.combo {
   color: #e2e2e9;
 }
 combobox button.combo:hover {
-  background-color: #23262a;
+  background-color: rgb(35.05, 37.9, 42.05);
 }
 
 spinbutton {
@@ -556,7 +556,7 @@ spinbutton button.down {
   font-weight: bold;
 }
 .quicksettings .qs-menu .qs-content .terminal {
-  color: #627290;
+  color: rgb(98, 113.5, 143.5);
   background-color: #191c20;
 }
 .quicksettings .qs-menu .qs-content .terminal:active {
