@@ -1,30 +1,16 @@
-# # Set some specific MacOS variables
-# if [[ "$OSTYPE" =~ ^darwin ]]; then
-#
-#     path+=('/Users/$USERNAME/.local/bin','')
-#     export GOPATH=$HOME/dev/go
-#     export WEZPATH="$PATH:/Applications/WezTerm.app/Contents/MacOS"
-#     export PATH=/Library/Frameworks/Python.framework/Versions/3.10/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:/Users/$USERNAME/.local/bin:/Users/$USERNAME/Documents/git/devbox/modules/cli/bin:/Users/$USERNAME/Documents/git/devbox/cli/bin:~/bin:$GOROOT/bin:$GOPATH/bin:/Users/$USERNAME/.cargo/bin:$WEZPATH/bin
-#
-# elif [[ "$OSTYPE" =~ ^linux ]]; then
-#
-#     export PATH=$PATH:/home/josh/.spicetify
-#     source /usr/share/nvm/init-nvm.sh
-#
-#     # SSH in terminals are broken now for some reason, this fixes it
-#     export TERM=ansi
-#
-#     export PATH="$PATH:/home/josh/.local/bin"
-#
-# fi 
-#
+# uncomment if profiling is needed
+#zmodload zsh/zprof
 
-zstyle :compinstall filename '/home/josh/.zshrc'
 
+zstyle :compinstall filename '$HOME/.zshrc'
+# fix slow shell loads 
 autoload -Uz compinit
-compinit
+ for dump in ~/.zcompdump(N.mh+24); do
+   compinit
+ done
+ compinit -C
 
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 
 autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search
@@ -89,6 +75,7 @@ alias mktar='tar -czvf'
 alias reload='source ~/.zshrc' #reload the shell config
 alias sdn='shutdown now'
 alias sdr='sudo reboot now'
+alias tf='terraform'
 alias tree='eza -Tlh --git'
 alias updt='sudo aura -Syu && sudo -aura -Auax'
 alias vim='nvim' #replace vim with neovim
@@ -205,27 +192,28 @@ export editor='nvim'
 export SUDO_EDITOR="nvim"
 alias "sudoedit"='function _sudoedit(){sudo -e "$1";};_sudoedit'
 
-# Commenting this out while I trial hyprland. May no longer be needed..
-#export SWAYSOCK=$(gawk 'BEGIN {RS="\0"; FS="="} $1 == "SWAYSOCK" {print $2}' /proc/$(pgrep -o swaybg)/environ)
 
-# # Git prompt so I know what branch I'm on.
-# # Load version control information
- autoload -Uz vcs_info
- precmd() { vcs_info }
-
-# Format the vcs_info_msg_0_ variable
-zstyle ':vcs_info:git:*' formats 'on %b'
-
-# Set up the prompt (with git branch name)
-#PROMPT='%n in ${PWD/#$HOME/~} RPROMPT=\$vcs_info_msg_0_
-#%# '
-
-#set -x >> ~/shell_debug.log
 eval "$(zoxide init zsh --cmd cd)"
 
+export GPG_TTY=$(tty)
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-export GOLONG_HOME=/home/josh/git/golong
-export PATH=/home/josh/.nvm/versions/node/v18.16.0/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/home/josh/git/devbox/cli/bin:/home/josh/bin:/home/josh/git/devbox/modules/cli/bin:/cli/bin:/home/josh/bin:/home/josh/.local/bin:/home/josh/.spicetify:/home/josh/git/devbox/modules/cli/bin:/cli/bin:/home/josh/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/usr/lib/rustup/bin:/home/josh/git/golong/cli/bin
+function nvm() {
+  echo "NVM not loaded! Loading now..."
+  unset -f nvm
+  export NVM_PREFIX="$HOME/.nvm"
+  [ -s "$NVM_PREFIX/nvm.sh" ] && . "$NVM_PREFIX/nvm.sh"
+  nvm "$@"
+}
+
+zstyle ':completion:*' menu select
+fpath+=~/.zfunc
+
+path+=('/Users/$USERNAME/.local/bin','')
+export GOPATH=$HOME/dev/go
+export WEZPATH="$PATH:/Applications/WezTerm.app/Contents/MacOS"
+export PATH=/Library/Frameworks/Python.framework/Versions/3.10/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:/Users/$USERNAME/.local/bin:/Users/$USERNAME/Documents/git/devbox/modules/cli/bin:/Users/$USERNAME/Documents/git/devbox/cli/bin:~/bin:$GOROOT/bin:$GOPATH/bin:/Users/$USERNAME/.cargo/bin:$WEZPATH/bin
+alias brew='env PATH="${PATH//$(pyenv root)\/shims:/}" brew'
+
+# uncomment if profiling is needed
+#zprof
+
