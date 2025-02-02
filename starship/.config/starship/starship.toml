@@ -1,17 +1,3 @@
-# format = """
-# [░▒▓](#a3aed2)\
-# [](bg:#769ff0 fg:#a3aed2)\
-# $directory\
-# [](fg:#769ff0 bg:#394260)\
-# $git_branch\
-# $git_status\
-# $python\
-# [](fg:#394260 bg:#212736)\
-# $nodejs\
-# $rust\
-# $golang\
-# """
-#
 right_format = """
 $time\
 """
@@ -19,6 +5,8 @@ $time\
 "$schema" = 'https://starship.rs/config-schema.json'
 
 add_newline = true
+
+command_timeout = 3000
 
 [character]
 success_symbol = '[➜](bold blue)'
@@ -49,9 +37,14 @@ format = "on [$symbol $branch(:remote_branch)]($style) "
 
 [git_status]
 modified = "[!$count ](style)"
-format = '[[($all_status$ahead_behind )]($style)]($style)'
+format = "[$ahead_behind$modified$untracked$stashed$conflicted$renamed$deleted]($style)"
 style = "green bold"
 
+[java]
+disabled = true
+
+[package]
+disabled = true
 
 [nodejs]
 disabled = true
@@ -63,6 +56,9 @@ format = '[($virtualenv )]($style)($style)'
 disabled = true
 
 [golang]
+disabled = true
+
+[terraform]
 disabled = true
 
 [time]
