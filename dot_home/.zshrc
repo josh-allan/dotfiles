@@ -190,6 +190,9 @@ export EDITOR='nvim'
 export SUDO_EDITOR="nvim"
 alias "sudoedit"='function _sudoedit(){sudo -e "$1";};_sudoedit'
 
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init - zsh)"
 
 eval "$(zoxide init zsh --cmd cd)"
 
@@ -211,7 +214,5 @@ export GOPATH=$HOME/dev/go
 export WEZPATH="$PATH:/Applications/WezTerm.app/Contents/MacOS"
 export PATH=/Library/Frameworks/Python.framework/Versions/3.10/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:/Users/$USERNAME/.local/bin:/Users/$USERNAME/Documents/git/devbox/modules/cli/bin:/Users/$USERNAME/Documents/git/devbox/cli/bin:~/bin:$GOROOT/bin:$GOPATH/bin:/Users/$USERNAME/.cargo/bin:$WEZPATH/bin
 alias brew='env PATH="${PATH//$(pyenv root)\/shims:/}" brew'
-
 # uncomment if profiling is needed
 #zprof
-
