@@ -186,7 +186,7 @@ function addToPathFront() {
     fi
 }
 
-export editor='nvim'
+export EDITOR='nvim'
 export SUDO_EDITOR="nvim"
 alias "sudoedit"='function _sudoedit(){sudo -e "$1";};_sudoedit'
 

@@ -15,9 +15,10 @@ set timeoutlen=5000
 set undolevels=10000
 set backspace=indent,eol,start
 set formatoptions=tcqj
-set listchars=tab:>\ ,trail:-,nbsp:+
+set list listchars=tab:▷\ ,trail:×,extends:◣,precedes:◢,nbsp:○
 set shortmess=filnxtToOF
 set clipboard=unnamedplus
+
 
 " Plugins
 set surround
