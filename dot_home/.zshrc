@@ -57,6 +57,8 @@ alias cddd='cd ../../'
 alias cls='clear' #linux clear screen functionality
 alias diskspace='~/diskspace.sh'
 alias dk='ssh desktop'
+alias find='fd'
+alias fzf="fzf --style full --preview 'fzf-preview.sh {}' --bind 'enter:become(nvim {})'"
 alias ga="git add ."
 alias gc='git commit -m' #git committer
 alias gco='git checkout'
@@ -216,3 +218,4 @@ export PATH=/Library/Frameworks/Python.framework/Versions/3.10/bin:/opt/homebrew
 alias brew='env PATH="${PATH//$(pyenv root)\/shims:/}" brew'
 # uncomment if profiling is needed
 #zprof
+
