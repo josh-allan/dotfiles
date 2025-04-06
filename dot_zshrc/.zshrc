@@ -82,6 +82,8 @@ alias goimports='goimports-reviser'
 alias grep='rg'
 alias h='history | grep' #history grepper
 alias hl="dbus-launch Hyprland"
+alias jvim="NVIM_APPNAME=jvim nvim"
+alias vim="NVIM_APPNAME=lvim nvim"
 alias ll='eza -lh'
 alias ls='eza -lah'
 alias mkdir='mkdir -pv' #make parent directory in verbose mode
@@ -91,7 +93,6 @@ alias sdn='shutdown now'
 alias sdr='sudo reboot now'
 alias tree='eza -Tlh --git'
 alias updt='sudo aura -Syu && sudo -aura -Auax'
-alias vim='nvim' #replace vim with neovim
 alias yeet='sudo reboot now'
 
 # CD Aliases:
@@ -161,6 +162,7 @@ function fetch() {
 function forcekill() {
     kill `ps ax | grep -i $1 | awk '{ print $1 }'`
 }
+
 
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
 eval "$(starship init zsh)"
