@@ -1,54 +1,67 @@
-format = """
-[░▒▓](#a3aed2)\
-[](bg:#769ff0 fg:#a3aed2)\
-$directory\
-[](fg:#769ff0 bg:#394260)\
-$git_branch\
-$git_status\
-$python\
-[](fg:#394260 bg:#212736)\
-$nodejs\
-$rust\
-$golang\
-"""
-
 right_format = """
 $time\
-[ ](fg:#1d2230)\
 """
 
-[directory]
-style = "fg:#e3e5e5 bg:#769ff0"
-format = "[ $path ]($style)"
-truncate_to_repo = false
+"$schema" = 'https://starship.rs/config-schema.json'
 
-[directory.substitutions]
-"Documents" = "󰈙 "
-"Downloads" = " "
-"Music" = " "
-"Pictures" = " "
+add_newline = true
+
+command_timeout = 3000
+
+[character]
+success_symbol = '[➜](bold blue)'
+
+[aws]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[username]
+style_user = "blue bold"
+show_always = true
+format = "[$user]($style) "
+disabled = false
+#
+# [hostname]
+# ssh_only = false
+# style = "white  bold"
+
+[directory]
+format = "[$path ]($style)"
+truncate_to_repo = true
 
 [git_branch]
 symbol = ""
-style = "bg:#394260"
-format = '[[ $symbol $branch ](fg:#769ff0 bg:#394260)]($style)'
+format = "on [$symbol $branch(:remote_branch)]($style) "
 
 [git_status]
-style = "bg:#394260"
-modified = "[!$count ](fg:#769ff0 bg:#394260)"
-format = '[[($all_status$ahead_behind )](fg:#769ff0 bg:#394260)]($style)'
+modified = "[!$count ](style)"
+format = "[$ahead_behind$modified$untracked$stashed$conflicted$renamed$deleted]($style)"
+style = "green bold"
+
+[java]
+disabled = true
+
+[package]
+disabled = true
 
 [nodejs]
-symbol = ""
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+disabled = true
 
 [python]
-style = "bg:#394260"
-format = '[($virtualenv )](fg:#769ff0 bg:#394260)($style)'
+format = '[($virtualenv )]($style)($style)'
+
+[lua]
+disabled = true
+
+[golang]
+disabled = true
+
+[terraform]
+disabled = true
 
 [time]
 disabled = false
-time_format = "%R"                                      # Hour:Minute Format
-style = "bg:#1d2230"
-format = '[[  $time ](fg:#a0a9cb bg:#1d2230)]($style)'
+time_format = "%R"            # Hour:Minute Format
+format = "at [$time](style) "
