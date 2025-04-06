@@ -68,6 +68,7 @@ alias goimports='goimports-reviser'
 alias grep='rg'
 alias h='history | grep' #history grepper
 alias hl="dbus-launch Hyprland"
+alias jvim="NVIM_APPNAME=jvim nvim"
 alias ll='eza -lh'
 alias ls='eza -lah'
 alias mkdir='mkdir -pv' #make parent directory in verbose mode
