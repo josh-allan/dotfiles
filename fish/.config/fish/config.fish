@@ -4,7 +4,6 @@ if status is-interactive
     end
 end
 
-source $__fish_config_dir/themes/nightfox.fish
-
 zoxide init fish --cmd cd | source
+direnv hook fish | source
 pyenv init - fish | source
