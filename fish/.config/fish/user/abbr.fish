@@ -11,3 +11,4 @@ abbr sdr 'sudo reboot now'
 abbr sdn 'shutdown now'
 abbr top btop
 abbr htop btop
+abbr jvim "NVIM_APPNAME=jvim nvim"
