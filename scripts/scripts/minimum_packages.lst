@@ -9,7 +9,6 @@ bluez
 bluez-tools
 bluez-utils
 btrfs-progs
-caprine
 dhcpcd
 dmenu
 efibootmgr
@@ -17,6 +16,7 @@ exa
 fakeroot
 feh
 firefox
+fish
 flameshot
 fuzzel
 gcc
@@ -24,6 +24,7 @@ git
 gnome-screenshot
 grub-btrfs
 hyprland
+hyprpanel
 i3-scrot
 i3-wm
 i3lock-color
@@ -37,6 +38,7 @@ linux
 linux-firmware
 make
 man-db
+mesa
 mlocate
 neovim
 networkmanager
@@ -53,7 +55,6 @@ python-pip
 ripgrep
 rofi
 rxvt-unicode
-signal-desktop
 sof-firmware
 stow
 sudo
