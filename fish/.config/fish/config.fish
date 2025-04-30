@@ -1,3 +1,5 @@
+set -g fish_greeting
+
 if status is-interactive
     for config in $__fish_config_dir/user/**/*.fish
         source $config
