@@ -13,8 +13,8 @@ This config is designed for Linux, however it will work for MacOS with some tink
 
 - Given this is primarily a Linux config:
 
-Step 1: `stow`
-Step 2: `pray`
+  - Step 1: `stow`
+  - Step 2: `pray`
 
 ## Kudos
 
