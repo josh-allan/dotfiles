@@ -6,8 +6,7 @@ Dotfiles repository that contains all of my configs.
 
 ---
 
-This config is designed for Linux, however it will work for MacOS with some tinkering
----
+## This config is designed for Linux, however it will mostly work for MacOS
 
 ---
 
