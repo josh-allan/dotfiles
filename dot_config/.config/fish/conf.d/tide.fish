@@ -4,7 +4,7 @@ set -g tide_prompt_icon_connection ' '
 set -g tide_prompt_min_cols 34
 set -g tide_prompt_pad_items true
 
-set -g tide_left_prompt_items pwd git character context newline
+set -g tide_left_prompt_items pwd git character newline
 set -g tide_pwd_bg_color 24283B
 set -g tide_pwd_color_anchors BB9AF7
 set -g tide_pwd_color_dirs BB9AF7
@@ -36,7 +36,7 @@ set -g tide_character_vi_icon_default '❮'
 set -g tide_character_vi_icon_replace '▶'
 set -g tide_character_vi_icon_visual V
 
-set -g tide_right_prompt_items python time
+set -g tide_right_prompt_items time context
 
 set -g tide_time_bg_color 1F202A
 set -g tide_time_color 7AA2F7
