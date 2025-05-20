@@ -1,4 +1,4 @@
-abbr vim "NVIM_APPNAME=nvim-monorepo/nvim nvim"
+abbr vim "NVIM_APPNAME=nvim-monorepo/jvim nvim"
 abbr cat bat # a better cat
 abbr cls clear
 abbr find fd # a better find
