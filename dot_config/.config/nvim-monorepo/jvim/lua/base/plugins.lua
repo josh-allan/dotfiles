@@ -5,8 +5,8 @@ return {
 	{
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
 		dependencies = {
-			{ "williamboman/mason.nvim", opts = true },
-			{ "williamboman/mason-lspconfig.nvim", opts = true },
+			{ "mason-org/mason.nvim", version = "^1.0.0", opts = true },
+			{ "mason-org/mason-lspconfig.nvim", version = "^1.0.0", opts = true },
 		},
 		opts = {
 			ensure_installed = {
@@ -20,6 +20,12 @@ return {
 				"taplo", -- LSP for toml (for pyproject.toml files)plugins
 			},
 		},
+	},
+
+	{
+		"mason-org/mason-lspconfig.nvim",
+		dependencies = { "neovim/nvim-lspconfig" },
+		opts = {},
 	},
 	-- "gc" to comment visual regions/lines
 	{
@@ -241,8 +247,8 @@ return {
 		"neovim/nvim-lspconfig",
 		dependencies = {
 			-- Automatically install LSPs and related tools to stdpath for Neovim
-			"williamboman/mason.nvim",
-			"williamboman/mason-lspconfig.nvim",
+			"mason-org/mason.nvim",
+			"mason-org/mason-lspconfig.nvim",
 			"WhoIsSethDaniel/mason-tool-installer.nvim",
 
 			-- Useful status updates for LSP.
@@ -424,7 +430,7 @@ return {
 		dependencies = {
 			"neovim/nvim-lspconfig",
 			"mfussenegger/nvim-dap",
-			"mfussenegger/nvim-dap-python", --optional
+			-- "mfussenegger/nvim-dap-python", --optional
 			{ "nvim-telescope/telescope.nvim", branch = "0.1.x", dependencies = { "nvim-lua/plenary.nvim" } },
 		},
 		lazy = false,
@@ -521,16 +527,16 @@ return {
 	-- Configuration for the python debugger
 	-- - configures debugpy for us
 	-- - uses the debugpy installation from mason
-	{
-		"mfussenegger/nvim-dap-python",
-		dependencies = "mfussenegger/nvim-dap",
-		config = function()
-			-- uses the debugypy installation by mason
-			local debugpyPythonPath = require("mason-registry").get_package("debugpy"):get_install_path()
-				.. "/venv/bin/python3"
-			require("dap-python").setup(debugpyPythonPath, {})
-		end,
-	},
+	-- {
+	-- 	"mfussenegger/nvim-dap-python",
+	-- 	dependencies = "mfussenegger/nvim-dap",
+	-- 	config = function()
+	-- 		-- uses the debugypy installation by mason
+	-- 		local debugpyPythonPath = require("mason-registry").get_package("debugpy"):get_install_path()
+	-- 			.. "/venv/bin/python3"
+	-- 		require("dap-python").setup(debugpyPythonPath, {})
+	-- 	end,
+	-- },
 	{ -- Collection of various small independent configs.modules
 		"echasnovski/mini.nvim",
 		config = function()
@@ -696,6 +702,21 @@ return {
 			opts = function()
 				require("configs.gopher")
 			end,
+		},
+		{
+			"github/copilot.vim",
+		},
+		{
+			"CopilotC-Nvim/CopilotChat.nvim",
+			dependencies = {
+				{ "github/copilot.vim" }, -- or zbirenbaum/copilot.lua
+				{ "nvim-lua/plenary.nvim", branch = "master" }, -- for curl, log and async functions
+			},
+			build = "make tiktoken", -- Only on MacOS or Linux
+			opts = {
+				-- See Configuration section for options
+			},
+			-- See Commands section for default commands if you want to lazy load on them
 		},
 	},
 }
