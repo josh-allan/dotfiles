@@ -6,6 +6,7 @@ ca-certificates
 expat
 eza
 fd
+fish
 fzf
 gettext
 gh
