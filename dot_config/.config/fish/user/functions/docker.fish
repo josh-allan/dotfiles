@@ -8,5 +8,5 @@ function dclean
 end
 
 function dockerupdate
-    docker-compose pull $(docker images --format '{{.Repository}}:{{.Tag}}' | sort -u)
+    docker-compose pull $(docker images --filter "dangling=false" --format "{{.Repository}}:{{.Tag}}" 2>/dev/null)
 end
