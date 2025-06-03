@@ -21,6 +21,7 @@ flameshot
 fuzzel
 gcc
 git
+go
 gnome-screenshot
 grub-btrfs
 hyprland
@@ -42,7 +43,7 @@ mesa
 mlocate
 neovim
 networkmanager
-node 
+node
 nvm
 openssh
 pavucontrol
