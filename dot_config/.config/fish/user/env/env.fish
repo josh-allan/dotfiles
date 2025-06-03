@@ -5,6 +5,7 @@ set -gx GOPRIVATE github.com/10gen
 set -gx PYENV_ROOT $HOME/.pyenv
 set -gx PIPX_DEFAULT_PYTHON (pyenv prefix)/bin/python
 set -gx GPG_TTY $(tty)
-set -gx KUBECONFIG "$HOME/.kube/config.prod:$HOME/.kube/config.staging"
+set -gx WORK_KUBECONFIG "$HOME/.kube/config.prod:$HOME/.kube/config.staging"
+set -gx KUBECONFIG "$HOME/.kube/config"
 
 set -gx VASA_HOME $HOME/.vasa

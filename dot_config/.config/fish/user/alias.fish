@@ -6,7 +6,8 @@ alias l='eza -lF --group-directories-first --icons --color-scale'
 alias ll='eza -laF --group-directories-first --icons --color-scale --git --time-style long-iso'
 alias tree='eza -F --group-directories-first --icons --color-scale --tree -L 2'
 alias reload='source ~/.config/fish/config.fish'
-alias fzf="fzf --style full --preview 'fzf-preview.sh {}' --bind 'enter:become(nvim {})'"
+alias fzf="fzf --style full --preview 'bat {}' --bind 'enter:become(nvim {})'"
+
 
 # CD Aliases:
 set GITLOCAL "$HOME/git"
