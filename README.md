@@ -27,4 +27,4 @@ This configuration is designed for Linux, however it will work for MacOS with so
 ---
 
 - @viqueen's Devbox repo, some scripts have been borrowed and added into `.zshrc`
-- @macintacos for some helpful neovim keybinds, and a remapping helper function
+- @macintacos for some helpful neovim keybinds, and a remapping helper function, plus some fish inspiration
