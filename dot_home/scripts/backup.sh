@@ -19,6 +19,7 @@ sudo rsync -aAXHv --one-file-system \
   --exclude='/run/*' \
   --exclude='/mnt/*' \
   --exclude='/media/*' \
+  --exclude='**/node_modules' \
   --exclude='/lost+found/' \
   --exclude='/defvol/_active/.snapshots/' \
   --exclude='defvol/_active/.snapshots' / "${BACKUP_DIR}/rootfs"
