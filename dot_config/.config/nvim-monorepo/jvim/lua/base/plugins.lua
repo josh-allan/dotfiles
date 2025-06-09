@@ -521,16 +521,16 @@ return {
 	-- Configuration for the python debugger
 	-- - configures debugpy for us
 	-- - uses the debugpy installation from mason
-	{
-		"mfussenegger/nvim-dap-python",
-		dependencies = "mfussenegger/nvim-dap",
-		config = function()
-			-- uses the debugypy installation by mason
-			local debugpyPythonPath = require("mason-registry").get_package("debugpy"):get_install_path()
-				.. "/venv/bin/python3"
-			require("dap-python").setup(debugpyPythonPath, {})
-		end,
-	},
+	-- {
+	-- 	"mfussenegger/nvim-dap-python",
+	-- 	dependencies = "mfussenegger/nvim-dap",
+	-- 	config = function()
+	-- 		-- uses the debugypy installation by mason
+	-- 		local debugpyPythonPath = require("mason-registry").get_package("debugpy"):get_install_path()
+	-- 			.. "/venv/bin/python3"
+	-- 		require("dap-python").setup(debugpyPythonPath, {})
+	-- 	end,
+	-- },
 	{ -- Collection of various small independent configs.modules
 		"echasnovski/mini.nvim",
 		config = function()
@@ -604,16 +604,16 @@ return {
 	},
 	-- jsbeautify
 	{ "maksimr/vim-jsbeautify", event = "FuncUndefined" },
-	{
-		"epwalsh/obsidian.nvim",
-		version = "*",
-		lazy = true,
-		ft = "markdown",
-		dependencies = "nvim-lua/plenary.nvim",
-		config = function()
-			require("configs.obsidian")
-		end,
-	},
+	-- {
+	-- 	"epwalsh/obsidian.nvim",
+	-- 	version = "*",
+	-- 	lazy = true,
+	-- 	ft = "markdown",
+	-- 	dependencies = "nvim-lua/plenary.nvim",
+	-- 	config = function()
+	-- 		require("configs.obsidian")
+	-- 	end,
+	-- },
 	{
 		"ThePrimeagen/harpoon",
 		branch = "harpoon2",
