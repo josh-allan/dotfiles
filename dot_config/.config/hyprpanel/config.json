@@ -456,5 +456,8 @@
   "theme.bar.menus.popover.scaling": 80,
   "theme.bar.buttons.enableBorders": true,
   "bar.workspaces.monitorSpecific": false,
-  "bar.workspaces.numbered_active_indicator": "highlight"
+  "bar.workspaces.numbered_active_indicator": "highlight",
+  "bar.customModules.storage.paths": [
+    "/"
+  ]
 }
