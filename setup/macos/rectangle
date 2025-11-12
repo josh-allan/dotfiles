@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+defaults write com.knollsoft.Hookshot almostMaximizeHeight -float 0.85
+defaults write com.knollsoft.Hookshot almostMaximizeWidth -float 0.85
