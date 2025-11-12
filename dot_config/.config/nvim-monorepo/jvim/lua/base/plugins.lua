@@ -86,8 +86,6 @@ return {
 			})
 		end,
 	},
-
-<<<<<<< HEAD
 	-- {
 	-- 	"pwntester/octo.nvim",
 	-- 	requires = {
@@ -100,20 +98,6 @@ return {
 	-- 		require("configs.octo")
 	-- 	end,
 	-- },
-=======
-	{
-		"pwntester/octo.nvim",
-		requires = {
-			"nvim-lua/plenary.nvim",
-			"nvim-telescope/telescope.nvim",
-			-- OR 'ibhagwan/fzf-lua',
-			"nvim-tree/nvim-web-devicons",
-		},
-		config = function()
-			require("configs.octo")
-		end,
-	},
->>>>>>> origin
 	{
 		"sindrets/diffview.nvim",
 		cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewToggleFiles", "DiffviewFocusFiles" },
