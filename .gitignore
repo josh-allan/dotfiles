@@ -1,2 +1,8 @@
 fish_variables
+<<<<<<< HEAD
 venv*
+=======
+
+.env
+venv/
+>>>>>>> origin
