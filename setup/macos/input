@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+export PATH="$CHEZMOI_WORKING_TREE/setup:$CHEZMOI_WORKING_TREE/scripts:$PATH"
+
+# ----------------------------- Input Management ----------------------------- #
+
+log info "Changing input things..."
+
+log info "Trackpad: enable tap to click for this user and for the login screen"
+(
+  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+  defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+  defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+)
+
+log info "Keyboard: allow holding keys to repeat characters indefinitely"
+defaults write -g ApplePressAndHoldEnabled -bool false
+
+log info "Keyboard: Disable 'ctrl-cmd-d' shortcut for invoking the dictionary"
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
