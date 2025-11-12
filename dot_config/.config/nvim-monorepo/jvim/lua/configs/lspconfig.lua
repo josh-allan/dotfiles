@@ -98,7 +98,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			})
 		end
 	end,
-	require("lspconfig").marksman.setup({}),
+	-- vim.lsp.config("lspconfig").marksman.setup({}),
 })
 
 -- LSP servers and clients are able to communicate to each other what features they support.
@@ -193,7 +193,7 @@ require("mason-lspconfig").setup({
 			-- by the server configuration above. Useful when disabling
 			-- certain features of an LSP (for example, turning off formatting for tsserver)
 			server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
-			require("lspconfig")[server_name].setup(server)
+			-- vim.lsp.config("lspconfig")[server_name].setup(server)
 		end,
 	},
 })

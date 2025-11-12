@@ -1,3 +1,4 @@
+set -gx DOTFILES $HOME/.dotfiles
 set -gx FISH_HOME $HOME/.config/fish
 set -gx BAT_THEME Dracula
 set -gx SUDO_EDITOR nvim
