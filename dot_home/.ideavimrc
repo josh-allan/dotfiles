@@ -1,0 +1,158 @@
+" ~/.ideavimrc
+
+" Set leader keys
+let mapleader=" "
+let maplocalleader="\\"
+
+" General settings
+set formatoptions=jcroqlnt
+set number
+set relativenumber
+set scrolloff=4
+set shiftround
+set sidescrolloff=8
+set timeoutlen=5000
+set undolevels=10000
+set backspace=indent,eol,start
+set formatoptions=tcqj
+set list listchars=tab:▷\ ,trail:×,extends:◣,precedes:◢,nbsp:○
+set shortmess=filnxtToOF
+set clipboard=unnamedplus
+
+
+" Plugins
+set surround
+set multiple-cursors
+set commentary
+set argtextobj
+set easymotion
+set textobj-entire
+set ReplaceWithRegister
+set which-key
+set matchit
+
+""" Plugin settings -------------------------
+let g:argtextobj_pairs="[:],(:),<:>"
+
+""" Idea specific settings ------------------
+set ideajoin
+set ideastatusicon=gray
+set idearefactormode=keep
+
+""" Mappings --------------------------------
+map <leader>f <Plug>(easymotion-s)
+map <leader>e <Plug>(easymotion-f)
+
+map <leader>d <Action>(Debug)
+map <leader>r <Action>(RenameElement)
+map <leader>c <Action>(Stop)
+map <leader>z <Action>(ToggleDistractionFreeMode)
+
+map <leader>s <Action>(SelectInProjectView)
+map <leader>a <Action>(Annotate)
+map <leader>h <Action>(Vcs.ShowTabbedFileHistory)
+map <S-Space> <Action>(GotoNextError)
+
+map <leader>b <Action>(ToggleLineBreakpoint)
+map <leader>o <Action>(FileStructurePopup)
+
+" Map \r to the Reformat Code action
+map \r <Action>(ReformatCode)
+
+
+" Map \b to toggle the breakpoint on the current line
+map \b <Action>(ToggleLineBreakpoint)
+
+
+" Key mappings
+inoremap jk <ESC>
+nmap <leader>sv <C-w>v
+nmap <leader>sh <C-w>s
+nmap <leader>se <C-w>=
+nmap <leader>sx :close<CR>
+
+nmap <leader>to :tabnew<CR>
+nmap <leader>tx :tabclose<CR>
+nmap <leader>tn :tabn<CR>
+nmap <leader>tp :tabp<CR>
+nmap <Esc> :nohlsearch<CR>
+
+nmap [d <Action>(GotoPreviousError)
+nmap ]d <Action>(GotoNextError)
+nmap <leader>e <Action>(ShowErrorDescription)
+nmap <leader>q <Action>(ShowErrorDescription)
+
+tmap <Esc><Esc> <C-\><C-n>
+
+nmap <left> :echo "Use h to move!!"<CR>
+nmap <right> :echo "Use l to move!!"<CR>
+nmap <up> :echo "Use k to move!!"<CR>
+nmap <down> :echo "Use j to move!!"<CR>
+
+nmap <S-h> <C-w>h
+nmap <S-l> <C-w>l
+nmap <S-j> <C-w>j
+nmap <S-k> <C-w>k
+
+nmap <C-,> <Action>(PreviousTab)
+nmap <C->> <Action>(NextTab)
+nmap <C-1> <Action>(GotoTab1)
+nmap <C-2> <Action>(GotoTab2)
+nmap <C-3> <Action>(GotoTab3)
+nmap <C-4> <Action>(GotoTab4)
+nmap <C-5> <Action>(GotoTab5)
+nmap <C-6> <Action>(GotoTab6)
+nmap <C-7> <Action>(GotoTab7)
+nmap <C-8> <Action>(GotoTab8)
+nmap <C-9> <Action>(GotoTab9)
+nmap <C-0> <Action>(GotoLastTab)
+nmap <C-p> <Action>(PinTab)
+nmap <C-c> <Action>(CloseTab)
+nmap <Space>bb <Action>(OrderTabsByBufferNumber)
+nmap <Space>bn <Action>(OrderTabsByName)
+nmap <Space>bd <Action>(OrderTabsByDirectory)
+nmap <Space>bl <Action>(OrderTabsByLanguage)
+nmap <Space>bw <Action>(OrderTabsByWindowNumber)
+
+nmap Y y$
+vmap y ygv<ESC>
+
+nmap < <gv
+nmap > >gv
+xmap < <gv
+xmap > >gv
+
+nmap <Leader>wt :%s/\s\+$//e<CR>
+
+nmap <leader>e <Action>(ToggleFileTree)
+nmap <C-n> <Action>(FocusFileTree)
+
+nmap <leader>sh <Action>(SearchHelp)
+nmap <leader>sk <Action>(SearchKeymaps)
+nmap <leader>ff <Action>(FindFiles)
+nmap <leader>sf <Action>(SelectTelescope)
+nmap <leader>sw <Action>(SearchCurrentWord)
+nmap <leader>sg <Action>(LiveGrep)
+nmap <leader>sd <Action>(SearchDiagnostics)
+nmap <leader>sr <Action>(ResumeSearch)
+nmap <leader>s. <Action>(SearchRecentFiles)
+nmap <leader><leader> <Action>(FindBuffers)
+
+nmap <leader>dc <Action>(DebugContinue)
+nmap <leader>di <Action>(DebugStepInto)
+nmap <leader>do <Action>(DebugStepOver)
+nmap <leader>db <Action>(DebugStepOut)
+nmap <leader>b <Action>(ToggleBreakpoint)
+nmap <leader>B :call input("Breakpoint condition: ")<CR>
+
+nmap <leader>gb :call MiniExtra.pickers.git_commits({ path = expand("%:p") })<CR>
+nmap <leader>gl :terminal lazygit<CR>
+nmap <leader>gp :terminal git pull<CR>
+nmap <leader>gs :terminal git push<CR>
+nmap <leader>ga :terminal git add .<CR>
+nmap <leader>gc :terminal git commit -m "Autocommit from nvim"<CR>
+nmap <F7> <Action>(ToggleDebugUI)
+
+nmap <leader>fz :call builtin.current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({ winblend = 10, previewer = false }))<CR>
+nmap <leader>s/ :call builtin.live_grep({ grep_open_files = true, prompt_title = "Live Grep in Open Files" })<CR>
+nmap <leader>sn :call builtin.find_files({ cwd = stdpath("config") })<CR>

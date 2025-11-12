@@ -28,7 +28,7 @@ disabled = false
 # style = "white  bold"
 
 [directory]
-format = "[$path ]($style)"
+format = "in [$path ]($style)"
 truncate_to_repo = true
 
 [git_branch]

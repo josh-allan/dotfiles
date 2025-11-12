@@ -1,4 +1,4 @@
-vim.g.snacks_animate = false
+vim.g.snacks_animate = true
 
 return {
   "folke/snacks.nvim",

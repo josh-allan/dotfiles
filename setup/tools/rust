@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+export PATH="$CHEZMOI_WORKING_TREE/setup:$CHEZMOI_WORKING_TREE/scripts:$PATH"
+
+log info "Installing Rust and its component pieces..."
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh

@@ -1,0 +1,116 @@
+/* hides the native tabs */
+#TabsToolbar {
+  visibility: collapse;
+}
+
+/* Some variables for quick configuration - play with numbers to find a perfect match for your setup */
+:root {
+    --sidebar-width: 7.9vw;
+    --panel-width: 91.5vw;
+    --panel-hide-offset: -30px;
+    --opacity-when-hidden: 0.05;
+}
+
+
+/* Auto-hide address bar */
+#navigator-toolbox{
+  position: fixed !important;
+  /* Comment out following line to get 'slide-page-down' reveal, like in F11 fullscreen mode */ 
+  display: block; 
+  transition: margin-top 82ms 33ms linear, opacity 82ms 33ms linear !important; 
+  z-index: 1;
+  opacity: 1;
+  /* Spacing on the left for sidebar */
+  margin-left: var(--sidebar-width);
+  /* Disabled the borders, as the bottom one seemed to have unwanted top padding sometimes */
+  border: none !important;
+}
+
+#navigator-toolbox,
+#navigator-toolbox > *{
+  /* Reduced width for panel in order to not overflow the screen on the right side */
+   width:  var(--panel-width); 
+}
+
+#navigator-toolbox:not(:focus-within):not(:hover){
+  margin-top: var(--panel-hide-offset);
+  opacity: var(--opacity-when-hidden);
+}
+
+
+/* Disable auto-hiding when in 'customize' mode */
+:root[customizing] #navigator-toolbox{
+  position: relative !important;
+  opacity: 1 !important;
+  margin-top: 0px;
+}
+
+
+/* sidebar header */
+  #sidebar-header {
+    /* visibility: hidden; 
+    padding: 10 !important; */
+    background-color: #1c1b22 !important; 
+    opacity: 0.7 !important;
+  }
+
+  #sidebar-header:not(:hover) #sidebar-close {
+    /* BAD NEWS: display: none !important; */
+    opacity: 0 !important;
+}
+
+
+/* Autohide Side Bar Variables */
+  :root {
+    --custom-sidebar-collapsed-width: 35px;
+    --custom-sidebar-full-width: 15vw;
+    --custom-sidebar-border: 0px solid #404040;
+  }
+
+/* Autohide side bar */
+
+  :root[titlepreface="᠎"] #navigator-toolbox {
+    border-bottom: 0 !important;
+  }
+
+  :root[titlepreface="᠎"] #browser {
+    position: relative;
+  }
+
+  :root[titlepreface="᠎"] #sidebar-box:not([hidden]) {
+    position: absolute;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: var(--custom-sidebar-border);
+    min-width: var(--custom-sidebar-collapsed-width) !important;
+    max-width: var(--custom-sidebar-full-width) !important;
+    width: var(--custom-sidebar-collapsed-width) !important;
+    height: 100%;
+    transition: all 0.2s ease; 
+    transition-delay: 0.5s; /* 1s delay when mouse moves out */ 
+  }
+
+  :root[titlepreface="᠎"] #sidebar-box:hover,
+  :root[titlepreface="᠎"] #sidebar-header,
+  :root[titlepreface="᠎"] #sidebar {
+    width: var(--custom-sidebar-full-width) !important;
+    transition-delay: 0s; /* No delay when mouse moves in */
+  }
+
+  :root[titlepreface="᠎"] #sidebar {
+    flex-grow: 1;
+  }
+
+  :root[titlepreface="᠎"] #sidebar-splitter {
+    display: none;
+  }
+
+  :root[titlepreface="᠎"] #sidebar-box:not([hidden]) ~ #appcontent {
+    margin-left: var(--custom-sidebar-collapsed-width);
+  }
+
+  :root[titlepreface="᠎"] #sidebar-box:not([hidden]) ~ #appcontent .findbar-container {
+    min-width: calc(100vw - 48px - var(--custom-sidebar-collapsed-width)) !important;
+  }
