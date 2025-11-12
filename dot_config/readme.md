@@ -1,1 +1,0 @@
-.config/nvim-monorepo/readme.md
