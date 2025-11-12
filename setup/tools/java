@@ -1,7 +1,0 @@
-#!/usr/bin/env fish
-
-export PATH="$CHEZMOI_WORKING_TREE/setup:$CHEZMOI_WORKING_TREE/scripts:$PATH"
-
-echo "Installing jabba for your fish environment..."
-
-curl -sL https://github.com/shyiko/jabba/raw/master/install.sh | bash; and . ~/.jabba/jabba.fish
