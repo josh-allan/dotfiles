@@ -1,0 +1,31 @@
+return {
+  {
+    "letieu/wezterm-move.nvim",
+    keys = { -- Lazy loading, don't need call setup() function
+      {
+        "<C-S-h>",
+        function()
+          require("wezterm-move").move("h")
+        end,
+      },
+      {
+        "<C-S-j>",
+        function()
+          require("wezterm-move").move("j")
+        end,
+      },
+      {
+        "<C-S-k>",
+        function()
+          require("wezterm-move").move("k")
+        end,
+      },
+      {
+        "<C-S-l>",
+        function()
+          require("wezterm-move").move("l")
+        end,
+      },
+    },
+  },
+}

@@ -17,7 +17,7 @@ This configuration is designed for Linux, however it will work for MacOS with so
 - aur helper: `git clone https://aur.archlinux.org/yay-bin.git && cd yay-bin && makepkg -si` && yay -S - < minimum_packages.lst
 - `stow`
 
-## Custom services
+---
 
 - headphone_touchcontrols
   - service to load `mpris-proxy` at boot enabling touchpad controls for Sony headphones
