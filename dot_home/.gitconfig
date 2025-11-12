@@ -1,0 +1,26 @@
+
+[user]
+	name = Josh Allan
+	email = joshua.allan92@gmail.com
+	signingkey = 2B526603B64EA780
+[init]
+	defaultBranch = main
+[core]
+	excludesFile = ~/.gitignore
+[gpg]
+  program = /usr/local/bin/gpg
+[commit]
+	gpgsign = true
+[url "ssh://git@github.com"]
+	insteadOf = https://github.com
+[push]
+  autoSetupRemote = true
+[rebase]
+  updateRefs = true
+[difftool]
+  prompt = false
+  trustExitCode = true
+[pull]
+  ff = only
+[tag]
+	gpgSign = true
