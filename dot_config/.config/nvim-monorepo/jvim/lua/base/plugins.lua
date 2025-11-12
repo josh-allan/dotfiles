@@ -87,18 +87,18 @@ return {
 		end,
 	},
 
-	{
-		"pwntester/octo.nvim",
-		requires = {
-			"nvim-lua/plenary.nvim",
-			"nvim-telescope/telescope.nvim",
-			-- OR 'ibhagwan/fzf-lua',
-			"nvim-tree/nvim-web-devicons",
-		},
-		config = function()
-			require("configs.octo")
-		end,
-	},
+	-- {
+	-- 	"pwntester/octo.nvim",
+	-- 	requires = {
+	-- 		"nvim-lua/plenary.nvim",
+	-- 		"nvim-telescope/telescope.nvim",
+	-- 		-- OR 'ibhagwan/fzf-lua',
+	-- 		"nvim-tree/nvim-web-devicons",
+	-- 	},
+	-- 	config = function()
+	-- 		require("configs.octo")
+	-- 	end,
+	-- },
 	{
 		"sindrets/diffview.nvim",
 		cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewToggleFiles", "DiffviewFocusFiles" },
@@ -425,23 +425,23 @@ return {
 		opts = { signs = false },
 	},
 
-	{
-		"linux-cultist/venv-selector.nvim",
-		dependencies = {
-			"neovim/nvim-lspconfig",
-			"mfussenegger/nvim-dap",
-			-- "mfussenegger/nvim-dap-python", --optional
-			{ "nvim-telescope/telescope.nvim", branch = "0.1.x", dependencies = { "nvim-lua/plenary.nvim" } },
-		},
-		lazy = false,
-		branch = "regexp", -- This is the regexp branch, use this for the new version
-		config = function()
-			require("venv-selector").setup()
-		end,
-		keys = {
-			{ ",v", "<cmd>VenvSelect<cr>" },
-		},
-	}, -- Docstring creation
+	-- {
+	-- 	"linux-cultist/venv-selector.nvim",
+	-- 	dependencies = {
+	-- 		"neovim/nvim-lspconfig",
+	-- 		"mfussenegger/nvim-dap",
+	-- 		-- "mfussenegger/nvim-dap-python", --optional
+	-- 		{ "nvim-telescope/telescope.nvim", branch = "0.1.x", dependencies = { "nvim-lua/plenary.nvim" } },
+	-- 	},
+	-- 	lazy = false,
+	-- 	branch = "regexp", -- This is the regexp branch, use this for the new version
+	-- 	config = function()
+	-- 		require("venv-selector").setup()
+	-- 	end,
+	-- 	keys = {
+	-- 		{ ",v", "<cmd>VenvSelect<cr>" },
+	-- 	},
+	-- }, -- Docstring creation
 	-- - quickly create docstrings via `<leader>a`
 	{
 		"danymat/neogen",
@@ -610,16 +610,16 @@ return {
 	},
 	-- jsbeautify
 	{ "maksimr/vim-jsbeautify", event = "FuncUndefined" },
-	{
-		"epwalsh/obsidian.nvim",
-		version = "*",
-		lazy = true,
-		ft = "markdown",
-		dependencies = "nvim-lua/plenary.nvim",
-		config = function()
-			require("configs.obsidian")
-		end,
-	},
+	-- {
+	-- 	"epwalsh/obsidian.nvim",
+	-- 	version = "*",
+	-- 	lazy = true,
+	-- 	ft = "markdown",
+	-- 	dependencies = "nvim-lua/plenary.nvim",
+	-- 	config = function()
+	-- 		require("configs.obsidian")
+	-- 	end,
+	-- },
 	{
 		"ThePrimeagen/harpoon",
 		branch = "harpoon2",
