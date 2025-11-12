@@ -1,2 +1,4 @@
 fish_variables
-venv*
+
+.env
+venv/
