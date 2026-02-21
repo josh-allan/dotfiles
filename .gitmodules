@@ -3,4 +3,4 @@
 	url = git@github.com:josh-allan/nvim.git
 [submodule "dot_home/ai-tools"]
 	path = dot_home/ai-tools
-	url = https://github.com/josh-allan/ai-tools.git
+	url = git@github.com:josh-allan/ai-tools.git
