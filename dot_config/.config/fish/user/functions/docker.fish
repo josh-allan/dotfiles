@@ -18,13 +18,13 @@ function dsh --description "Exec into a running container (bash, falls back to s
               --bind "enter:execute(docker exec -it {1} bash 2>/dev/null || docker exec -it {1} sh)+abort"
 end
 
-function dlog --description "Stream logs from a container via bat"
-    set container (docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | tail -n +2 \
-        | fzf --preview 'docker logs --tail 30 {1}' \
-              --preview-window=right:60% \
-        | awk '{print $1}')
-    test -z "$container"; and return
-    docker logs --follow --tail 100 $container 2>&1 | bat --paging=never --language=log
+function dlog --description "Stream logs from a container (enter: follow, ctrl-o: open in nvim)"
+    docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | tail -n +2 \
+        | fzf --header 'enter: follow logs ╱ ctrl-o: open in nvim' \
+              --preview 'docker logs --tail 50 {1}' \
+              --preview-window 'right:60%' \
+              --bind 'enter:become(docker logs --follow --tail 100 {1})' \
+              --bind 'ctrl-o:execute(nvim <(docker logs {1}))'
 end
 
 function dstop --description "Stop a running container"
