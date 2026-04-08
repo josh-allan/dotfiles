@@ -41,6 +41,9 @@ function klogin --argument-names cluster
 end
 
 function kexec --description "Exec into a pod matched by name pattern"
-    set pod (kubectl get pods --no-headers | fzf --query "$argv[1]" --preview 'kubectl describe pod {1}' --preview-window=right:50% | awk '{print $1}')
-    test -n "$pod"; and kubectl exec -it $pod -- sh
+    kubectl get pods --no-headers \
+    | fzf --query "$argv[1]" \
+          --preview 'kubectl describe pod {1}' \
+          --preview-window=right:50% \
+          --bind "enter:execute(echo 'kexec: entering pod {1}'; kubectl exec -it {1} -- sh)+abort"
 end
