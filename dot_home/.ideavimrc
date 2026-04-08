@@ -18,7 +18,7 @@ set formatoptions=tcqj
 set list listchars=tab:▷\ ,trail:×,extends:◣,precedes:◢,nbsp:○
 set shortmess=filnxtToOF
 set clipboard=unnamedplus
-
+set wrap
 
 " Plugins
 set surround
