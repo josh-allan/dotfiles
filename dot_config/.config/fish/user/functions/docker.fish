@@ -12,18 +12,17 @@ function dockerupdate
 end
 
 function dsh --description "Exec into a running container (bash, falls back to sh)"
-    set container (docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | tail -n +2 \
-        | fzf --preview 'docker logs --tail 20 {1}' --preview-window=right:60% \
-        | awk '{print $1}')
-    test -z "$container"; and return
-    docker exec -it $container bash 2>/dev/null; or docker exec -it $container sh
+    docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | tail -n +2 \
+        | fzf --preview 'docker logs --tail 20 {1}' \
+              --preview-window=right:60% \
+              --bind "enter:execute(docker exec -it {1} bash 2>/dev/null || docker exec -it {1} sh)+abort"
 end
 
 function dlog --description "Tail logs from a container"
-    set container (docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | tail -n +2 \
-        | fzf --preview 'docker logs --tail 30 {1}' --preview-window=right:60% \
-        | awk '{print $1}')
-    test -n "$container"; and docker logs -f $container
+    docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | tail -n +2 \
+        | fzf --preview 'docker logs --tail 30 {1}' \
+              --preview-window=right:60% \
+              --bind "enter:execute(docker logs -f {1})+abort"
 end
 
 function dstop --description "Stop a running container"
