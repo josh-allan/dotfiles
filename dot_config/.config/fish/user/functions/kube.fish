@@ -45,5 +45,5 @@ function kexec --description "Exec into a pod matched by name pattern"
     | fzf --query "$argv[1]" \
           --preview 'kubectl describe pod {1}' \
           --preview-window=right:50% \
-          --bind "enter:execute(echo 'kexec: entering pod {1}'; kubectl exec -it {1} -- sh)+abort"
+          --bind 'enter:become(kubectl exec -it {1} -- sh)'
 end
