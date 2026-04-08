@@ -15,7 +15,7 @@ function dsh --description "Exec into a running container (bash, falls back to s
     docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | tail -n +2 \
         | fzf --preview 'docker logs --tail 20 {1}' \
               --preview-window=right:60% \
-              --bind "enter:execute(docker exec -it {1} bash 2>/dev/null || docker exec -it {1} sh)+abort"
+              --bind 'enter:become(sh -c "docker exec -it {1} bash 2>/dev/null || docker exec -it {1} sh")'
 end
 
 function dlog --description "Stream logs from a container (enter: follow, ctrl-o: open in nvim)"
