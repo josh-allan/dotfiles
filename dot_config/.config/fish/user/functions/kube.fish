@@ -39,3 +39,8 @@ function klogin --argument-names cluster
     kubectl config set-context (kubectl config current-context) --namespace=$namespace
     set -x KUBECONFIG $old_kubeconfig
 end
+
+function kexec --description "Exec into a pod matched by name pattern"
+    set pod (kubectl get pods --no-headers | fzf --query "$argv[1]" --preview 'kubectl describe pod {1}' --preview-window=right:50% | awk '{print $1}')
+    test -n "$pod"; and kubectl exec -it $pod -- sh
+end
