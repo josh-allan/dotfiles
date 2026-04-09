@@ -35,7 +35,7 @@ config.colors = require("color")
 config.window_background_opacity = 0.8
 config.enable_wayland = false
 config.macos_window_background_blur = 75
-config.window_decorations = "RESIZE"
+config.window_decorations = "TITLE|RESIZE"
 
 local function tab_title(tab_info)
 	local title = tab_info.tab_title
