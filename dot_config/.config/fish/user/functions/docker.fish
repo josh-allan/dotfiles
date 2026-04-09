@@ -45,3 +45,22 @@ function dprune --description "Full docker system prune with confirmation"
         echo "Aborted."
     end
 end
+
+function dgrep --description "fzf-select a container and grep its logs for a pattern"
+    if test (count $argv) -lt 1 -o (count $argv) -gt 2
+        echo 'USAGE: dgrep "<pattern>" ["[optional container name query]"]'
+        return 1
+    end
+
+    set -l pattern $argv[1]
+    set -l query ""
+    if test (count $argv) -eq 2
+        set query $argv[2]
+    end
+
+    docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | tail -n +2 \
+        | fzf --query "$query" \
+              --preview "docker logs --tail=200 {1} | grep --color=always -i -- '$pattern' || true" \
+              --preview-window=right:60% \
+              --bind "enter:become(docker logs {1} | grep -i -- '$pattern')"
+end
