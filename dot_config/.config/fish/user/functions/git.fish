@@ -5,8 +5,11 @@ function gup --description "Fetch default branch and rebase current branch onto 
 end
 
 function gri --description "Interactive rebase — fzf pick the base commit"
-    set commit (git log --oneline --color=always | fzf --ansi --preview 'git show --stat --color=always {1}' --preview-window=right:60% | awk '{print $1}')
-    test -n "$commit"; and git rebase -i --autosquash $commit^
+    git log --oneline --color=always \
+        | fzf --ansi \
+              --preview 'git show --stat --color=always {1}' \
+              --preview-window=right:60% \
+              --bind 'enter:become(git rebase -i --autosquash {1}^)'
 end
 
 function gfixup --description "Create a --fixup commit targeting a fzf-selected past commit"
@@ -14,8 +17,12 @@ function gfixup --description "Create a --fixup commit targeting a fzf-selected 
         echo "Nothing staged. Use 'git add' first."
         return 1
     end
-    set commit (git log --oneline --color=always | fzf --ansi --prompt="fixup target> " --preview 'git show --stat --color=always {1}' --preview-window=right:60% | awk '{print $1}')
-    test -n "$commit"; and git commit --fixup=$commit
+    git log --oneline --color=always \
+        | fzf --ansi \
+              --prompt="fixup target> " \
+              --preview 'git show --stat --color=always {1}' \
+              --preview-window=right:60% \
+              --bind 'enter:become(git commit --fixup={1})'
 end
 
 function gtidy --description "Interactive rebase a commit range then force-push with confirmation"
@@ -85,13 +92,19 @@ function gtidy --description "Interactive rebase a commit range then force-push 
 end
 
 function gsw --description "Fuzzy switch git branch"
-    set branch (git branch -a --format='%(refname:short)' | sed 's|origin/||' | sort -u | fzf --preview 'git log --oneline --color=always {}' --preview-window=right:60%)
-    test -n "$branch"; and git switch $branch
+    git branch -a --format='%(refname:short)' | sed 's|origin/||' | sort -u \
+        | fzf --preview 'git log --oneline --color=always {}' \
+              --preview-window=right:60% \
+              --bind 'enter:become(git switch {})'
 end
 
 function gstash --description "Interactively browse, apply, or drop git stashes"
-    set action (printf "apply\ndrop\nshow" | fzf --prompt="action> ")
-    test -z "$action"; and return
-    set stash (git stash list | fzf --preview 'git stash show -p --color=always {1}' --preview-window=right:60% | awk '{print $1}' | tr -d ':')
-    test -n "$stash"; and git stash $action $stash
+    git stash list \
+        | fzf --delimiter : \
+              --header 'enter: apply ╱ ctrl-d: drop ╱ ctrl-s: open in nvim' \
+              --preview 'git stash show -p --color=always {1}' \
+              --preview-window=right:60% \
+              --bind 'enter:become(git stash apply {1})' \
+              --bind 'ctrl-d:become(git stash drop {1})' \
+              --bind 'ctrl-s:execute(nvim <(git stash show -p {1}))'
 end

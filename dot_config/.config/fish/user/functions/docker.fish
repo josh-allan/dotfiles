@@ -28,10 +28,10 @@ function dlog --description "Stream logs from a container (enter: follow, ctrl-o
 end
 
 function dstop --description "Stop a running container"
-    set container (docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | tail -n +2 \
-        | fzf --preview 'docker logs --tail 20 {1}' --preview-window=right:60% \
-        | awk '{print $1}')
-    test -n "$container"; and docker stop $container
+    docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | tail -n +2 \
+        | fzf --preview 'docker logs --tail 20 {1}' \
+              --preview-window=right:60% \
+              --bind 'enter:become(docker stop {1})'
 end
 
 function dprune --description "Full docker system prune with confirmation"
