@@ -573,8 +573,15 @@ return {
 		config = function(_, opts)
 			-- [[ Configure Treesitter ]] See `:help nvim-treesitter`
 
+			-- Pin Lua parser to a version compatible with Neovim 0.12.1
+			-- The newer parser removed the "operator" field that bundled queries reference
+			local parsers = require("nvim-treesitter.parsers")
+			if parsers.lua and parsers.lua.install_info then
+				parsers.lua.install_info.revision = "de08dfd9640604763558530d2ce703cbe6a16bb6"
+			end
+
 			---@diagnostic disable-next-line: missing-fields
-			require("nvim-treesitter.configs").setup(opts)
+			-- require("nvim-treesitter.configs").setup(opts)
 		end,
 	},
 	{

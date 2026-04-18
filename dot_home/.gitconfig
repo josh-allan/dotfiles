@@ -24,3 +24,5 @@
   ff = only
 [tag]
 	gpgSign = true
+[submodule]
+	recurse = true
