@@ -220,3 +220,5 @@ alias brew='env PATH="${PATH//$(pyenv root)\/shims:/}" brew'
 # uncomment if profiling is needed
 #zprof
 
+
+alias claude-mem='bun "/Users/josh/.claude/plugins/cache/thedotmack/claude-mem/12.2.0/scripts/worker-service.cjs"'

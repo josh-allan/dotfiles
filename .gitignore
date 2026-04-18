@@ -3,6 +3,7 @@ venv*
 catfissh.fish
 catfissh
 __catfissh*
+ai-tools/
 
 .env
 venv/
