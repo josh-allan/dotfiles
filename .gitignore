@@ -4,6 +4,7 @@ catfissh.fish
 catfissh
 __catfissh*
 ai-tools/
+.claude/
 
 .env
 venv/
