@@ -8,7 +8,6 @@ end
 
 zoxide init fish --cmd cd | source
 direnv hook fish | source
-pyenv init - fish | source
 export PATH="$HOME/.local/bin:$PATH"
 
 # bun
