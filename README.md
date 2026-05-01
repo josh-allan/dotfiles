@@ -16,10 +16,6 @@ cd ~/dotfiles
 ./scripts/sync-dotfiles.sh
 ```
 
-## Documentation
-
-Full documentation lives in the private overlay repo.
-
 ## Architecture
 
 | Component | Purpose |
