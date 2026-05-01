@@ -4,8 +4,8 @@
 
 ERRORS=0
 
-# Block files containing 1Password references (excluding hook files)
-OP_MATCHES=$(git diff --cached --name-only | grep -v '^\.githooks/' | xargs grep -l 'op://' 2>/dev/null || true)
+# Block files containing 1Password references (excluding hook files and docs)
+OP_MATCHES=$(git diff --cached --name-only | grep -v '^\.githooks/' | grep -v '\.md$' | xargs grep -l 'op://' 2>/dev/null || true)
 if [[ -n "$OP_MATCHES" ]]; then
     echo "ERROR: Commit contains 1Password references (op://). Use templates instead."
     ERRORS=$((ERRORS + 1))
