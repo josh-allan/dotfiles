@@ -54,7 +54,7 @@ while IFS= read -r template_key; do
 
         # Replace placeholder in output file using perl (safe for special chars)
         export OP_VALUE="$value"
-        perl -i -pe "s/\{\{$placeholder\}\}/\$ENV{OP_VALUE}/g" -- "$output_file"
+        perl -i -pe "s/\{\{\Q$placeholder\E\}\}/\$ENV{OP_VALUE}/g" -- "$output_file"
         unset OP_VALUE
         echo "  $template_key: {{$placeholder}} -> [redacted]"
     done < <(jq -r ".templates[\"$template_key\"] | keys[]" "$HOST_CONFIG" 2>/dev/null || true)
