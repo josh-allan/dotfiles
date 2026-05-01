@@ -1,0 +1,9 @@
+{
+  "packages": {
+    "public": ["dot_home", "dot_config_common"],
+    "private": []
+  },
+  "templates": {},
+  "private_repo": null,
+  "skip_paths": []
+}

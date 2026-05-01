@@ -1,0 +1,18 @@
+{
+  "os": "macos",
+  "packages": {
+    "public": ["dot_home", "dot_config_common", "dot_config_macos"],
+    "private": ["ai-tools", "work-overlays"]
+  },
+  "templates": {
+    "dot_home/.gitconfig": {
+      "user.email": "op://Work/Git/email",
+      "user.name": "op://Work/Git/name"
+    }
+  },
+  "private_repo": {
+    "url": "git@github.com:josh-allan/private-dots.git",
+    "branch": "main"
+  },
+  "skip_paths": []
+}
