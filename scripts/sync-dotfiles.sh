@@ -85,7 +85,7 @@ if [[ ${#public_packages[@]} -gt 0 ]]; then
             continue
         fi
 
-        stow "${skip_args[@]}" -d "$REPO_ROOT" "$pkg"
+        stow "${skip_args[@]}" -d "$REPO_ROOT" -t "$HOME" "$pkg"
         echo "  Stowed: $pkg"
     done
 fi
@@ -107,7 +107,7 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
             continue
         fi
 
-        stow "${skip_args[@]}" -d "$PRIVATE_DIR" "$pkg"
+        stow "${skip_args[@]}" -d "$PRIVATE_DIR" -t "$HOME" "$pkg"
         echo "  Stowed: $pkg (private)"
     done
 fi
