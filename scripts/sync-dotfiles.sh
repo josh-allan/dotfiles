@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# sync-dotfiles.sh
+# Machine-specific dotfiles sync orchestrator.
+# Detects hostname, loads host config, renders templates, pulls private repo, stows packages.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+HOSTS_DIR="$REPO_ROOT/hosts"
+TEMPLATES_DIR="$REPO_ROOT/templates"
+PRIVATE_DIR="$REPO_ROOT/private"
+
+HOSTNAME="$(hostname | cut -d. -f1)"
+HOST_CONFIG="$HOSTS_DIR/$HOSTNAME.json"
+
+# Allow explicit override
+if [[ -n "${DOTFILES_HOST_CONFIG:-}" ]]; then
+    HOST_CONFIG="$DOTFILES_HOST_CONFIG"
+    echo "Using explicit host config: $HOST_CONFIG"
+fi
+
+# Fallback to default
+if [[ ! -f "$HOST_CONFIG" ]]; then
+    HOST_CONFIG="$HOSTS_DIR/default.json"
+    echo "No host config found for '$HOSTNAME'. Using default."
+fi
+
+echo "Host config: $HOST_CONFIG"
+
+# Step 1: Validate
+"$SCRIPT_DIR/validate-config.sh" "$HOST_CONFIG"
+
+# Step 2: Render templates
+if [[ -d "$TEMPLATES_DIR" ]]; then
+    echo "Rendering templates..."
+    "$SCRIPT_DIR/render-templates.sh" "$HOST_CONFIG" "$TEMPLATES_DIR" "$REPO_ROOT"
+fi
+
+# Step 3: Clone/pull private repo
+PRIVATE_REPO_URL="$(jq -r '.private_repo.url // empty' "$HOST_CONFIG")"
+PRIVATE_REPO_BRANCH="$(jq -r '.private_repo.branch // "main"' "$HOST_CONFIG")"
+
+if [[ -n "$PRIVATE_REPO_URL" ]]; then
+    echo "Setting up private repo..."
+
+    if [[ -d "$PRIVATE_DIR/.git" ]]; then
+        echo "Pulling latest private repo..."
+        git -C "$PRIVATE_DIR" pull origin "$PRIVATE_REPO_BRANCH"
+    else
+        echo "Cloning private repo..."
+        git clone --branch "$PRIVATE_REPO_BRANCH" "$PRIVATE_REPO_URL" "$PRIVATE_DIR"
+    fi
+fi
+
+# Step 4: Stow public packages
+# Bash 3.2 compat: use while read instead of mapfile
+public_packages=()
+while IFS= read -r pkg; do
+    [[ -n "$pkg" ]] && public_packages+=("$pkg")
+done < <(jq -r '.packages.public[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
+
+if [[ ${#public_packages[@]} -gt 0 ]]; then
+    echo "Stowing public packages: ${public_packages[*]}"
+
+    for pkg in "${public_packages[@]}"; do
+        pkg_dir="$REPO_ROOT/$pkg"
+
+        if [[ ! -d "$pkg_dir" ]]; then
+            echo "WARNING: Public package not found: $pkg_dir"
+            continue
+        fi
+
+        # Build ignore list from skip_paths
+        skip_args=()
+        while IFS= read -r skip; do
+            [[ -n "$skip" ]] && skip_args+=(--ignore="$skip")
+        done < <(jq -r '.skip_paths[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
+
+        stow "${skip_args[@]}" -d "$REPO_ROOT" "$pkg"
+        echo "  Stowed: $pkg"
+    done
+fi
+
+# Step 5: Stow private packages
+private_packages=()
+while IFS= read -r pkg; do
+    [[ -n "$pkg" ]] && private_packages+=("$pkg")
+done < <(jq -r '.packages.private[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
+
+if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
+    echo "Stowing private packages: ${private_packages[*]}"
+
+    for pkg in "${private_packages[@]}"; do
+        pkg_dir="$PRIVATE_DIR/$pkg"
+
+        if [[ ! -d "$pkg_dir" ]]; then
+            echo "WARNING: Private package not found: $pkg_dir"
+            continue
+        fi
+
+        stow -d "$PRIVATE_DIR" "$pkg"
+        echo "  Stowed: $pkg (private)"
+    done
+fi
+
+# Step 6: Post-sync validation
+echo "Running post-sync validation..."
+
+for pkg in "${public_packages[@]}"; do
+    if [[ ! -d "$REPO_ROOT/$pkg" ]]; then
+        echo "WARNING: Public package '$pkg' directory missing after stow"
+    fi
+done
+
+echo "Sync complete."
