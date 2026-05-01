@@ -35,6 +35,8 @@ echo "Host config: $HOST_CONFIG"
 if [[ -d "$TEMPLATES_DIR" ]]; then
     echo "Rendering templates..."
     "$SCRIPT_DIR/render-templates.sh" "$HOST_CONFIG" "$TEMPLATES_DIR" "$REPO_ROOT"
+else
+    echo "Step 2: No templates directory — skipping"
 fi
 
 # Step 3: Clone/pull private repo
@@ -46,11 +48,17 @@ if [[ -n "$PRIVATE_REPO_URL" ]]; then
 
     if [[ -d "$PRIVATE_DIR/.git" ]]; then
         echo "Pulling latest private repo..."
-        git -C "$PRIVATE_DIR" pull origin "$PRIVATE_REPO_BRANCH"
+        git -C "$PRIVATE_DIR" pull origin "$PRIVATE_REPO_BRANCH" || {
+            echo "WARNING: Failed to update private repo. Continuing with existing copy." >&2
+        }
     else
         echo "Cloning private repo..."
-        git clone --branch "$PRIVATE_REPO_BRANCH" "$PRIVATE_REPO_URL" "$PRIVATE_DIR"
+        git clone --branch "$PRIVATE_REPO_BRANCH" "$PRIVATE_REPO_URL" "$PRIVATE_DIR" || {
+            echo "WARNING: Failed to clone private repo. Skipping private packages." >&2
+        }
     fi
+else
+    echo "Step 3: No private repo configured — skipping"
 fi
 
 # Step 4: Stow public packages
@@ -59,6 +67,12 @@ public_packages=()
 while IFS= read -r pkg; do
     [[ -n "$pkg" ]] && public_packages+=("$pkg")
 done < <(jq -r '.packages.public[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
+
+# Build ignore list from skip_paths (once, shared by public and private stow)
+skip_args=()
+while IFS= read -r skip; do
+    [[ -n "$skip" ]] && skip_args+=(--ignore="$skip")
+done < <(jq -r '.skip_paths[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 
 if [[ ${#public_packages[@]} -gt 0 ]]; then
     echo "Stowing public packages: ${public_packages[*]}"
@@ -70,12 +84,6 @@ if [[ ${#public_packages[@]} -gt 0 ]]; then
             echo "WARNING: Public package not found: $pkg_dir"
             continue
         fi
-
-        # Build ignore list from skip_paths
-        skip_args=()
-        while IFS= read -r skip; do
-            [[ -n "$skip" ]] && skip_args+=(--ignore="$skip")
-        done < <(jq -r '.skip_paths[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 
         stow "${skip_args[@]}" -d "$REPO_ROOT" "$pkg"
         echo "  Stowed: $pkg"
@@ -99,17 +107,41 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
             continue
         fi
 
-        stow -d "$PRIVATE_DIR" "$pkg"
+        stow "${skip_args[@]}" -d "$PRIVATE_DIR" "$pkg"
         echo "  Stowed: $pkg (private)"
     done
 fi
 
-# Step 6: Post-sync validation
+# Step 6: Post-sync validation — verify stow-created symlinks exist
 echo "Running post-sync validation..."
 
 for pkg in "${public_packages[@]}"; do
-    if [[ ! -d "$REPO_ROOT/$pkg" ]]; then
-        echo "WARNING: Public package '$pkg' directory missing after stow"
+    found=0
+    # Check common patterns for stow-created symlinks
+    [[ -L "$HOME/.config/$pkg" ]] && found=1
+    [[ -L "$HOME/$pkg" ]] && found=1
+    # Also check top-level items from the package directory
+    for item in "$REPO_ROOT/$pkg"/*; do
+        [[ -e "$item" ]] || continue
+        item_name="$(basename "$item")"
+        [[ -L "$HOME/$item_name" ]] && found=1 && break
+    done
+    if [[ $found -eq 0 ]]; then
+        echo "WARNING: Public package '$pkg' may not be stowed correctly"
+    fi
+done
+
+for pkg in "${private_packages[@]}"; do
+    found=0
+    [[ -L "$HOME/.config/$pkg" ]] && found=1
+    [[ -L "$HOME/$pkg" ]] && found=1
+    for item in "$PRIVATE_DIR/$pkg"/*; do
+        [[ -e "$item" ]] || continue
+        item_name="$(basename "$item")"
+        [[ -L "$HOME/$item_name" ]] && found=1 && break
+    done
+    if [[ $found -eq 0 ]]; then
+        echo "WARNING: Private package '$pkg' may not be stowed correctly"
     fi
 done
 
