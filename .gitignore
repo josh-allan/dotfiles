@@ -33,3 +33,11 @@ shell/fish/user/env/env.s.fish
 **/zsh/.zinit/
 **/zsh/.zsh_history
 **/zsh/.zsh_sessions
+
+# Sync-generated files
+private/
+*.rendered
+
+# Host-specific rendered configs (template outputs)
+dot_home/.gitconfig
+dot_config/.config/fish/config.fish
