@@ -1,7 +1,7 @@
 {
-  "os": "linux",
+  "os": "macos",
   "packages": {
-    "public": ["dot_home", "dot_config_common", "dot_config_linux"],
+    "public": ["dot_home", "dot_config_common", "dot_config_macos"],
     "private": []
   },
   "templates": {
@@ -11,7 +11,10 @@
       "user.signingkey": "op://Private/Git/signingkey"
     },
     "dot_home/.zshrc": {
-      "user.home": "$HOME"
+      "user.home": "op://Private/System/home_path"
+    },
+    "dot_config/.config/fish/config.fish": {
+      "opencode.path": "op://Private/OpenCode/bin_path"
     }
   },
   "private_repo": null,

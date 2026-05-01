@@ -40,4 +40,5 @@ private/
 
 # Host-specific rendered configs (template outputs)
 dot_home/.gitconfig
+dot_home/.zshrc
 dot_config/.config/fish/config.fish

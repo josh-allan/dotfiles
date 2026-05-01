@@ -1,22 +1,27 @@
 [user]
-    name = {{user.name}}
-    email = {{user.email}}
+	name = {{user.name}}
+	email = {{user.email}}
+	signingkey = {{user.signingkey}}
 [init]
-    defaultBranch = main
-[push]
-    autoSetupRemote = true
-[pull]
-    rebase = true
+	defaultBranch = main
 [core]
-    editor = nvim
-    pager = delta
-[interactive]
-    diffFilter = delta --color-only
-[delta]
-    navigate = true
-    light = false
-    side-by-side = true
-[merge]
-    conflictstyle = diff3
-[diff]
-    colorMoved = default
+	excludesFile = ~/.gitignore
+[gpg]
+  program = /usr/local/bin/gpg
+[commit]
+	gpgsign = true
+[url "ssh://git@github.com"]
+	insteadOf = https://github.com
+[push]
+  autoSetupRemote = true
+[rebase]
+  updateRefs = true
+[difftool]
+  prompt = false
+  trustExitCode = true
+[pull]
+  ff = only
+[tag]
+	gpgSign = true
+[submodule]
+	recurse = true
