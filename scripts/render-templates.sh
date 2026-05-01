@@ -19,6 +19,17 @@ if ! command -v op >/dev/null 2>&1; then
     exit 1
 fi
 
+if ! command -v jq >/dev/null 2>&1; then
+    echo "ERROR: jq not found. Install it: brew install jq"
+    exit 1
+fi
+
+# Pre-validate JSON before using jq
+if ! jq -e '.' "$HOST_CONFIG" >/dev/null 2>&1; then
+    echo "ERROR: Invalid JSON in $HOST_CONFIG"
+    exit 1
+fi
+
 # Read templates config (while read for Bash 3+ compat)
 found_templates=false
 while IFS= read -r template_key; do
