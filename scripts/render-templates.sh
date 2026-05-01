@@ -19,46 +19,50 @@ if ! command -v op >/dev/null 2>&1; then
     exit 1
 fi
 
-# Read templates config
-mapfile -t template_keys < <(jq -r '.templates | keys[]' "$HOST_CONFIG" 2>/dev/null || true)
+# Read templates config (while read for Bash 3+ compat)
+found_templates=false
+while IFS= read -r template_key; do
+    [[ -n "$template_key" ]] || continue
+    found_templates=true
 
-if [[ ${#template_keys[@]} -eq 0 ]]; then
-    echo "No templates configured."
-    exit 0
-fi
-
-for template_key in "${template_keys[@]}"; do
     template_file="$TEMPLATES_DIR/$template_key.tmpl"
     output_file="$OUTPUT_DIR/$template_key"
-    
+
     if [[ ! -f "$template_file" ]]; then
         echo "WARNING: Template not found: $template_file"
         continue
     fi
-    
+
     mkdir -p "$(dirname "$output_file")"
-    
+
     # Start with template content
     cp "$template_file" "$output_file"
-    
-    # Read placeholder mappings for this template
-    mapfile -t placeholders < <(jq -r ".templates[\"$template_key\"] | keys[]" "$HOST_CONFIG" 2>/dev/null || true)
-    
-    for placeholder in "${placeholders[@]}"; do
+
+    # Read placeholder mappings for this template (while read for Bash 3+ compat)
+    while IFS= read -r placeholder; do
+        [[ -n "$placeholder" ]] || continue
+
         op_ref="$(jq -r ".templates[\"$template_key\"][\"$placeholder\"]" "$HOST_CONFIG")"
-        
+
         # Fetch value from 1Password
         value="$(op read "$op_ref" 2>/dev/null || true)"
-        
+
         if [[ -z "$value" ]]; then
             echo "WARNING: Could not read 1Password reference for '$placeholder' in '$template_key'"
             continue
         fi
-        
-        # Replace placeholder in output file
-        sed -i.bak "s|{{$placeholder}}|$value|g" "$output_file" && rm -f "$output_file.bak"
+
+        # Replace placeholder in output file using perl (safe for special chars)
+        export OP_VALUE="$value"
+        perl -i -pe "s/\{\{$placeholder\}\}/\$ENV{OP_VALUE}/g" -- "$output_file"
+        unset OP_VALUE
         echo "  $template_key: {{$placeholder}} -> [redacted]"
-    done
-done
+    done < <(jq -r ".templates[\"$template_key\"] | keys[]" "$HOST_CONFIG" 2>/dev/null || true)
+done < <(jq -r '.templates | keys[]' "$HOST_CONFIG" 2>/dev/null || true)
+
+if ! $found_templates; then
+    echo "No templates configured."
+    exit 0
+fi
 
 echo "Templates rendered."
