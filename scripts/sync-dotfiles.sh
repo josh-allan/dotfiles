@@ -139,34 +139,90 @@ fi
 # Step 6: Post-sync validation — verify stow-created symlinks exist
 echo "Running post-sync validation..."
 
-for pkg in "${public_packages[@]}"; do
+# Helper: validate a stow package by checking that stowed files resolve
+# to the correct package directory via canonical path comparison.
+# Args: label ("Public"/"Private"), package_name, package_dir, stow_dir
+validate_package() {
+    local pkg_label pkg pkg_dir stow_dir
+    local found total checked i remaining
+    local file rel target target_canon expected_canon status
+    local -a issues
+
+    pkg_label="$1"
+    pkg="$2"
+    pkg_dir="$3"
+    stow_dir="$4"
     found=0
-    # Check common patterns for stow-created symlinks
-    [[ -L "$HOME/.config/$pkg" ]] && found=1
-    [[ -L "$HOME/$pkg" ]] && found=1
-    # Also check top-level items from the package directory
-    for item in "$REPO_ROOT/$pkg"/*; do
-        [[ -e "$item" ]] || continue
-        item_name="$(basename "$item")"
-        [[ -L "$HOME/$item_name" ]] && found=1 && break
-    done
-    if [[ $found -eq 0 ]]; then
-        echo "WARNING: Public package '$pkg' may not be stowed correctly"
+    total=0
+    checked=0
+    issues=()
+
+    if [[ ! -d "$pkg_dir" ]]; then
+        echo "WARNING: ${pkg_label} package '$pkg' not found at $pkg_dir"
+        return
     fi
+
+    # Walk all files in the package directory
+    while IFS= read -r -d '' file; do
+        rel="${file#"$pkg_dir"/}"
+        target="$HOME/$rel"
+        total=$((total + 1))
+
+        # Only one file needs to resolve correctly to confirm stow worked.
+        # readlink -f follows directory symlinks (common with stow) to
+        # canonical paths, so we compare resolved paths instead of checking [[ -L ]].
+        if [[ $found -eq 0 ]]; then
+            target_canon="$(readlink -f "$target" 2>/dev/null || true)"
+            expected_canon="$(readlink -f "$file" 2>/dev/null || true)"
+            if [[ -n "$target_canon" && "$target_canon" == "$expected_canon" ]]; then
+                found=1
+            fi
+        fi
+
+        # Collect up to 5 issues for diagnostic output
+        if [[ $found -eq 0 && $checked -lt 5 ]]; then
+            if [[ -L "$target" ]]; then
+                status="(exists as symlink but points elsewhere)"
+            elif [[ -e "$target" ]]; then
+                status="(exists but is not a symlink)"
+            else
+                status="(does not exist)"
+            fi
+            issues[${#issues[@]}]="$rel"
+            issues[${#issues[@]}]="$status"
+            checked=$((checked + 1))
+        fi
+    done < <(find "$pkg_dir" -type f -not -path '*/.git/*' -print0 2>/dev/null || true)
+
+    if [[ $found -eq 0 ]]; then
+        echo "WARNING: ${pkg_label} package '$pkg' may not be stowed correctly"
+
+        i=0
+        while [[ $i -lt ${#issues[@]} ]]; do
+            echo "  Checked: ~/${issues[$i]} ${issues[$i+1]}"
+            i=$((i + 2))
+        done
+
+        remaining=$((total - checked))
+        if [[ $remaining -gt 0 ]]; then
+            if [[ $remaining -eq 1 ]]; then
+                echo "  ... (1 more file)"
+            else
+                echo "  ... ($remaining more files)"
+            fi
+        fi
+
+        echo "  Package dir: $pkg_dir (exists)"
+        echo "  Likely cause: Target paths already exist as real files/directories. Run 'stow -n ${skip_args[*]} -d \"$stow_dir\" -t \"$HOME\" \"$pkg\"' to see conflicts."
+    fi
+}
+
+for pkg in "${public_packages[@]}"; do
+    validate_package "Public" "$pkg" "$REPO_ROOT/$pkg" "$REPO_ROOT"
 done
 
 for pkg in "${private_packages[@]}"; do
-    found=0
-    [[ -L "$HOME/.config/$pkg" ]] && found=1
-    [[ -L "$HOME/$pkg" ]] && found=1
-    for item in "$PRIVATE_DIR/$pkg"/*; do
-        [[ -e "$item" ]] || continue
-        item_name="$(basename "$item")"
-        [[ -L "$HOME/$item_name" ]] && found=1 && break
-    done
-    if [[ $found -eq 0 ]]; then
-        echo "WARNING: Private package '$pkg' may not be stowed correctly"
-    fi
+    validate_package "Private" "$pkg" "$PRIVATE_DIR/$pkg" "$PRIVATE_DIR"
 done
 
 echo "Sync complete."
