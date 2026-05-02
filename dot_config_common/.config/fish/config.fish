@@ -4,7 +4,7 @@ if status is-interactive
     for config in $__fish_config_dir/public_user/**/*.fish
         source $config
     end
-    for config in $__fish_config_dir/user/**/*.fish
+    for config in $__fish_config_dir/private_user/**/*.fish
         source $config
     end
 end
