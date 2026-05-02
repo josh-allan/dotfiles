@@ -9,7 +9,9 @@
       "user.email": "op://Personal/Git Email/username",
       "user.name": "op://Personal/user/username",
       "user.signingkey": "op://Personal/Git Signing Key/public key"
-    }
+    },
+    "dot_home/.zshrc": {},
+    "dot_config_common/.config/fish/config.fish": {}
   },
   "private_repo": {
     "url": "git@github.com:josh-allan/private-dots.git",
