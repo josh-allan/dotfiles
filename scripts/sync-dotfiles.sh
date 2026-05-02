@@ -107,8 +107,11 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
             continue
         fi
 
-        stow "${skip_args[@]}" -d "$PRIVATE_DIR" -t "$HOME" "$pkg"
-        echo "  Stowed: $pkg (private)"
+        if stow "${skip_args[@]}" -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
+            echo "  Stowed: $pkg (private)"
+        else
+            echo "  WARNING: Stow failed for $pkg (may need manual symlinks)"
+        fi
     done
 fi
 
