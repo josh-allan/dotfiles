@@ -2,10 +2,13 @@ set -g fish_greeting
 
 if status is-interactive
     for config in $__fish_config_dir/public_user/**/*.fish
-        source $config
+       source $config
     end
     for config in $__fish_config_dir/private_user/**/*.fish
-        source $config
+       source $config
+    end
+    for config in $__fish_config_dir/private_work/**/*.fish
+    	source $config
     end
 end
 
