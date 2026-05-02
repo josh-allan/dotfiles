@@ -45,3 +45,7 @@ dot_config/.config/fish/config.fish
 
 # Private overlay directory - never track (private repo stows here)
 dot_config/.config/fish/user/
+
+# Symlinks created by private repo stow into public repo directories
+# These point to private/ (gitignored) so they're safe but untracked
+dot_config_common/.config/fish/private_user
