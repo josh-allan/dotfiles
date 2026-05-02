@@ -6,7 +6,7 @@ Machine-specific dotfiles managed with GNU Stow, templates, and per-host configs
 
 ```bash
 # 1. Clone this repo
-git clone git@github.com:josh-allan/.dotfiles.git ~/dotfiles
+git clone git@github.com:josh-allan/dotfiles.git ~/.dotfiles
 cd ~/dotfiles
 
 # 2. Install dependencies
