@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# pre-push hook: push private repo before public repo
+# This ensures private-dots stays in sync with public dotfiles
+
+set -e
+
+PRIVATE_DIR="$(git rev-parse --show-toplevel)/private"
+
+if [[ -d "$PRIVATE_DIR/.git" ]]; then
+    cd "$PRIVATE_DIR"
+    
+    # Check if there are commits to push
+    if git rev-parse @{upstream} >/dev/null 2>&1; then
+        LOCAL=$(git rev-parse @)
+        REMOTE=$(git rev-parse @{u})
+        BASE=$(git merge-base @ @{u})
+        
+        if [[ $LOCAL != $REMOTE ]]; then
+            echo "Pushing private repo..."
+            git push || {
+                echo "ERROR: Failed to push private repo. Public push aborted."
+                exit 1
+            }
+            echo "Private repo pushed."
+        fi
+    fi
+fi

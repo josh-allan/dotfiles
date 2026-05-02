@@ -1,36 +1,31 @@
 # Dotfiles
 
-Dotfiles repository.
+Machine-specific dotfiles managed with GNU Stow, templates, and per-host configs.
 
-## DISCLAIMER
+## Quick Start
 
----
+```bash
+# 1. Clone this repo
+git clone git@github.com:josh-allan/.dotfiles.git ~/dotfiles
+cd ~/dotfiles
 
-## This config is designed for Linux, however it will mostly work for MacOS
+# 2. Install dependencies
+./scripts/install-deps.sh
 
----
+# 3. Run sync (detects hostname, renders templates, stows relevant packages)
+./scripts/sync-dotfiles.sh
+```
 
-- Given this is primarily a Linux config:
+## Architecture
 
-  - Step 1: `stow`
-  - Step 2: `pray`
-
-## Dependencies and various configurations
-
----
-
-- Build an AUR helper and then install packages from minimum_packages.lst
-- aur helper: `git clone https://aur.archlinux.org/yay-bin.git && cd yay-bin && makepkg -si && yay -S - < minimum_packages.lst`
-- `stow`
-
----
-
-- headphone_touchcontrols
-  - service to load `mpris-proxy` at boot enabling touchpad controls for Sony headphones
+| Component | Purpose |
+|-----------|---------|
+| `hosts/<hostname>.json` | Per-machine config: packages, templates, private repo |
+| `templates/` | Base files with `{{placeholder}}` values rendered at sync |
+| `scripts/sync-dotfiles.sh` | Orchestrator: detect → render → pull → stow |
+| `private/` | gitignored staging area for cloned private overlay repo |
 
 ## Kudos
 
----
-
-- @viqueen's Devbox repo, some scripts have been borrowed and added into `.zshrc`
-- @macintacos for some helpful neovim keybinds, and a remapping helper function, plus some fish inspiration
+- @viqueen's Devbox repo
+- @macintacos for neovim keybinds and fish inspiration
