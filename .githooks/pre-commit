@@ -13,7 +13,7 @@ if [[ -n "$OP_MATCHES" ]]; then
 fi
 
 # Block common secret patterns
-PATTERN='(api_key|apikey|api-key|secret|password|token)\s*=\s*\S{8,}'
+PATTERN='(api_key|apikey|api-key|secret|password|token|mongodb+srv)\s*=\s*\S{8,}'
 SECRET_MATCHES=$(git diff --cached --name-only | xargs grep -lE "$PATTERN" 2>/dev/null || true)
 if [[ -n "$SECRET_MATCHES" ]]; then
     echo "ERROR: Commit may contain hardcoded secrets. Use 1Password templates instead."

@@ -2,13 +2,13 @@
   "os": "linux",
   "packages": {
     "public": ["dot_home", "dot_config_common", "dot_config_linux"],
-    "private": ["private_user"]
+    "private": ["private_user", "opencode", "claude"]
   },
   "templates": {
     "dot_home/.gitconfig": {
-      "user.email": "op://Private/Git/email",
-      "user.name": "op://Private/Git/name",
-      "user.signingkey": "op://Private/Git/signingkey"
+      "user.email": "op://Personal/Git Email/username",
+      "user.name": "op://Personal/user/username",
+      "user.signingkey": "op://Personal/Git Signing Key/public key"
     },
     "dot_home/.zshrc": {}
   },
