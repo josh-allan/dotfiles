@@ -2,7 +2,7 @@
   "os": "linux",
   "packages": {
     "public": ["dot_home", "dot_config_common", "dot_config_linux"],
-    "private": []
+    "private": ["user"]
   },
   "templates": {
     "dot_home/.gitconfig": {
