@@ -71,10 +71,12 @@ install_pkg() {
             return 1
         fi
     else
-        if has_command apt-get; then
-            sudo apt-get update -qq && sudo apt-get install -y -qq "$pkg"
+        if has_command yay; then
+            yay -Sy --noconfirm "$pkg"
         elif has_command pacman; then
             sudo pacman -Sy --noconfirm "$pkg"
+        elif has_command apt-get; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq "$pkg"
         else
             log_error "No supported package manager found"
             return 1
@@ -130,34 +132,54 @@ ensure_op() {
             return 1
         fi
     else
-        # Linux - use official install script
-        log_info "Downloading 1Password CLI..."
-        local arch
-        arch="$(uname -m)"
-        case "$arch" in
-            x86_64)
-                arch="amd64"
-                ;;
-            aarch64|arm64)
-                arch="arm64"
-                ;;
-        esac
+        # Linux
+        if has_command yay; then
+            log_info "Installing 1Password CLI from AUR..."
+            yay -Sy --noconfirm 1password-cli
+            log_success "1Password CLI installed"
+        else
+            # Other Linux - manual install from GitHub releases
+            log_info "Downloading 1Password CLI..."
+            local arch
+            arch="$(uname -m)"
+            case "$arch" in
+                x86_64)
+                    arch="amd64"
+                    ;;
+                aarch64|arm64)
+                    arch="arm64"
+                    ;;
+            esac
 
-        local tmp_dir
-        tmp_dir="$(mktemp -d)"
-        trap 'rm -rf "$tmp_dir"' EXIT
+            tmp_dir="$(mktemp -d)"
+            trap 'rm -rf "${tmp_dir:-}"' EXIT
 
-        curl -sS https://cache.agilebits.com/dist/1P/op2/pkg/stable/op_linux_${arch}_v2.34.0.zip -o "$tmp_dir/op.zip" 2>/dev/null || {
-            log_error "Failed to download 1Password CLI"
-            log_error "Install manually: https://developer.1password.com/docs/cli/get-started"
-            return 1
-        }
+            local version
+            version="$(curl -sS https://api.github.com/repos/1Password/op/releases/latest | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')"
+            if [[ -z "$version" ]]; then
+                version="2.30.3"
+                log_warn "Could not determine latest version, using $version"
+            fi
 
-        unzip -q "$tmp_dir/op.zip" -d "$tmp_dir"
-        sudo mv "$tmp_dir/op" /usr/local/bin/
-        sudo chmod +x /usr/local/bin/op
+            local download_url="https://github.com/1Password/op/releases/download/v${version}/op_linux_${arch}_v${version}.zip"
+            log_info "Downloading from $download_url"
 
-        log_success "1Password CLI installed"
+            if ! curl -sSL "$download_url" -o "$tmp_dir/op.zip"; then
+                log_error "Failed to download 1Password CLI"
+                log_error "Install manually: https://developer.1password.com/docs/cli/get-started"
+                return 1
+            fi
+
+            if ! unzip -q "$tmp_dir/op.zip" -d "$tmp_dir"; then
+                log_error "Downloaded file is not a valid zip"
+                return 1
+            fi
+
+            sudo mv "$tmp_dir/op" /usr/local/bin/
+            sudo chmod +x /usr/local/bin/op
+
+            log_success "1Password CLI installed"
+        fi
     fi
 }
 
