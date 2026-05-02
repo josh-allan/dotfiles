@@ -2,7 +2,7 @@
   "os": "macos",
   "packages": {
     "public": ["dot_home", "dot_config_common", "dot_config_macos"],
-    "private": ["user", "work"]
+    "private": ["user", "work", "opencode", "claude"]
   },
   "templates": {
     "dot_home/.gitconfig": {
