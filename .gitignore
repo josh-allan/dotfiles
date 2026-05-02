@@ -3,7 +3,6 @@ venv*
 catfissh.fish
 catfissh
 __catfissh*
-ai-tools/
 .claude/
 
 .env
@@ -49,3 +48,8 @@ dot_config/.config/fish/user/
 # These point to private/ (gitignored) so they're safe but untracked
 dot_config_common/.config/fish/private_user
 dot_home/scripts/mongodump.sh
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
