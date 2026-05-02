@@ -6,6 +6,8 @@
 	defaultBranch = main
 [core]
 	excludesFile = ~/.gitignore
+    editor = nvim
+    pager = delta
 [gpg]
   program = /usr/local/bin/gpg
 [commit]
@@ -25,3 +27,11 @@
 	gpgSign = true
 [submodule]
 	recurse = true
+[delta]
+  navigate = true
+  features = decorations
+  line-numbers = true
+  syntax-theme = Monokai Extended Bright
+  dark = true
+  hunk-header-decoration-style = ul
+  hunk-header-style = line-number file syntax
