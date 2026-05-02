@@ -139,14 +139,29 @@ fi
 # Step 6: Post-sync validation — verify stow-created symlinks exist
 echo "Running post-sync validation..."
 
-# Helper: validate a stow package by checking that stowed files resolve
-# to the correct package directory via canonical path comparison.
-# Args: label ("Public"/"Private"), package_name, package_dir, stow_dir
+# Portable canonical path resolution.
+# Prefers realpath (macOS 13+, Linux), falls back to perl (available on
+# all macOS versions), then readlink -f (GNU coreutils).
+_resolve_canonical() {
+    if command -v realpath >/dev/null 2>&1; then
+        realpath "$1" 2>/dev/null || true
+    elif command -v perl >/dev/null 2>&1; then
+        perl -MCwd -e 'print Cwd::realpath($ARGV[0])' -- "$1" 2>/dev/null || true
+    else
+        readlink -f "$1" 2>/dev/null || true
+    fi
+}
+
+# Validate that a stow package is correctly linked by sampling files
+# and comparing their canonical paths.  A single match is sufficient
+# because stow is atomic: either all files are linked or the operation
+# fails entirely (modulo conflicts).
 validate_package() {
     local pkg_label pkg pkg_dir stow_dir
-    local found total checked i remaining
+    local found total checked remaining
     local file rel target target_canon expected_canon status
     local -a issues
+    local suggestion
 
     pkg_label="$1"
     pkg="$2"
@@ -157,29 +172,30 @@ validate_package() {
     checked=0
     issues=()
 
+    # Defensive: strip trailing slash so ${file#"$pkg_dir"/} works correctly.
+    pkg_dir="${pkg_dir%/}"
+
     if [[ ! -d "$pkg_dir" ]]; then
         echo "WARNING: ${pkg_label} package '$pkg' not found at $pkg_dir"
         return
     fi
 
-    # Walk all files in the package directory
+    # Walk all files in the package directory.
     while IFS= read -r -d '' file; do
         rel="${file#"$pkg_dir"/}"
         target="$HOME/$rel"
         total=$((total + 1))
 
-        # Only one file needs to resolve correctly to confirm stow worked.
-        # readlink -f follows directory symlinks (common with stow) to
-        # canonical paths, so we compare resolved paths instead of checking [[ -L ]].
+        # Once we know stow succeeded, stop doing expensive canonicalisation.
         if [[ $found -eq 0 ]]; then
-            target_canon="$(readlink -f "$target" 2>/dev/null || true)"
-            expected_canon="$(readlink -f "$file" 2>/dev/null || true)"
+            target_canon="$(_resolve_canonical "$target")"
+            expected_canon="$(_resolve_canonical "$file")"
             if [[ -n "$target_canon" && "$target_canon" == "$expected_canon" ]]; then
                 found=1
             fi
         fi
 
-        # Collect up to 5 issues for diagnostic output
+        # Collect up to 5 sample issues while we still think stow failed.
         if [[ $found -eq 0 && $checked -lt 5 ]]; then
             if [[ -L "$target" ]]; then
                 status="(exists as symlink but points elsewhere)"
@@ -188,33 +204,51 @@ validate_package() {
             else
                 status="(does not exist)"
             fi
-            issues[${#issues[@]}]="$rel"
-            issues[${#issues[@]}]="$status"
+            # shellcheck disable=SC2088 # Tilde is intentional for display output.
+            issues+=("~/$rel $status")
             checked=$((checked + 1))
+        fi
+
+        # No need to keep walking once we have confirmed stow worked.
+        if [[ $found -eq 1 ]]; then
+            break
         fi
     done < <(find "$pkg_dir" -type f -not -path '*/.git/*' -print0 2>/dev/null || true)
 
-    if [[ $found -eq 0 ]]; then
-        echo "WARNING: ${pkg_label} package '$pkg' may not be stowed correctly"
-
-        i=0
-        while [[ $i -lt ${#issues[@]} ]]; do
-            echo "  Checked: ~/${issues[$i]} ${issues[$i+1]}"
-            i=$((i + 2))
-        done
-
-        remaining=$((total - checked))
-        if [[ $remaining -gt 0 ]]; then
-            if [[ $remaining -eq 1 ]]; then
-                echo "  ... (1 more file)"
-            else
-                echo "  ... ($remaining more files)"
-            fi
-        fi
-
-        echo "  Package dir: $pkg_dir (exists)"
-        echo "  Likely cause: Target paths already exist as real files/directories. Run 'stow -n ${skip_args[*]} -d \"$stow_dir\" -t \"$HOME\" \"$pkg\"' to see conflicts."
+    if [[ $found -eq 1 ]]; then
+        return
     fi
+
+    if [[ $total -eq 0 ]]; then
+        echo "WARNING: ${pkg_label} package '$pkg' may not be stowed correctly"
+        echo "  Package dir: $pkg_dir (exists)"
+        echo "  Note: Package contains no files to stow."
+        return
+    fi
+
+    echo "WARNING: ${pkg_label} package '$pkg' may not be stowed correctly"
+
+    for issue in "${issues[@]}"; do
+        echo "  Checked: $issue"
+    done
+
+    remaining=$((total - checked))
+    if [[ $remaining -gt 0 ]]; then
+        if [[ $remaining -eq 1 ]]; then
+            echo "  ... (1 more file)"
+        else
+            echo "  ... ($remaining more files)"
+        fi
+    fi
+
+    echo "  Package dir: $pkg_dir (exists)"
+
+    suggestion="stow -n"
+    for arg in "${skip_args[@]}"; do
+        suggestion+=" $(printf '%q' "$arg")"
+    done
+    suggestion+=" -d \"$stow_dir\" -t \"$HOME\" \"$pkg\""
+    echo "  Likely cause: Target paths already exist as real files/directories. Run '$suggestion' to see conflicts."
 }
 
 for pkg in "${public_packages[@]}"; do
