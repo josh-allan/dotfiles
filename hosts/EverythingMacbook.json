@@ -6,9 +6,9 @@
   },
   "templates": {
     "dot_home/.gitconfig": {
-      "user.email": "op://Private/Git/email",
-      "user.name": "op://Private/Git/name",
-      "user.signingkey": "op://Private/Git/signingkey"
+      "user.email": "op://Personal/Git Email/username",
+      "user.name": "op://Personal/user/username",
+      "user.signingkey": "op://Personal/Git Signing Key/public key"
     }
   },
   "private_repo": null,

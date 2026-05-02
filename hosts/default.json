@@ -9,9 +9,6 @@
       "user.email": "op://Private/Git/email",
       "user.name": "op://Private/Git/name",
       "user.signingkey": "op://Private/Git/signingkey"
-    },
-    "dot_home/.zshrc": {
-      "user.home": "$HOME"
     }
   },
   "private_repo": null,

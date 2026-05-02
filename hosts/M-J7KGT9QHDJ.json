@@ -9,12 +9,6 @@
       "user.email": "op://Work/Git/email",
       "user.name": "op://Work/Git/name",
       "user.signingkey": "op://Work/Git/signingkey"
-    },
-    "dot_home/.zshrc": {
-      "user.home": "/Users/josh"
-    },
-    "dot_config/.config/fish/config.fish": {
-      "opencode.path": "/Users/josh/.opencode/bin"
     }
   },
   "private_repo": {

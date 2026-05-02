@@ -212,13 +212,13 @@ function nvm() {
 zstyle ':completion:*' menu select
 fpath+=~/.zfunc
 
-path+=('/Users/$USERNAME/.local/bin','')
+path+=('{{user.home}}/.local/bin','')
 export GOPATH=$HOME/dev/go
 export WEZPATH="$PATH:/Applications/WezTerm.app/Contents/MacOS"
-export PATH=/Library/Frameworks/Python.framework/Versions/3.10/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:/Users/$USERNAME/.local/bin:/Users/$USERNAME/Documents/git/devbox/modules/cli/bin:/Users/$USERNAME/Documents/git/devbox/cli/bin:~/bin:$GOROOT/bin:$GOPATH/bin:/Users/$USERNAME/.cargo/bin:$WEZPATH/bin
+export PATH=/Library/Frameworks/Python.framework/Versions/3.10/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:{{user.home}}/.local/bin:{{user.home}}/Documents/git/devbox/modules/cli/bin:{{user.home}}/Documents/git/devbox/cli/bin:~/bin:$GOROOT/bin:$GOPATH/bin:{{user.home}}/.cargo/bin:$WEZPATH/bin
 alias brew='env PATH="${PATH//$(pyenv root)\/shims:/}" brew'
 # uncomment if profiling is needed
 #zprof
 
 
-alias claude-mem='bun "/Users/josh/.claude/plugins/cache/thedotmack/claude-mem/12.2.0/scripts/worker-service.cjs"'
+alias claude-mem='bun "{{user.home}}/.claude/plugins/cache/thedotmack/claude-mem/12.2.0/scripts/worker-service.cjs"'
