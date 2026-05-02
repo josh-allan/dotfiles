@@ -60,9 +60,9 @@ has_command() {
 install_pkg() {
     local pkg="$1"
     local brew_pkg="${2:-$pkg}"
-    
+
     log_info "Installing $pkg..."
-    
+
     if [[ "$OS_TYPE" == "macos" ]]; then
         if has_command brew; then
             brew install "$brew_pkg"
@@ -71,19 +71,12 @@ install_pkg() {
             return 1
         fi
     else
-        # Linux - detect package manager
         if has_command apt-get; then
             sudo apt-get update -qq && sudo apt-get install -y -qq "$pkg"
         elif has_command pacman; then
             sudo pacman -Sy --noconfirm "$pkg"
-        elif has_command dnf; then
-            sudo dnf install -y "$pkg"
-        elif has_command yum; then
-            sudo yum install -y "$pkg"
-        elif has_command zypper; then
-            sudo zypper install -y "$pkg"
         else
-            log_error "No supported package manager found (apt, pacman, dnf, yum, zypper)"
+            log_error "No supported package manager found"
             return 1
         fi
     fi
@@ -125,9 +118,9 @@ ensure_op() {
         log_success "1Password CLI: $(op --version)"
         return 0
     fi
-    
+
     log_info "Installing 1Password CLI..."
-    
+
     if [[ "$OS_TYPE" == "macos" ]]; then
         if has_command brew; then
             brew install 1password-cli
@@ -149,21 +142,21 @@ ensure_op() {
                 arch="arm64"
                 ;;
         esac
-        
+
         local tmp_dir
         tmp_dir="$(mktemp -d)"
         trap 'rm -rf "$tmp_dir"' EXIT
-        
+
         curl -sS https://cache.agilebits.com/dist/1P/op2/pkg/stable/op_linux_${arch}_v2.34.0.zip -o "$tmp_dir/op.zip" 2>/dev/null || {
             log_error "Failed to download 1Password CLI"
             log_error "Install manually: https://developer.1password.com/docs/cli/get-started"
             return 1
         }
-        
+
         unzip -q "$tmp_dir/op.zip" -d "$tmp_dir"
         sudo mv "$tmp_dir/op" /usr/local/bin/
         sudo chmod +x /usr/local/bin/op
-        
+
         log_success "1Password CLI installed"
     fi
 }

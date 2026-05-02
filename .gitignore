@@ -42,3 +42,6 @@ private/
 dot_home/.gitconfig
 dot_home/.zshrc
 dot_config/.config/fish/config.fish
+
+# Private overlay directory - never track (private repo stows here)
+dot_config/.config/fish/user/

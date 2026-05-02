@@ -31,6 +31,13 @@ if git diff --cached --name-only | grep -qE '^dot_home/\.gitconfig$'; then
     ERRORS=$((ERRORS + 1))
 fi
 
+# Block private fish user directory (should come from private repo only)
+if git diff --cached --name-only | grep -qE '^dot_config/\.config/fish/user/'; then
+    echo "ERROR: Commit contains dot_config/.config/fish/user/. Private fish functions belong in the private repo."
+    echo "       Add them to private/user/ in the private-dots repo instead."
+    ERRORS=$((ERRORS + 1))
+fi
+
 if [[ $ERRORS -gt 0 ]]; then
     echo "Pre-commit checks failed. Fix the issues above before committing."
     exit 1
