@@ -228,3 +228,17 @@ terraform.rc
 docs/superpowers/
 
 .DS_Store
+*.zshenv
+.env
+*.env*
+*.code-workspace
+.idea/
+.venv/
+venv/
+.bazelproject
+.bazelignore
+first-boot.json
+MODULE.bazel.lock
+.secrets/
+**/docs/*
+docs/
