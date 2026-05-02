@@ -1,0 +1,21 @@
+{
+  "os": "linux",
+  "packages": {
+    "public": ["dot_home", "dot_config_common", "dot_config_linux"],
+    "private": ["private_user"]
+  },
+  "templates": {
+    "dot_home/.gitconfig": {
+      "user.email": "op://Private/Git/email",
+      "user.name": "op://Private/Git/name",
+      "user.signingkey": "op://Private/Git/signingkey"
+    },
+    "dot_home/.zshrc": {},
+    "dot_config_common/.config/fish/config.fish": {}
+  },
+  "private_repo": {
+    "url": "git@github.com:josh-allan/private-dots.git",
+    "branch": "main"
+  },
+  "skip_paths": []
+}

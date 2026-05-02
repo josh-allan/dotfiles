@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# Pre-commit hook: prevent secrets and generated files from being committed.
+
+ERRORS=0
+
+# Block files containing 1Password references (excluding hook files, docs, and host configs)
+# Host configs (hosts/*.json) intentionally contain op:// references as template definitions
+OP_MATCHES=$(git diff --cached --name-only | grep -v '^\.githooks/' | grep -v '\.md$' | grep -v '^hosts/' | xargs grep -l 'op://' 2>/dev/null || true)
+if [[ -n "$OP_MATCHES" ]]; then
+    echo "ERROR: Commit contains 1Password references (op://) in non-host-config files. Use templates instead."
+    ERRORS=$((ERRORS + 1))
+fi
+
+# Block common secret patterns
+PATTERN='(api_key|apikey|api-key|secret|password|token)\s*=\s*\S{8,}'
+SECRET_MATCHES=$(git diff --cached --name-only | xargs grep -lE "$PATTERN" 2>/dev/null || true)
+if [[ -n "$SECRET_MATCHES" ]]; then
+    echo "ERROR: Commit may contain hardcoded secrets. Use 1Password templates instead."
+    ERRORS=$((ERRORS + 1))
+fi
+
+# Block private/ directory
+if git diff --cached --name-only | grep -qE '^private/'; then
+    echo "ERROR: Commit contains private/ directory. This should never be tracked."
+    ERRORS=$((ERRORS + 1))
+fi
+
+# Block rendered config files (should be generated, not tracked)
+if git diff --cached --name-only | grep -qE '^dot_home/\.gitconfig$'; then
+    echo "ERROR: Commit contains rendered dot_home/.gitconfig. Use templates/.gitconfig.tmpl instead."
+    ERRORS=$((ERRORS + 1))
+fi
+
+# Block private fish user directory (should come from private repo only)
+if git diff --cached --name-only | grep -qE '^dot_config/\.config/fish/user/'; then
+    echo "ERROR: Commit contains dot_config/.config/fish/user/. Private fish functions belong in the private repo."
+    echo "       Add them to private/user/ in the private-dots repo instead."
+    ERRORS=$((ERRORS + 1))
+fi
+
+if [[ $ERRORS -gt 0 ]]; then
+    echo "Pre-commit checks failed. Fix the issues above before committing."
+    exit 1
+fi
