@@ -112,6 +112,27 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
     done
 fi
 
+# Step 5b: Manual symlinks for packages that can't be stowed (merge into existing dirs)
+# private_user fish functions need to merge into ~/.config/fish/ which is already a symlink
+if [[ -d "$PRIVATE_DIR/private_user/.config/fish/private_user" ]]; then
+    target="$HOME/.config/fish/private_user"
+    source="$PRIVATE_DIR/private_user/.config/fish/private_user"
+    
+    if [[ -L "$target" ]]; then
+        current="$(readlink "$target")"
+        if [[ "$current" != "$source" ]]; then
+            rm "$target"
+            ln -s "$source" "$target"
+            echo "  Linked: $target -> $source"
+        fi
+    elif [[ -e "$target" ]]; then
+        echo "  WARNING: $target exists and is not a symlink"
+    else
+        ln -s "$source" "$target"
+        echo "  Linked: $target -> $source"
+    fi
+fi
+
 # Step 6: Post-sync validation — verify stow-created symlinks exist
 echo "Running post-sync validation..."
 
