@@ -6,11 +6,14 @@
   },
   "templates": {
     "dot_home/.gitconfig": {
-      "user.email": "op://Private/Git/email",
-      "user.name": "op://Private/Git/name",
-      "user.signingkey": "op://Private/Git/signingkey"
+      "user.email": "op://Personal/Git/email",
+      "user.name": "op://Personal/Git/name",
+      "user.signingkey": "op://Personal/Git/signingkey"
     }
   },
-  "private_repo": null,
+  "private_repo": {
+    "url": "git@github.com:josh-allan/private-dots.git",
+    "branch": "main"
+  },
   "skip_paths": []
 }

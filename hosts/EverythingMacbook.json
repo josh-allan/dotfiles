@@ -2,7 +2,7 @@
   "os": "macos",
   "packages": {
     "public": ["dot_home", "dot_config_common", "dot_config_macos"],
-    "private": []
+    "private": ["ai-tools", "work-overlays"]
   },
   "templates": {
     "dot_home/.gitconfig": {
@@ -11,6 +11,9 @@
       "user.signingkey": "op://Personal/Git Signing Key/public key"
     }
   },
-  "private_repo": null,
+  "private_repo": {
+    "url": "git@github.com:josh-allan/private-dots.git",
+    "branch": "main"
+  },
   "skip_paths": []
 }

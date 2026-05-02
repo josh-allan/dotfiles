@@ -11,6 +11,9 @@
       "user.signingkey": "op://Private/Git/signingkey"
     }
   },
-  "private_repo": null,
+  "private_repo": {
+    "url": "git@github.com:josh-allan/private-dots.git",
+    "branch": "main"
+  },
   "skip_paths": []
 }
