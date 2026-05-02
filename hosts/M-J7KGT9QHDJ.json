@@ -10,8 +10,7 @@
       "user.name": "op://Work/Git/name",
       "user.signingkey": "op://Work/Git/signingkey"
     },
-    "dot_home/.zshrc": {},
-    "dot_config_common/.config/fish/config.fish": {}
+    "dot_home/.zshrc": {}
   },
   "private_repo": {
     "url": "git@github.com:josh-allan/private-dots.git",
