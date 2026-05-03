@@ -27,6 +27,58 @@ if [[ ! -f "$HOST_CONFIG" ]]; then
 fi
 
 echo "Host config: $HOST_CONFIG"
+render_templates() {
+    local template_key template_file output_file placeholder op_ref value
+
+    # Read templates config (while read for Bash 3+ compat)
+    local found_templates=false
+    while IFS= read -r template_key; do
+        [[ -n "$template_key" ]] || continue
+        found_templates=true
+
+        template_file="$TEMPLATES_DIR/$template_key.tmpl"
+        output_file="$REPO_ROOT/$template_key"
+
+        if [[ ! -f "$template_file" ]]; then
+            echo "WARNING: Template not found: $template_file"
+            continue
+        fi
+
+        mkdir -p "$(dirname "$output_file")"
+
+        # Start with template content
+        cp "$template_file" "$output_file"
+
+        # Read placeholder mappings for this template (while read for Bash 3+ compat)
+        while IFS= read -r placeholder; do
+            [[ -n "$placeholder" ]] || continue
+
+            op_ref="$(jq -r ".templates[\"$template_key\"][\"$placeholder\"]" "$HOST_CONFIG")"
+
+            # Fetch value from 1Password
+            value="$(op read "$op_ref" 2>/dev/null || true)"
+
+            if [[ -z "$value" ]]; then
+                echo "WARNING: Could not read 1Password reference for '$placeholder' in '$template_key'"
+                continue
+            fi
+
+            # Replace placeholder in output file using perl (safe for special chars)
+            export OP_VALUE="$value"
+            perl -i -pe "s/\{\{\Q$placeholder\E\}\}/\$ENV{OP_VALUE}/g" -- "$output_file"
+            unset OP_VALUE
+            echo "  $template_key: {{$placeholder}} -> [redacted]"
+        done < <(jq -r ".templates[\"$template_key\"] | keys[]" "$HOST_CONFIG" 2>/dev/null || true)
+    done < <(jq -r '.templates | keys[]' "$HOST_CONFIG" 2>/dev/null || true)
+
+    if ! $found_templates; then
+        echo "No templates configured."
+        return
+    fi
+
+    echo "Templates rendered."
+}
+
 
 # Step 1: Validate
 "$SCRIPT_DIR/validate-config.sh" "$HOST_CONFIG"
@@ -34,7 +86,7 @@ echo "Host config: $HOST_CONFIG"
 # Step 2: Render templates
 if [[ -d "$TEMPLATES_DIR" ]]; then
     echo "Rendering templates..."
-    "$SCRIPT_DIR/render-templates.sh" "$HOST_CONFIG" "$TEMPLATES_DIR" "$REPO_ROOT"
+    render_templates
 else
     echo "Step 2: No templates directory — skipping"
 fi
@@ -110,30 +162,34 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
         if stow "${skip_args[@]}" -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
             echo "  Stowed: $pkg (private)"
         else
-            echo "  WARNING: Stow failed for $pkg (may need manual symlinks)"
+            case "$pkg" in
+                private_user)
+                    echo "  Stow conflict: $pkg (using manual symlink fallback)"
+                    # private_user fish functions need to merge into ~/.config/fish/ which is already a symlink
+                    if [[ -d "$PRIVATE_DIR/private_user/.config/fish/private_user" ]]; then
+                        target="$HOME/.config/fish/private_user"
+                        source="$PRIVATE_DIR/private_user/.config/fish/private_user"
+                        if [[ -L "$target" ]]; then
+                            current="$(readlink "$target")"
+                            if [[ "$current" != "$source" ]]; then
+                                rm "$target"
+                                ln -s "$source" "$target"
+                                echo "  Linked: $target -> $source"
+                            fi
+                        elif [[ -e "$target" ]]; then
+                            echo "  WARNING: $target exists and is not a symlink"
+                        else
+                            ln -s "$source" "$target"
+                            echo "  Linked: $target -> $source"
+                        fi
+                    fi
+                    ;;
+                *)
+                    echo "  Stow conflict: $pkg (target exists — manual fix required)"
+                    ;;
+            esac
         fi
     done
-fi
-
-# Step 5b: Manual symlinks for packages that can't be stowed (merge into existing dirs)
-# private_user fish functions need to merge into ~/.config/fish/ which is already a symlink
-if [[ -d "$PRIVATE_DIR/private_user/.config/fish/private_user" ]]; then
-    target="$HOME/.config/fish/private_user"
-    source="$PRIVATE_DIR/private_user/.config/fish/private_user"
-    
-    if [[ -L "$target" ]]; then
-        current="$(readlink "$target")"
-        if [[ "$current" != "$source" ]]; then
-            rm "$target"
-            ln -s "$source" "$target"
-            echo "  Linked: $target -> $source"
-        fi
-    elif [[ -e "$target" ]]; then
-        echo "  WARNING: $target exists and is not a symlink"
-    else
-        ln -s "$source" "$target"
-        echo "  Linked: $target -> $source"
-    fi
 fi
 
 # Step 6: Post-sync validation — verify stow-created symlinks exist

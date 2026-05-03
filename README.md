@@ -14,6 +14,8 @@ cd ~/dotfiles
 
 # 3. Run sync (detects hostname, renders templates, stows relevant packages)
 ./scripts/sync-dotfiles.sh
+
+# 4. Pray.
 ```
 
 ## Architecture
