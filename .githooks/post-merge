@@ -5,19 +5,19 @@ set -euo pipefail
 # This runs after `git pull` completes.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SYNC_SCRIPT="$REPO_ROOT/private/opencode/.config/opencode/scripts/sync-agents.sh"
+BOOTSTRAP="$REPO_ROOT/private/opencode/.config/opencode/scripts/bootstrap.sh"
 
-# Only run if the sync script exists
-if [[ ! -f "$SYNC_SCRIPT" ]]; then
+# Only run if the bootstrap script exists
+if [[ ! -f "$BOOTSTRAP" ]]; then
     exit 0
 fi
 
-# Check if any template or host config files changed in the private repo merge
+# Check if any template, host config, or sync script files changed
 CHANGED_FILES=$(git -C "$REPO_ROOT/private" diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD 2>/dev/null || true)
 
-if echo "$CHANGED_FILES" | grep -qE '^\.config/opencode/(templates/|hosts/|scripts/sync-agents\.sh)'; then
+if echo "$CHANGED_FILES" | grep -qE '^\.config/opencode/(templates/|hosts/|scripts/)'; then
     echo "[opencode] Agent templates changed. Regenerating configs..."
-    cd "$REPO_ROOT/private/opencode/.config/opencode" && bash "$SYNC_SCRIPT"
+    cd "$REPO_ROOT/private/opencode/.config/opencode" && bash "$BOOTSTRAP"
 fi
 
 # --- BEGIN BEADS INTEGRATION v1.0.2 ---
