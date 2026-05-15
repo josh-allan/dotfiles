@@ -5,10 +5,10 @@ set -euo pipefail
 # This runs after `git checkout` or `git switch`.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SYNC_SCRIPT="$REPO_ROOT/private/opencode/.config/opencode/scripts/sync-agents.sh"
+BOOTSTRAP="$REPO_ROOT/private/opencode/.config/opencode/scripts/bootstrap.sh"
 
-# Only run if the sync script exists
-if [[ ! -f "$SYNC_SCRIPT" ]]; then
+# Only run if the bootstrap script exists
+if [[ ! -f "$BOOTSTRAP" ]]; then
     exit 0
 fi
 
@@ -21,11 +21,11 @@ if [[ "$CHECKOUT_TYPE" == "0" ]]; then
     exit 0
 fi
 
-# Check if templates differ in the private repo
+# Check if templates, hosts, or sync scripts differ
 if ! git -C "$REPO_ROOT/private" diff --quiet "$PREV_HEAD" "$NEW_HEAD" -- \
-    '.config/opencode/templates/' '.config/opencode/hosts/' '.config/opencode/scripts/sync-agents.sh' 2>/dev/null; then
+    '.config/opencode/templates/' '.config/opencode/hosts/' '.config/opencode/scripts/' 2>/dev/null; then
     echo "[opencode] Agent templates changed. Regenerating configs..."
-    cd "$REPO_ROOT/private/opencode/.config/opencode" && bash "$SYNC_SCRIPT"
+    cd "$REPO_ROOT/private/opencode/.config/opencode" && bash "$BOOTSTRAP"
 fi
 
 # --- BEGIN BEADS INTEGRATION v1.0.2 ---
