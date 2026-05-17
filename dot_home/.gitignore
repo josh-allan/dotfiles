@@ -221,6 +221,11 @@ terraform.rc
 
 .idea/
 
+# AI assistant working directories
+.claude/
+.claude/worktrees/
+.beads/
+
 .env
 *env
 ~/.secrets/
