@@ -37,8 +37,6 @@ log_info "Detected OS: $OS_TYPE"
 
 has_command() { command -v "$1" >/dev/null 2>&1; }
 
-# ── macOS: Homebrew ───────────────────────────────────────────────────────────
-
 ensure_brew() {
     if has_command brew; then
         log_success "brew: $(brew --version | head -1)"
@@ -55,7 +53,6 @@ ensure_brew() {
     log_success "Homebrew installed"
 }
 
-# ── Arch: yay ─────────────────────────────────────────────────────────────────
 
 ensure_yay() {
     if has_command yay; then
@@ -70,8 +67,6 @@ ensure_yay() {
     (cd "$tmp/yay-bin" && makepkg -si --noconfirm)
     log_success "yay installed"
 }
-
-# ── Bootstrap tools ───────────────────────────────────────────────────────────
 
 install_pkg() {
     local pkg="$1" brew_pkg="${2:-$1}"
@@ -130,7 +125,6 @@ ensure_op() {
     log_success "1Password CLI installed"
 }
 
-# ── Package install from packages.json ───────────────────────────────────────
 
 install_packages() {
     log_info "Installing packages from packages.json..."
@@ -140,10 +134,9 @@ install_packages() {
     log_success "Packages installed"
 }
 
-# ── Arch system packages ──────────────────────────────────────────────────────
 
 install_system_packages() {
-    local lst="$SCRIPT_DIR/../dot_home/scripts/pacman-system.lst"
+    local lst="$SCRIPT_DIR/pacman-system.lst"
     if [[ ! -f "$lst" ]]; then
         log_warn "pacman-system.lst not found at $lst"
         return
@@ -156,8 +149,6 @@ install_system_packages() {
     sudo pacman -S --needed --noconfirm - < "$lst"
     log_success "System packages installed"
 }
-
-# ── Main ──────────────────────────────────────────────────────────────────────
 
 log_info "Checking dotfiles dependencies..."
 
