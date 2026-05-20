@@ -19,10 +19,19 @@ def detect_platform():
     return "unknown"
 
 
-def run(cmd, dry_run=False):
+def run(cmd, dry_run=False, *, capture_on_fail=True):
     print("  + " + " ".join(cmd))
     if not dry_run:
-        subprocess.run(cmd, check=True)
+        result = subprocess.run(cmd, capture_output=capture_on_fail, text=True)
+        if result.returncode != 0:
+            print(f"[ERROR] Command failed (exit {result.returncode})", file=sys.stderr)
+            if result.stdout:
+                print("[stdout]", file=sys.stderr)
+                sys.stderr.write(result.stdout)
+            if result.stderr:
+                print("[stderr]", file=sys.stderr)
+                sys.stderr.write(result.stderr)
+            result.check_returncode()
 
 
 def load_packages():
@@ -50,16 +59,30 @@ def install_macos(tools, apps, dry_run):
         for t in tools
         if applies_to(t, "macos")
     ]
-    if formulae:
-        run(["brew", "install"] + formulae, dry_run)
+    failed = []
+    for pkg in formulae:
+        print(f"\n[package] {pkg}")
+        try:
+            run(["brew", "install", pkg], dry_run)
+        except subprocess.CalledProcessError:
+            failed.append(pkg)
+            print(f"[WARNING] Failed to install {pkg} -- continuing", file=sys.stderr)
 
     casks = [
         a.get("brew", a["name"])
         for a in apps
         if applies_to(a, "macos")
     ]
-    if casks:
-        run(["brew", "install", "--cask"] + casks, dry_run)
+    for pkg in casks:
+        print(f"\n[package] {pkg} (cask)")
+        try:
+            run(["brew", "install", "--cask", pkg], dry_run)
+        except subprocess.CalledProcessError:
+            failed.append(pkg)
+            print(f"[WARNING] Failed to install {pkg} -- continuing", file=sys.stderr)
+
+    if failed:
+        print(f"\n[WARNING] {len(failed)} package(s) failed: {', '.join(failed)}", file=sys.stderr)
 
 
 def install_arch(tools, apps, dry_run):
