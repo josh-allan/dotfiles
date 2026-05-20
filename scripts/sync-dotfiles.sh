@@ -137,7 +137,7 @@ if [[ ${#public_packages[@]} -gt 0 ]]; then
             continue
         fi
 
-        stow "${skip_args[@]}" -d "$REPO_ROOT" -t "$HOME" "$pkg"
+        stow ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$HOME" "$pkg"
         echo "  Stowed: $pkg"
     done
 fi
@@ -159,7 +159,7 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
             continue
         fi
 
-        if stow "${skip_args[@]}" -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
+        if stow ${skip_args+"${skip_args[@]}"} -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
             echo "  Stowed: $pkg (private)"
         else
             case "$pkg" in
@@ -300,7 +300,7 @@ validate_package() {
     echo "  Package dir: $pkg_dir (exists)"
 
     suggestion="stow -n"
-    for arg in "${skip_args[@]}"; do
+    for arg in ${skip_args[@]+"${skip_args[@]}"}; do
         suggestion+=" $(printf '%q' "$arg")"
     done
     suggestion+=" -d \"$stow_dir\" -t \"$HOME\" \"$pkg\""
