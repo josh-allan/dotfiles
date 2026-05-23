@@ -192,6 +192,9 @@ ensure_stow
 ensure_jq
 ensure_op
 
+log_info "Fetching SSH keys from 1Password..."
+"$SCRIPT_DIR/fetch-ssh-keys.sh" || log_warn "SSH key fetch failed — you may need to run scripts/fetch-ssh-keys.sh manually after signing in to op"
+
 install_packages
 
 if $INSTALL_SYSTEM && [[ "$OS_TYPE" == "linux" ]]; then
