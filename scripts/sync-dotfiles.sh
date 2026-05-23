@@ -192,6 +192,32 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
     done
 fi
 
+# Step 5.5: Stow system packages (requires sudo, Linux only)
+system_packages=()
+while IFS= read -r entry; do
+    [[ -n "$entry" ]] && system_packages+=("$entry")
+done < <(jq -c '.packages.system[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
+
+if [[ ${#system_packages[@]} -gt 0 ]]; then
+    echo "Stowing system packages..."
+    for entry in "${system_packages[@]}"; do
+        pkg="$(echo "$entry" | jq -r '.pkg')"
+        target="$(echo "$entry" | jq -r '.target')"
+        pkg_dir="$REPO_ROOT/$pkg"
+
+        if [[ ! -d "$pkg_dir" ]]; then
+            echo "WARNING: System package not found: $pkg_dir"
+            continue
+        fi
+
+        if sudo stow ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$target" "$pkg"; then
+            echo "  Stowed: $pkg -> $target"
+        else
+            echo "WARNING: Failed to stow system package '$pkg' (target: $target)"
+        fi
+    done
+fi
+
 # Step 6: Post-sync validation — verify stow-created symlinks exist
 echo "Running post-sync validation..."
 
@@ -213,7 +239,7 @@ _resolve_canonical() {
 # because stow is atomic: either all files are linked or the operation
 # fails entirely (modulo conflicts).
 validate_package() {
-    local pkg_label pkg pkg_dir stow_dir
+    local pkg_label pkg pkg_dir stow_dir target_dir
     local found total checked remaining
     local file rel target target_canon expected_canon status
     local -a issues
@@ -223,6 +249,7 @@ validate_package() {
     pkg="$2"
     pkg_dir="$3"
     stow_dir="$4"
+    target_dir="${5:-$HOME}"
     found=0
     total=0
     checked=0
@@ -239,7 +266,7 @@ validate_package() {
     # Walk all files in the package directory.
     while IFS= read -r -d '' file; do
         rel="${file#"$pkg_dir"/}"
-        target="$HOME/$rel"
+        target="$target_dir/$rel"
         total=$((total + 1))
 
         # Once we know stow succeeded, stop doing expensive canonicalisation.
@@ -303,7 +330,7 @@ validate_package() {
     for arg in ${skip_args[@]+"${skip_args[@]}"}; do
         suggestion+=" $(printf '%q' "$arg")"
     done
-    suggestion+=" -d \"$stow_dir\" -t \"$HOME\" \"$pkg\""
+    suggestion+=" -d \"$stow_dir\" -t \"$target_dir\" \"$pkg\""
     echo "  Likely cause: Target paths already exist as real files/directories. Run '$suggestion' to see conflicts."
 }
 
@@ -313,6 +340,12 @@ done
 
 for pkg in "${private_packages[@]}"; do
     validate_package "Private" "$pkg" "$PRIVATE_DIR/$pkg" "$PRIVATE_DIR"
+done
+
+for entry in ${system_packages[@]+"${system_packages[@]}"}; do
+    pkg="$(echo "$entry" | jq -r '.pkg')"
+    target="$(echo "$entry" | jq -r '.target')"
+    validate_package "System" "$pkg" "$REPO_ROOT/$pkg" "$REPO_ROOT" "$target"
 done
 
 echo "Sync complete."
