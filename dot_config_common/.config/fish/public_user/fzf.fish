@@ -9,7 +9,8 @@ fzf_configure_bindings \
     --processes=\cp \
     --history=\cr \
     --git_status=\ct \
-    --git_log=\cl
+    --git_log=\cl \
+    --variables=\ev
 
 set -gx FZF_DEFAULT_COMMAND 'fd --type f --hidden --follow --exclude .git'
 set -gx FZF_DEFAULT_OPTS "\
