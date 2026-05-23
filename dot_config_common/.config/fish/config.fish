@@ -1,4 +1,5 @@
 set -g fish_greeting
+set -x GPG_TTY (tty)
 
 if status is-interactive
     for config in $__fish_config_dir/public_user/**/*.fish
