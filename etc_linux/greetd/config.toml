@@ -8,7 +8,7 @@ vt = 1
 
 # `agreety` is the bundled agetty/login-lookalike. You can replace `/bin/sh`
 # with whatever you want started, such as `sway`.
-command = "tuigreet --theme 'border=magenta;text=cyan;prompt=green;time=red;action=blue;button=yellow;container=black;input=red' --time --remember --cmd start-hyprland"
+command = "env LANG=en_US.UTF-8 tuigreet --theme 'border=magenta;text=cyan;prompt=green;time=red;action=blue;button=yellow;container=black;input=red' --time --remember --cmd start-hyprland"
 # command = "cage -s -d -m last -- ags -b greeter -c /etc/greetd/ags/greet.js"
 #command = "agreety --cmd zsh"
 
