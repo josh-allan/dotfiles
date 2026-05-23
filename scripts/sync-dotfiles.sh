@@ -348,4 +348,10 @@ for entry in ${system_packages[@]+"${system_packages[@]}"}; do
     validate_package "System" "$pkg" "$REPO_ROOT/$pkg" "$REPO_ROOT" "$target"
 done
 
+# Step 7: Browser-specific setup
+if [[ "$(jq -r '.os // empty' "$HOST_CONFIG")" == "linux" ]]; then
+    echo "Running zen-setup..."
+    "$SCRIPT_DIR/zen-setup.sh" || echo "WARNING: zen-setup failed — run scripts/zen-setup.sh manually"
+fi
+
 echo "Sync complete."
