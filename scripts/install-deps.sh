@@ -136,17 +136,44 @@ install_packages() {
 
 
 install_system_packages() {
-    local lst="$SCRIPT_DIR/pacman-system.lst"
-    if [[ ! -f "$lst" ]]; then
-        log_warn "pacman-system.lst not found at $lst"
-        return
-    fi
-    log_info "Installing Arch system packages from pacman-system.lst..."
+    log_info "Installing Arch system packages..."
+    local pkgs=(
+        acpi alsa-utils android-tools arandr autoconf automake autorandr
+        base bison blueman bluez bluez-tools bluez-utils btrfs-progs
+        cmake code cpio debugedit dhcpcd dmenu docker docker-compose
+        dosfstools efibootmgr fakeroot feh firefox flatpak flameshot flex
+        font-manager fuzzel gcc gimp gnome-screenshot gobject-introspection
+        grim greetd grub-btrfs gscreenshot hwinfo i3-wm ipython iwd kitty
+        lightdm lightdm-gtk-greeter lightdm-slick-greeter
+        lightdm-webkit-theme-litarvan lightdm-webkit2-greeter
+        linux linux-firmware m4 make man-db meson mlocate neofetch
+        net-tools netstat-nat networkmanager ninja noto-fonts noto-fonts-cjk
+        noto-fonts-emoji npm openssh partclone parted patch pavucontrol
+        pax-utils pipewire pipewire-alsa pipewire-pulse pkgconf polybar
+        power-profiles-daemon pulseaudio pulseaudio-alsa
+        python python-pyqt5 python-pyqt5-3d python-pyqt5-chart
+        python-pyqt5-datavisualization python-pyqt5-networkauth
+        python-pyqt5-purchasing python-pyqt5-webengine
+        qutebrowser ranger rofi rsync rxvt-unicode sddm signal-desktop
+        slurp sof-firmware sudo sway swaybg swayidle syncthing
+        telegram-desktop tlp tor torbrowser-launcher tree ttf-dejavu
+        ttf-font-awesome ttf-iosevka-nerd typescript unzip vi vim vlc
+        waybar wireplumber wl-clipboard xautolock xclip xf86-video-vesa
+        xfce4-screenshooter xorg-bdftopcf xorg-docs xorg-font-util
+        xorg-fonts-100dpi xorg-fonts-75dpi xorg-iceauth xorg-mkfontscale
+        xorg-server xorg-server-devel xorg-server-xephyr xorg-server-xnest
+        xorg-server-xvfb xorg-sessreg xorg-smproxy xorg-x11perf
+        xorg-xbacklight xorg-xcmsdb xorg-xcursorgen xorg-xdriinfo xorg-xev
+        xorg-xgamma xorg-xhost xorg-xinit xorg-xinput xorg-xkbevd xorg-xkbutils
+        xorg-xkill xorg-xlsatoms xorg-xlsclients xorg-xpr xorg-xrefresh
+        xorg-xsetroot xorg-xvinfo xorg-xwayland xorg-xwd xorg-xwininfo
+        xorg-xwud xterm zsh
+    )
     if $DRY_RUN; then
-        log_info "(dry-run) would run: sudo pacman -S --needed --noconfirm < $lst"
+        log_info "(dry-run) would install ${#pkgs[@]} system packages via pacman"
         return
     fi
-    sudo pacman -S --needed --noconfirm - < "$lst"
+    sudo pacman -S --needed --noconfirm "${pkgs[@]}"
     log_success "System packages installed"
 }
 

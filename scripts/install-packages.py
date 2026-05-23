@@ -16,6 +16,12 @@ def detect_platform():
         return "macos"
     if os.path.exists("/etc/arch-release"):
         return "arch"
+    # Arch Linux ARM (Asahi, ALARM) uses /etc/os-release with ID=archarm / ID_LIKE=arch
+    if os.path.exists("/etc/os-release"):
+        with open("/etc/os-release") as f:
+            content = f.read()
+        if any(tok in content for tok in ("ID=arch", "ID_LIKE=arch")):
+            return "arch"
     return "unknown"
 
 
@@ -100,14 +106,29 @@ def install_arch(tools, apps, dry_run):
         else:
             pacman_pkgs.append(pkg)
 
-    if pacman_pkgs:
-        run(["sudo", "pacman", "-S", "--needed", "--noconfirm"] + pacman_pkgs, dry_run)
+    failed = []
+    for pkg in pacman_pkgs:
+        print(f"\n[package] {pkg}")
+        try:
+            run(["sudo", "pacman", "-S", "--needed", "--noconfirm", pkg], dry_run)
+        except subprocess.CalledProcessError:
+            failed.append(pkg)
+            print(f"[WARNING] pacman: {pkg} not found -- skipping", file=sys.stderr)
 
     if yay_pkgs:
         if not has_yay:
             print("[ERROR] yay not found -- run install-deps.sh to install yay first")
             sys.exit(1)
-        run(["yay", "-S", "--needed", "--noconfirm"] + yay_pkgs, dry_run)
+        for pkg in yay_pkgs:
+            print(f"\n[package] {pkg} (aur)")
+            try:
+                run(["yay", "-S", "--needed", "--noconfirm", pkg], dry_run)
+            except subprocess.CalledProcessError:
+                failed.append(pkg)
+                print(f"[WARNING] yay: {pkg} failed -- skipping", file=sys.stderr)
+
+    if failed:
+        print(f"\n[WARNING] {len(failed)} package(s) skipped: {', '.join(failed)}", file=sys.stderr)
 
 
 def main():
