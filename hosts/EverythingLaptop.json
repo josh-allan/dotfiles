@@ -28,6 +28,12 @@
     },
     "dot_home/.zshrc": {}
   },
+  "ssh_keys": {
+    "id_ed25519": {
+      "private": "op://Personal/Primary SSH key (id_ed25519) /private key",
+      "public": "op://Personal/Primary SSH key (id_ed25519) /public key"
+    }
+  },
   "private_repo": {
     "url": "git@github.com:josh-allan/private-dots.git",
     "branch": "main"
