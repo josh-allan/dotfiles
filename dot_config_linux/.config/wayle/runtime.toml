@@ -1,0 +1,43 @@
+[bar]
+scale = 0.6499999761581421
+bg = "bg-overlay"
+background-opacity = 61
+
+[[bar.layout]]
+monitor = "*"
+show = true
+left = ["hyprland-workspaces"]
+
+[[bar.layout.center]]
+name = "Centre"
+modules = [
+    "clock",
+    "media",
+]
+
+[[bar.layout.right]]
+name = "Right"
+modules = [
+    "notifications",
+    "battery",
+    "volume",
+    "network",
+    "bluetooth",
+]
+
+[styling]
+theme-provider = "matugen"
+matugen-scheme = "expressive"
+
+[modules.clock]
+format = "%d-%m %H:%M"
+
+[modules.media]
+hide-when-inactive = true
+
+[modules.notification]
+hide-when-empty = true
+
+[modules.weather]
+location = "Sydney, Australia"
+time-format = "24h"

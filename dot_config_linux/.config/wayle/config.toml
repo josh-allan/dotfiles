@@ -1,0 +1,3 @@
+# Wayle configuration file
+[modules.media]
+hide-when-inactive = true
