@@ -23,6 +23,7 @@ modules = [
     "volume",
     "network",
     "bluetooth",
+    "systray",
 ]
 
 [styling]
