@@ -1,4 +1,4 @@
-fish_variables
+fish_variables*
 venv*
 catfissh.fish
 catfissh
@@ -8,11 +8,9 @@ __catfissh*
 .env
 venv/
 **/fishd.tmp*
-fish_variables
 shell/fish/**/secret
 shell/fish/completions/
 shell/fish/conf.d/
-shell/fish/fish_variables
 shell/fish/functions/
 shell/fish/user/env/env.s.fish
 
