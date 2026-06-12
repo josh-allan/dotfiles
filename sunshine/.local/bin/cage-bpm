@@ -1,0 +1,44 @@
+#!/bin/bash
+# Starts headless cage for Steam BPM, creates wayland-cage symlink for Sunshine.
+set -e
+
+RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/1000}"
+LINK="${RUNTIME_DIR}/wayland-cage"
+
+cleanup() { rm -f "${LINK}"; }
+trap cleanup EXIT TERM INT
+
+export WLR_BACKENDS=headless
+export WLR_RENDER_DRM_DEVICE=/dev/dri/renderD128
+export WLR_LIBINPUT_NO_DEVICES=1
+
+# Snapshot existing sockets before cage creates its own
+BEFORE=$(ls "${RUNTIME_DIR}"/wayland-* 2>/dev/null | grep -v '\.lock$' || true)
+
+# Start cage in background
+/usr/bin/cage -- /usr/bin/steam -gamepadui &
+CAGE_PID=$!
+
+# Wait for cage's new socket to appear (up to 15s)
+CAGE_SOCKET=""
+for _ in $(seq 1 60); do
+    AFTER=$(ls "${RUNTIME_DIR}"/wayland-* 2>/dev/null | grep -v '\.lock$' || true)
+    NEW=$(comm -13 <(echo "${BEFORE}" | sort) <(echo "${AFTER}" | sort) | head -1)
+    if [ -n "${NEW}" ]; then
+        CAGE_SOCKET="${NEW}"
+        break
+    fi
+    sleep 0.25
+done
+
+if [ -z "${CAGE_SOCKET}" ]; then
+    echo "cage-bpm: timed out waiting for Wayland socket" >&2
+    kill "${CAGE_PID}" 2>/dev/null
+    exit 1
+fi
+
+ln -sf "$(basename "${CAGE_SOCKET}")" "${LINK}"
+WAYLAND_DISPLAY=wayland-cage wlr-randr --output HEADLESS-1 --custom-mode 2560x1440@60
+systemd-notify --ready
+
+wait "${CAGE_PID}"
