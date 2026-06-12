@@ -137,7 +137,8 @@ if [[ ${#public_packages[@]} -gt 0 ]]; then
             continue
         fi
 
-        stow ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$HOME" "$pkg"
+        stow --adopt ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$HOME" "$pkg"
+        git -C "$REPO_ROOT" restore "$pkg/" 2>/dev/null || true
         echo "  Stowed: $pkg"
     done
 fi
@@ -159,7 +160,8 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
             continue
         fi
 
-        if stow ${skip_args+"${skip_args[@]}"} -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
+        if stow --adopt ${skip_args+"${skip_args[@]}"} -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
+            git -C "$PRIVATE_DIR" restore "$pkg/" 2>/dev/null || true
             echo "  Stowed: $pkg (private)"
         else
             case "$pkg" in
@@ -210,7 +212,8 @@ if [[ ${#system_packages[@]} -gt 0 ]]; then
             continue
         fi
 
-        if sudo stow ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$target" "$pkg"; then
+        if sudo stow --adopt ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$target" "$pkg"; then
+            git -C "$REPO_ROOT" restore "$pkg/" 2>/dev/null || true
             echo "  Stowed: $pkg -> $target"
         else
             echo "WARNING: Failed to stow system package '$pkg' (target: $target)"

@@ -1,0 +1,67 @@
+{
+  "displays": [
+    {
+      "name": "HDMI-A-1",
+      "description": "LG Electronics LG ULTRAGEAR 304NTWG7J817",
+      "x": 0,
+      "y": 0,
+      "physical_width": 2560,
+      "physical_height": 1440,
+      "transform": "normal",
+      "scale": 1.0,
+      "scale_filter": null,
+      "refresh": 144.0,
+      "dpms": true,
+      "adaptive_sync": false,
+      "custom_mode": false,
+      "mirror": "",
+      "ten_bit": false,
+      "active": true
+    },
+    {
+      "name": "DP-3",
+      "description": "LG Electronics LG ULTRAGEAR 304NTNH7J815",
+      "x": 2560,
+      "y": 0,
+      "physical_width": 2560,
+      "physical_height": 1440,
+      "transform": "normal",
+      "scale": 1.0,
+      "scale_filter": null,
+      "refresh": 143.97,
+      "dpms": true,
+      "adaptive_sync": false,
+      "custom_mode": false,
+      "mirror": "",
+      "ten_bit": false,
+      "active": true
+    },
+    {
+      "name": "WAYLAND-1",
+      "description": "",
+      "x": 5120,
+      "y": 0,
+      "physical_width": 0,
+      "physical_height": 0,
+      "transform": "normal",
+      "scale": 1.0,
+      "scale_filter": null,
+      "refresh": 60.0,
+      "dpms": true,
+      "adaptive_sync": false,
+      "custom_mode": false,
+      "mirror": "",
+      "ten_bit": false,
+      "active": true
+    }
+  ],
+  "config": {
+    "view-scale": 0.15,
+    "snap-threshold": 10,
+    "indicator-timeout": 500,
+    "custom-mode": [],
+    "use-desc": false,
+    "confirm-timeout": 10,
+    "profile-bound-wallpapers": true
+  }
+}
