@@ -1,0 +1,15 @@
+[Unit]
+Description=Sunshine is a self-hosted game stream host for Moonlight.
+After=network.target steam-bpm.service
+Wants=steam-bpm.service
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
+[Service]
+ExecStart=/usr/bin/sunshine
+Restart=on-failure
+RestartSec=5s
+Environment=WAYLAND_DISPLAY=wayland-cage
+
+[Install]
+WantedBy=default.target

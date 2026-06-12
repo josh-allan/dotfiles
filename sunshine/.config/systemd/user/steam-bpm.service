@@ -1,0 +1,13 @@
+[Unit]
+Description=Headless Steam Big Picture Mode
+After=network.target
+
+[Service]
+Type=notify
+NotifyAccess=all
+ExecStart=/home/josh/.local/bin/cage-bpm
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=default.target
