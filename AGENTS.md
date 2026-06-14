@@ -12,6 +12,8 @@ Machine-specific dotfiles managed with GNU Stow, per-host JSON configs, template
 | `templates/` | Files with `{{placeholder}}` values rendered at sync via 1Password CLI |
 | `packages.json` | Single source of truth for cross-platform dev tools and apps |
 | `scripts/` | Sync orchestrator, package installers, validators, setup helpers |
+| `schemas/` | JSON Schema files for host-config and packages.json validation |
+| `tests/` | Python tests for the compliance system and scripts |
 | `dot_home/` | Stow package for `~` (common home dir configs, scripts, services) |
 | `dot_config_common/` | Stow package for `~/.config` (cross-platform tools: fish, nvim, ghostty, wezterm, yazi) |
 | `dot_config_linux/` | Stow package for `~/.config` (Linux-only: hypr, greetd, gtk, fuzzel, rofi, sddm, kanata, zen) |
@@ -84,6 +86,7 @@ Host configs live in `hosts/<hostname>.json`. Hostname detection uses `hostname 
 | `packages.system` | Array of `{"pkg": "etc_linux", "target": "/etc"}` objects for stow packages that need `sudo`. Not all host configs use this. |
 | `templates` | Map of target paths (relative to repo root, e.g. `dot_home/.gitconfig`) to objects mapping `{{placeholder}}` names to `op://` 1Password references. |
 | `skip_paths` | Array of glob patterns to exclude when stowing. Useful when a stow package contains files that don't apply to a specific machine. |
+| `compliance` | Optional. Compliance checker configuration (see Compliance section below). Controls drift detection across packages, services, and files. |
 
 **Example (`hosts/default.json`):**
 ```json
@@ -100,7 +103,13 @@ Host configs live in `hosts/<hostname>.json`. Hostname detection uses `hostname 
       "user.signingkey": "op://Personal/Git Signing Key/public key"
     }
   },
-  "skip_paths": []
+  "skip_paths": [],
+  "compliance": {
+    "schemaVersion": 1,
+    "packages": { "mode": "expected", "expected": [], "absent": [] },
+    "services": { "mode": "off" },
+    "files": { "mode": "expected", "expected": [] }
+  }
 }
 ```
 
@@ -123,11 +132,12 @@ Host configs live in `hosts/<hostname>.json`. Hostname detection uses `hostname 
 
 | Script | Purpose |
 |--------|---------|
-| `sync-dotfiles.sh` | Main orchestrator: validate config → render templates from 1Password → stow public packages → stow system packages (with sudo) → post-sync validation → zen-setup. Idempotent. |
-| `install-deps.sh` | Full bootstrap: install Homebrew (macOS) or yay (Arch), then git, stow, jq, 1Password CLI. Fetches SSH keys from 1Password. Optionally installs all packages from `packages.json`. |
+| `sync-dotfiles.sh` | Main orchestrator: validate config → render templates from 1Password → stow public packages → stow system packages (with sudo) → post-sync validation → compliance check → zen-setup. Idempotent. Supports `--check-only`. |
+| `install-deps.sh` | Full bootstrap: install Homebrew (macOS) or yay (Arch), then git, stow, jq, 1Password CLI. Fetches SSH keys from 1Password. Optionally installs all packages from `packages.json`. Supports `--compliance` flag. |
 | `install-packages.py` | Reads `packages.json` and installs per-platform packages. Auto-detects platform or accepts `--platform macos\|arch`. Supports `--dry-run` for preview. |
-| `audit-packages.py` | Compares `packages.json` against explicitly-installed pacman packages. Reports untracked installed packages (candidates for adding) and tracked-but-missing packages. Linux only. |
-| `validate-config.sh` | Pre-sync validation: checks prerequisites (stow, jq, git, `op` if templates exist), validates JSON syntax, checks required fields, validates `os` value. |
+| `audit-packages.py` | **Deprecated.** Thin wrapper around `check-compliance.sh --packages-only`. Compares installed packages against `packages.json`. Will be removed in a future release. |
+| `check-compliance.sh` | Compliance checker: detects drift across packages, systemd services, and config files. Generates JSON+Markdown reports to `~/.config/dotfiles/`. Supports `--accept pkg:extra:<name>` to declare intentional drift (writes back to host config). `--json` for machine output, `--quick` to skip content hashing. |
+| `validate-config.sh` | Pre-sync validation: checks prerequisites (stow, jq, git, `op` if templates exist), validates JSON syntax, checks required fields, validates `os` value. Also runs JSON Schema validation if `jsonschema` module is available. |
 | `fetch-ssh-keys.sh` | Reads `ssh_keys` from host config, fetches each key from 1Password, writes to `~/.ssh/`. Safe to re-run; skips existing keys unless `--force` passed. |
 | `zen-setup.sh` | Reads `profiles.ini` in `~/.config/zen/`, finds the default profile, symlinks `user.js` into it. Runs automatically at end of sync on Linux. |
 
@@ -142,8 +152,17 @@ Host configs live in `hosts/<hostname>.json`. Hostname detection uses `hostname 
 # See what packages would install without running
 ./scripts/install-deps.sh --dry-run
 
-# Audit installed vs tracked packages
+# Audit installed vs tracked packages (deprecated — use check-compliance.sh)
 python3 scripts/audit-packages.py
+
+# Run compliance check (detect drift)
+./scripts/check-compliance.sh --pre
+
+# Accept intentional drift (writes back to host config)
+./scripts/check-compliance.sh --accept pkg:extra:cowsay
+./scripts/check-compliance.sh --accept pkg:missing:old-tool
+./scripts/check-compliance.sh --accept file:modified:~/.config/foo/bar.conf
+./scripts/check-compliance.sh --accept file:orphan:~/.config/abandoned/config
 
 # Force re-fetch SSH keys
 ./scripts/fetch-ssh-keys.sh --force
@@ -194,10 +213,78 @@ python3 scripts/audit-packages.py
 
 **Audit workflow:**
 ```bash
+# Deprecated — use check-compliance.sh instead
 python3 scripts/audit-packages.py
 # Review untracked packages and add relevant ones to packages.json
 # Run after any significant package install session
 ```
+
+---
+
+## Compliance
+
+The compliance system detects configuration drift across three domains:
+**package membership**, **systemd service state**, and **config file integrity**.
+It runs automatically during `sync-dotfiles.sh` (pre-sync and post-sync) and can
+be invoked standalone via `scripts/check-compliance.sh`.
+
+**Severity tiers:**
+- `required` — fail on drift (exit code 1)
+- `expected` — warn on drift (exit code 0)
+- `info` — informational only
+
+**Acceptance workflow:**
+```bash
+# Run the checker to see drift
+./scripts/check-compliance.sh --pre
+
+# Accept intentional deviations (writes back to host config JSON)
+./scripts/check-compliance.sh --accept pkg:extra:cowsay
+./scripts/check-compliance.sh --accept pkg:missing:old-tool
+./scripts/check-compliance.sh --accept file:modified:~/.config/foo/bar.conf
+./scripts/check-compliance.sh --accept file:orphan:~/.config/abandoned/config
+
+# After acceptance, re-run — accepted items now pass
+./scripts/check-compliance.sh --pre
+```
+
+**Notification layers:**
+1. `notify-send` at sync time (if graphical session is available)
+2. JSON report at `~/.config/dotfiles/drift-report.json`
+3. Fish prompt indicator (coloured, from `~/.cache/dotfiles/drift-state`)
+
+**Compliance schema (in host config):**
+```json
+{
+  "compliance": {
+    "schemaVersion": 1,
+    "packages": {
+      "mode": "expected",
+      "expected": ["<packages intentionally extra>"],
+      "absent": ["<packages intentionally missing>"]
+    },
+    "services": {
+      "mode": "expected",
+      "units": [
+        {"unit": "<name>", "expectedEnabled": true, "expectedActive": null, "severity": "expected"}
+      ]
+    },
+    "files": {
+      "mode": "expected",
+      "expected": ["<paths intentionally modified or orphaned>"]
+    }
+  }
+}
+```
+`mode` values: `"required"`, `"expected"`, or `"off"` (skip domain).
+
+**Flags:**
+- `--pre` — full checks before stow (default)
+- `--post` — symlink-only verification after stow
+- `--packages-only` / `--services-only` / `--files-only` — domain filters
+- `--json` — machine-parseable output only
+- `--quick` — skip content hashing and template freshness
+- `--accept <type>:<domain>:<id>` — declare intentional drift (repeatable)
 
 ---
 

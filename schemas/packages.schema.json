@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dotfiles.local/schemas/packages.schema.json",
+  "title": "Dotfiles Packages Manifest",
+  "description": "Validates packages.json, the single source of truth for cross-platform dev tools and apps.",
+  "type": "object",
+  "required": ["tools", "apps"],
+  "properties": {
+    "_doc": {
+      "type": "string",
+      "description": "Documentation hint (optional)."
+    },
+    "tools": {
+      "type": "array",
+      "description": "CLI tools and language runtimes.",
+      "items": { "$ref": "#/$defs/packageEntry" },
+      "uniqueItems": true
+    },
+    "apps": {
+      "type": "array",
+      "description": "GUI applications and full desktop software.",
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/packageEntry" },
+          {
+            "properties": {
+              "cask": {
+                "type": "boolean",
+                "default": false,
+                "description": "Use 'brew install --cask' on macOS."
+              }
+            }
+          }
+        ]
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "packageEntry": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Canonical package name."
+        },
+        "platforms": {
+          "type": "array",
+          "description": "Which platforms this package applies to. Defaults to ['macos','arch'] if omitted.",
+          "items": { "type": "string", "enum": ["macos", "arch"] },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "pacman": {
+          "type": "string",
+          "description": "Package name on Arch Linux (pacman/yay). Defaults to 'name' if omitted."
+        },
+        "brew": {
+          "type": "string",
+          "description": "Package name on macOS (Homebrew). Defaults to 'name' if omitted."
+        },
+        "aur": {
+          "type": "boolean",
+          "default": false,
+          "description": "Install via yay (AUR) on Arch instead of pacman."
+        },
+        "cask": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use 'brew install --cask' on macOS. Typically for apps only."
+        },
+        "tap": {
+          "type": "string",
+          "description": "Homebrew tap to enable before installing (macOS only)."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -39,6 +39,20 @@ if git diff --cached --name-only | grep -qE '^dot_config/\.config/fish/user/'; t
     ERRORS=$((ERRORS + 1))
 fi
 
+# Compliance schema validation on staged host configs (non-blocking warning)
+STAGED_HOST_CONFIGS=$(git diff --cached --name-only | grep -E '^hosts/.*\.json$' || true)
+if [[ -n "$STAGED_HOST_CONFIGS" ]]; then
+    if [[ -x "scripts/validate-config.sh" ]]; then
+        for hc in $STAGED_HOST_CONFIGS; do
+            if [[ -f "$hc" ]]; then
+                scripts/validate-config.sh "$hc" 2>/dev/null || {
+                    echo "WARNING: Staged host config $hc failed validation. Run 'scripts/validate-config.sh $hc' for details."
+                }
+            fi
+        done
+    fi
+fi
+
 if [[ $ERRORS -gt 0 ]]; then
     echo "Pre-commit checks failed. Fix the issues above before committing."
     exit 1

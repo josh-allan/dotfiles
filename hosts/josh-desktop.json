@@ -20,5 +20,11 @@
     "url": "git@github.com:josh-allan/private-dots.git",
     "branch": "main"
   },
-  "skip_paths": []
+  "skip_paths": [],
+  "compliance": {
+    "schemaVersion": 1,
+    "packages": { "mode": "expected", "expected": [], "absent": [] },
+    "services": { "mode": "expected", "units": [] },
+    "files": { "mode": "expected", "expected": [] }
+  }
 }

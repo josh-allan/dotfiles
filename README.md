@@ -22,9 +22,10 @@ cd ~/dotfiles
 
 | Component | Purpose |
 |-----------|---------|
-| `hosts/<hostname>.json` | Per-machine config: packages, templates, private repo |
+| `hosts/<hostname>.json` | Per-machine config: packages, templates, private repo, compliance |
 | `templates/` | Base files with `{{placeholder}}` values rendered at sync |
-| `scripts/sync-dotfiles.sh` | Orchestrator: detect → render → pull → stow |
+| `scripts/sync-dotfiles.sh` | Orchestrator: detect → render → pull → stow → compliance |
+| `scripts/check-compliance.sh` | Drift detection: packages, services, files with `--accept` for intentional drift |
 | `private/` | gitignored staging area for cloned private overlay repo |
 
 ## Kudos
