@@ -27,6 +27,17 @@ if [[ ! -f "$HOST_CONFIG" ]]; then
 fi
 
 echo "Host config: $HOST_CONFIG"
+
+if [[ "${1:-}" == "--check-only" ]]; then
+    echo "Running compliance check only..."
+    if [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
+        exec "$SCRIPT_DIR/check-compliance.sh" --pre
+    else
+        echo "ERROR: check-compliance.sh not found" >&2
+        exit 2
+    fi
+fi
+
 render_templates() {
     local template_key template_file output_file placeholder op_ref value
 
@@ -82,6 +93,14 @@ render_templates() {
 
 # Step 1: Validate
 "$SCRIPT_DIR/validate-config.sh" "$HOST_CONFIG"
+
+# Step 1.5: Pre-sync compliance check (detect drift before stow fixes it)
+if [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
+    echo "Running pre-sync compliance check..."
+    "$SCRIPT_DIR/check-compliance.sh" --pre || {
+        echo "WARNING: Pre-sync compliance check found drift. See ~/.config/dotfiles/drift-report.json"
+    }
+fi
 
 # Step 2: Render templates
 if [[ -d "$TEMPLATES_DIR" ]]; then
@@ -350,6 +369,28 @@ for entry in ${system_packages[@]+"${system_packages[@]}"}; do
     target="$(echo "$entry" | jq -r '.target')"
     validate_package "System" "$pkg" "$REPO_ROOT/$pkg" "$REPO_ROOT" "$target"
 done
+
+# Step 6.5: Post-sync compliance verification
+if [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
+    echo "Running post-sync compliance verification..."
+    "$SCRIPT_DIR/check-compliance.sh" --post || {
+        echo "WARNING: Post-sync compliance verification found issues. See ~/.config/dotfiles/drift-report.json"
+    }
+
+    # Notify if drift detected (guarded: requires notify-send + graphical session)
+    DRIFT_REPORT="$HOME/.config/dotfiles/drift-report.json"
+    if [[ -f "$DRIFT_REPORT" ]]; then
+        EXIT_CODE="$(jq -r '.exitCode // 0' "$DRIFT_REPORT")"
+        if [[ "$EXIT_CODE" -ne 0 ]] && command -v notify-send >/dev/null 2>&1; then
+            if [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
+                SUMMARY="$(jq -r '.summary | "\(.fail) required, \(.warn) warnings"' "$DRIFT_REPORT")"
+                notify-send -a dotfiles -u normal \
+                    "Dotfiles sync: drift detected" \
+                    "$SUMMARY — run check-compliance.sh to review"
+            fi
+        fi
+    fi
+fi
 
 # Step 7: Browser-specific setup
 if [[ "$(jq -r '.os // empty' "$HOST_CONFIG")" == "linux" ]]; then

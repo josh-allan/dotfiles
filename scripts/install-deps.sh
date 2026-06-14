@@ -7,15 +7,18 @@ set -euo pipefail
 #   ./scripts/install-deps.sh              # bootstrap + all packages
 #   ./scripts/install-deps.sh --system     # also install Arch system packages (Arch only)
 #   ./scripts/install-deps.sh --dry-run    # preview package installs without running them
+#   ./scripts/install-deps.sh --compliance # run compliance check after package install
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_SYSTEM=false
 DRY_RUN=false
+RUN_COMPLIANCE=false
 
 for arg in "$@"; do
     case "$arg" in
-        --system)  INSTALL_SYSTEM=true ;;
-        --dry-run) DRY_RUN=true ;;
+        --system)      INSTALL_SYSTEM=true ;;
+        --dry-run)     DRY_RUN=true ;;
+        --compliance)  RUN_COMPLIANCE=true ;;
     esac
 done
 
@@ -60,11 +63,11 @@ ensure_yay() {
         return
     fi
     log_info "Installing yay (AUR helper)..."
-    local tmp
-    tmp=$(mktemp -d)
-    trap 'rm -rf "$tmp"' RETURN
-    git clone --depth 1 https://aur.archlinux.org/yay-bin.git "$tmp/yay-bin"
-    (cd "$tmp/yay-bin" && makepkg -si --noconfirm)
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    trap 'rm -rf "$temp_dir"' RETURN
+    git clone --depth 1 https://aur.archlinux.org/yay-bin.git "$temp_dir/yay-bin"
+    (cd "$temp_dir/yay-bin" && makepkg -si --noconfirm)
     log_success "yay installed"
 }
 
@@ -199,6 +202,15 @@ install_packages
 
 if $INSTALL_SYSTEM && [[ "$OS_TYPE" == "linux" ]]; then
     install_system_packages
+fi
+
+if $RUN_COMPLIANCE; then
+    log_info "Running compliance check..."
+    if [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
+        "$SCRIPT_DIR/check-compliance.sh" --pre || log_warn "Compliance check found drift. See ~/.config/dotfiles/drift-report.json"
+    else
+        log_warn "check-compliance.sh not found — sync dotfiles first"
+    fi
 fi
 
 log_success "Done. Run ./scripts/sync-dotfiles.sh to apply dotfiles."

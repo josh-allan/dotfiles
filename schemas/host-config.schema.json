@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dotfiles.local/schemas/host-config.schema.json",
+  "title": "Dotfiles Host Config",
+  "description": "Validates a per-machine host configuration JSON file.",
+  "type": "object",
+  "required": ["os", "packages"],
+  "properties": {
+    "os": {
+      "type": "string",
+      "enum": ["macos", "linux"],
+      "description": "Target operating system for this host."
+    },
+    "arch": {
+      "type": "string",
+      "enum": ["aarch64", "x86_64"],
+      "description": "CPU architecture (optional; inferred from runtime when absent)."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Freeform notes about this host (optional)."
+    },
+    "packages": {
+      "type": "object",
+      "required": ["public"],
+      "properties": {
+        "public": {
+          "type": "array",
+          "description": "Stow packages from this repo to enable.",
+          "items": { "type": "string" }
+        },
+        "private": {
+          "type": "array",
+          "description": "Stow packages from the private-dots repo to enable (optional).",
+          "items": { "type": "string" }
+        },
+        "system": {
+          "type": "array",
+          "description": "Stow packages that require 'sudo stow' (optional).",
+          "items": {
+            "type": "object",
+            "required": ["pkg", "target"],
+            "properties": {
+              "pkg": { "type": "string" },
+              "target": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "asahi_system_packages": {
+      "type": "array",
+      "description": "System-level packages required on Asahi Linux hosts (optional).",
+      "items": { "type": "string" }
+    },
+    "templates": {
+      "type": "object",
+      "description": "Map of target paths to placeholder→1Password-reference objects.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": { "type": "string" }
+      }
+    },
+    "ssh_keys": {
+      "type": "object",
+      "description": "SSH key definitions fetched from 1Password (optional).",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "private": { "type": "string" },
+          "public": { "type": "string" }
+        }
+      }
+    },
+    "private_repo": {
+      "type": "object",
+      "description": "Private-dots repository configuration (optional).",
+      "properties": {
+        "url": { "type": "string" },
+        "branch": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "skip_paths": {
+      "type": "array",
+      "description": "Glob patterns to exclude when stowing.",
+      "items": { "type": "string" }
+    },
+    "compliance": {
+      "type": "object",
+      "description": "Compliance checking configuration (optional). Absent = all checks skipped.",
+      "required": ["schemaVersion"],
+      "properties": {
+        "schemaVersion": {
+          "type": "integer",
+          "const": 1,
+          "description": "Compliance schema version."
+        },
+        "packages": {
+          "type": "object",
+          "description": "Package compliance configuration.",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["required", "expected", "off"],
+              "default": "expected",
+              "description": "required = fail on drift, expected = warn on drift, off = skip domain."
+            },
+            "expected": {
+              "type": "array",
+              "description": "Packages intentionally installed beyond packages.json.",
+              "items": { "type": "string" }
+            },
+            "absent": {
+              "type": "array",
+              "description": "Packages intentionally NOT installed (even if in packages.json).",
+              "items": { "type": "string" }
+            }
+          },
+          "additionalProperties": false
+        },
+        "services": {
+          "type": "object",
+          "description": "Systemd service state compliance configuration.",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["required", "expected", "off"],
+              "default": "off",
+              "description": "required = fail on drift, expected = warn on drift, off = skip domain."
+            },
+            "units": {
+              "type": "array",
+              "description": "Per-unit service policies. Empty = auto-discover with default policy.",
+              "items": {
+                "type": "object",
+                "required": ["unit"],
+                "properties": {
+                  "unit": { "type": "string", "description": "Systemd unit name (e.g. greetd.service)." },
+                  "expectedEnabled": { "type": "boolean", "default": true },
+                  "expectedActive": { "type": ["boolean", "null"], "default": null },
+                  "severity": { "type": "string", "enum": ["required", "expected"], "default": "expected" }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "files": {
+          "type": "object",
+          "description": "Config file integrity compliance configuration.",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["required", "expected", "off"],
+              "default": "expected",
+              "description": "required = fail on drift, expected = warn on drift, off = skip domain."
+            },
+            "expected": {
+              "type": "array",
+              "description": "File paths intentionally modified or orphaned.",
+              "items": { "type": "string" }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

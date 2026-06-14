@@ -62,6 +62,29 @@ if [[ -n "$os" && "$os" != "macos" && "$os" != "linux" ]]; then
     ERRORS=$((ERRORS + 1))
 fi
 
+# JSON Schema validation (guarded: requires jsonschema CLI)
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SCHEMA_DIR="$REPO_ROOT/schemas"
+if [[ -f "$SCHEMA_DIR/host-config.schema.json" ]] && command -v jsonschema >/dev/null 2>&1; then
+    echo "Running JSON Schema validation..."
+    if ! jsonschema -i "$HOST_CONFIG" "$SCHEMA_DIR/host-config.schema.json" 2>/dev/null; then
+        echo "WARNING: Host config failed JSON Schema validation (schema may need updating)" >&2
+    else
+        echo "  host config: valid"
+    fi
+
+    if [[ -f "$SCHEMA_DIR/packages.schema.json" ]] && [[ -f "$REPO_ROOT/packages.json" ]]; then
+        if ! jsonschema -i "$REPO_ROOT/packages.json" "$SCHEMA_DIR/packages.schema.json" 2>/dev/null; then
+            echo "WARNING: packages.json failed JSON Schema validation (schema may need updating)" >&2
+        else
+            echo "  packages.json: valid"
+        fi
+    fi
+else
+    echo "NOTE: jsonschema CLI not available; skipping JSON Schema validation."
+    echo "      Install with: pipx install jsonschema"
+fi
+
 if [[ $ERRORS -gt 0 ]]; then
     echo "Validation failed with $ERRORS error(s)." >&2
     exit 1
