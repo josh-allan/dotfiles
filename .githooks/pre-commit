@@ -56,7 +56,8 @@ fi
 # Run shellcheck on staged shell scripts
 STAGED_SHELL=$(git diff --cached --name-only | grep -E '\.sh$' || true)
 if [[ -n "$STAGED_SHELL" ]] && command -v shellcheck >/dev/null 2>&1; then
-    shellcheck "$STAGED_SHELL" || ERRORS=$((ERRORS + 1))
+    # shellcheck disable=SC2086
+    shellcheck $STAGED_SHELL || ERRORS=$((ERRORS + 1))
 fi
 
 if [[ $ERRORS -gt 0 ]]; then
