@@ -15,11 +15,10 @@ Machine-specific dotfiles managed with GNU Stow, per-host JSON configs, template
 | `schemas/` | JSON Schema files for host-config and packages.json validation |
 | `tests/` | Python tests for the compliance system and scripts |
 | `dot_home/` | Stow package for `~` (common home dir configs, scripts, services) |
-| `dot_config_common/` | Stow package for `~/.config` (cross-platform tools: fish, nvim, ghostty, wezterm, yazi) |
-| `dot_config_linux/` | Stow package for `~/.config` (Linux-only: hypr, greetd, gtk, fuzzel, rofi, sddm, kanata, zen) |
-| `dot_config_macos/` | Stow package for `~/.config` (macOS-only configs) |
+| `dot_config_common/` | Stow package for `~/.config` (cross-platform tools: fish, nvim, ghostty, wezterm, yazi, vesktop) |
+| `dot_config_linux/` | Stow package for `~/.config` (Linux-only: hypr, greetd, gtk, fuzzel, rofi, sddm, kanata, zen, nwg-displays, gnupg) |
+| `dot_config_macos/` | Stow package for `~/.config` (macOS-only configs: aerospace, karabiner, gnupg) |
 | `etc_linux/` | Stow package for `/etc` (Linux system configs: greetd) |
-| `nvim/` | Git submodule for neovim config |
 | `.githooks/` | Git hooks: pre-commit, pre-push, post-checkout, post-merge, prepare-commit-msg |
 | `docs/superpowers/specs/` | Design documents for planned features |
 | `docs/superpowers/plans/` | Implementation plans with step-by-step tasks |
@@ -32,16 +31,19 @@ Machine-specific dotfiles managed with GNU Stow, per-host JSON configs, template
 | Package | Stow Target | Contents |
 |---------|-------------|----------|
 | `dot_home` | `~` | `.gitignore`, `.ideavimrc`, `.zshrc`, `scripts/`, `services/`, `firefox/`, `wallpaper/` |
-| `dot_config_common` | `~/.config` | fish, nvim, ghostty, wezterm, yazi |
-| `dot_config_linux` | `~/.config` | hypr, greetd, gtk-3.0, gtk-4.0, fuzzel, rofi, sddm, hyprpanel, kanata, wayle, zen |
-| `dot_config_macos` | `~/.config` | macOS-specific configs |
+| `dot_config_common` | `~/.config` | fish, nvim, ghostty, wezterm, yazi, vesktop |
+| `dot_config_linux` | `~/.config` | hypr, greetd, gtk-3.0, gtk-4.0, fuzzel, rofi, sddm, hyprpanel, kanata, wayle, zen, nwg-displays, gnupg |
+| `dot_config_macos` | `~/.config` | aerospace, karabiner, gnupg |
 | `etc_linux` | `/etc` | System-level configs (greetd) |
+| `asahi` | `~` | Asahi Linux-specific configs (speakersafetyd) |
+| `sunshine` | `~` | Sunshine game streaming config |
+| `etc_josh_desktop` | `/etc` | josh-desktop-specific system configs |
 
 **Naming convention:** Directories prefixed `dot_` map to `~` (via Stow's `-t ~`). `etc_linux` maps to `/etc` (uses `sudo stow -t /etc`).
 
 **Path mapping within packages:** A file at `dot_config_linux/.config/hypr/hyprland.conf` becomes `~/.config/hypr/hyprland.conf` after stowing. Stow creates symlinks; the actual file lives only in the repo. Remove the stow package to remove the links cleanly.
 
-**Per-package stow-local-ignore:** Place a `.stow-local-ignore` file inside any stow package directory to list glob patterns stow should skip for that package (one pattern per line, `^` prefix for regex anchors). Currently used in `dot_home/` to exclude the old `ai-tools` directory from stowing.
+**Per-package stow-local-ignore:** Place a `.stow-local-ignore` file inside any stow package directory to list glob patterns stow should skip for that package (one pattern per line, `^` prefix for regex anchors). Used in `dot_home/` to exclude directories from stowing.
 
 ---
 
@@ -346,33 +348,11 @@ Hooks are active via `git config core.hooksPath .githooks` (set automatically in
 
 | Hook | Behavior |
 |------|----------|
-| **pre-commit** | Scans staged files. Blocks commits with: `op://` refs outside host configs/docs/hooks, hardcoded API keys/tokens/passwords/connection strings, any files in `private/`, rendered `dot_home/.gitconfig`, or files under `dot_config/.config/fish/user/`. Runs beads pre-commit hooks after scan. |
+| **pre-commit** | Scans staged files. Blocks commits with: `op://` refs outside host configs/docs/hooks, hardcoded API keys/tokens/passwords/connection strings, any files in `private/`, rendered `dot_home/.gitconfig`, or files under `dot_config_common/.config/fish/private_user/`. Also runs shellcheck on staged shell scripts and validates staged host configs. Runs beads pre-commit hooks after scan. |
 | **pre-push** | Ensures out-of-repo overlays are pushed before the public push. Runs beads pre-push hooks. |
 | **post-checkout** | On branch changes, checks if templates/hosts/scripts changed and regenerates opencode agent configs if so. Runs beads post-checkout hooks. |
 | **post-merge** | After `git pull`, checks if opencode templates/hosts/scripts changed and regenerates agent configs. Runs beads post-merge hooks. |
 | **prepare-commit-msg** | Runs beads hooks for commit message templates. |
-
----
-
-## Submodule: nvim
-
-The `nvim/` directory is a git submodule pointing to `git@github.com:josh-allan/nvim.git`.
-
-**Clone with submodules:**
-```bash
-git clone --recurse-submodules git@github.com:josh-allan/dotfiles.git ~/.dotfiles
-# or after cloning without --recurse-submodules:
-git submodule update --init --recursive
-```
-
-**Update after upstream changes:**
-```bash
-git submodule update --remote nvim
-git add nvim
-git commit -m "chore(nvim): update submodule"
-```
-
-**Working on nvim configs:** The nvim submodule is a standalone repo. Make changes inside `nvim/`, commit there, then commit the updated submodule pointer in the dotfiles repo.
 
 ---
 

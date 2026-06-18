@@ -146,7 +146,7 @@ install_system_packages() {
         cmake code cpio debugedit dhcpcd dmenu docker docker-compose
         dosfstools efibootmgr fakeroot feh firefox flatpak flameshot flex
         font-manager fuzzel gcc gimp gnome-screenshot gobject-introspection
-        grim greetd grub-btrfs gscreenshot hwinfo i3-wm ipython iwd kitty
+        grim greetd grub-btrfs gscreenshot hwinfo ipython iwd kitty
         lightdm lightdm-gtk-greeter lightdm-slick-greeter
         lightdm-webkit-theme-litarvan lightdm-webkit2-greeter
         linux linux-firmware m4 make man-db meson mlocate neofetch

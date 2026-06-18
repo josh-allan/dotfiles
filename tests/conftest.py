@@ -57,6 +57,7 @@ def sample_packages_json():
             {"name": "neovim"},
             {"name": "awscli", "pacman": "aws-cli"},
             {"name": "lazygit", "aur": True},
+            {"name": "balena-etcher", "aur": True, "arch": ["x86_64"]},
         ],
         "apps": [
             {"name": "discord", "aur": True},

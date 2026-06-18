@@ -17,6 +17,7 @@ Usage:
 import argparse
 import json
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -81,6 +82,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     # Output
     parser.add_argument("--json", action="store_true",
                         help="Output only JSON (no Markdown on stdout)")
+    parser.add_argument("--full", action="store_true",
+                        help="Show all findings including informational ([INFO]) items")
     parser.add_argument("--quick", action="store_true",
                         help="Skip content hashing and template freshness checks")
 
@@ -94,6 +97,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
              "Formats: pkg:extra:<name>, pkg:missing:<name>, "
              "file:modified:<path>, file:orphan:<path>",
     )
+
+    # Fix
+    parser.add_argument("--fix", action="store_true",
+                        help="Install missing packages to bring system into compliance")
+    parser.add_argument("--yes", action="store_true",
+                        help="Skip confirmation prompts (use with --fix)")
+
+    # Edit
+    parser.add_argument("--edit", nargs="?", const="host", choices=["host", "packages"],
+                        help="Open host config or packages.json in $EDITOR (--edit packages)")
 
     return parser.parse_args(argv)
 
@@ -221,6 +234,67 @@ def _apply_accept_items(
 
     return accepted
 
+def _fix_missing_packages(
+    packages_json: dict,
+    missing_pkgs: list[str],
+    dry_run: bool = False,
+) -> bool:
+    """Install missing packages. Returns True if any were installed.
+
+    Only handles missing packages (in manifest but not installed).
+    Does not remove extra packages or update outdated AUR packages.
+    """
+    if not missing_pkgs:
+        return False
+
+    # Build AUR name set
+    aur_names: set[str] = set()
+    for entry in packages_json.get("tools", []) + packages_json.get("apps", []):
+        if entry.get("aur", False):
+            pkg_name = entry.get("pacman", entry["name"])
+            aur_names.add(pkg_name)
+
+    import platform
+    is_macos = platform.system() == "Darwin"
+
+    if dry_run:
+        print(f"Would install {len(missing_pkgs)} missing package(s): {', '.join(missing_pkgs)}")
+        print("Run with --yes to execute.")
+        return False
+
+    print(f"Installing {len(missing_pkgs)} missing package(s)...", file=sys.stderr)
+    installed = []
+    failed = []
+
+    for pkg in missing_pkgs:
+        try:
+            if is_macos:
+                cmd = ["brew", "install", pkg]
+            elif pkg in aur_names:
+                cmd = ["yay", "-S", "--needed", "--noconfirm", pkg]
+            else:
+                cmd = ["sudo", "pacman", "-S", "--needed", "--noconfirm", pkg]
+
+            print(f"  $ {' '.join(cmd)}", file=sys.stderr)
+            result = subprocess.run(cmd, timeout=300)
+            if result.returncode == 0:
+                installed.append(pkg)
+            else:
+                failed.append(pkg)
+        except FileNotFoundError:
+            failed.append(pkg)
+            print(f"  ERROR: command not found: {cmd[0]}", file=sys.stderr)
+        except subprocess.TimeoutExpired:
+            failed.append(pkg)
+            print(f"  ERROR: timed out installing {pkg}", file=sys.stderr)
+
+    if installed:
+        print(f"Installed {len(installed)}: {', '.join(installed)}", file=sys.stderr)
+    if failed:
+        print(f"Failed {len(failed)}: {', '.join(failed)}", file=sys.stderr)
+
+    return len(installed) > 0
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
 
@@ -252,6 +326,31 @@ def main(argv: list[str] | None = None) -> int:
         dr = _run_domain_check(domain, host_config, packages, profile, repo_root, args)
         domain_reports.append(dr)
 
+    # Handle --edit: open config in $EDITOR
+    if args.edit:
+        editor = os.environ.get("EDITOR", "vim")
+        target = args.packages_json if args.edit == "packages" else args.host_config
+        print(f"Opening {target} with {editor}...", file=sys.stderr)
+        subprocess.run([editor, target])
+        print("Re-run check-compliance.sh to see updated results.", file=sys.stderr)
+
+    # Handle --fix: install missing packages
+    if args.fix and "packages" in domains:
+        pkg_idx = domains.index("packages")
+        pkg_dr = domain_reports[pkg_idx]
+        missing = [f.item for f in pkg_dr.findings
+                   if f.kind == "missing" and not f.accepted]
+        installed_any = _fix_missing_packages(
+            packages, missing,
+            dry_run=not args.yes,
+        )
+        if not args.yes:
+            print("Dry run complete. Use --fix --yes to install.", file=sys.stderr)
+        elif installed_any:
+            domain_reports[pkg_idx] = _run_domain_check(
+                "packages", host_config, packages, profile, repo_root, args,
+            )
+
     # Handle --accept (Phase 6: write-back)
     accept_items = _apply_accept_items(args.accept, args.host_config, host_config)
 
@@ -271,7 +370,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.json:
         print(json_output)
     else:
-        print(format_markdown_report(report))
+        print(format_markdown_report(report, full=args.full))
 
     return report.exit_code
 

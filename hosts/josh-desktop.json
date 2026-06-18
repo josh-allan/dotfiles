@@ -24,7 +24,9 @@
   "compliance": {
     "schemaVersion": 1,
     "packages": { "mode": "expected", "expected": [], "absent": [] },
-    "services": { "mode": "expected", "units": [] },
+    "services": { "mode": "expected", "units": [
+      {"unit": "mpris-proxy.service", "expectedEnabled": true, "expectedActive": null, "severity": "expected"}
+    ] },
     "files": { "mode": "expected", "expected": [] }
   }
 }

@@ -176,10 +176,18 @@ def _check_file_integrity(
 
     # Not a symlink — it's a real file
     if target_path.is_file():
+        severity = "expected"
+        detail = "Expected symlink but found a regular file (stow not applied or file was overwritten)"
+        if not quick:
+            repo_hash = _compute_sha256(repo_file)
+            target_hash = _compute_sha256(target_path)
+            if repo_hash and target_hash and repo_hash == target_hash:
+                severity = "info"
+                detail = "Regular file with matching content (not a symlink but functionally identical)"
         findings.append(Finding(
             domain="files", kind="real_file", item=str(target_path),
-            severity="expected",
-            detail="Expected symlink but found a regular file (stow not applied or file was overwritten)",
+            severity=severity,
+            detail=detail,
         ))
         return findings
 

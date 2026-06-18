@@ -36,11 +36,26 @@ def _detect_platform() -> str:
     return "unknown"
 
 
-def _build_manifest_sets(packages: dict, platform: str) -> tuple[set[str], set[str]]:
-    """Build the set of expected package names for a platform.
+def _detect_arch(host_config: dict) -> str:
+    """Return the CPU architecture: 'x86_64' or 'aarch64'.
+
+    Reads from host config if present, otherwise calls platform.machine().
+    """
+    cfg_arch = host_config.get("arch")
+    if cfg_arch in ("x86_64", "aarch64"):
+        return cfg_arch
+    import platform
+    machine = platform.machine()
+    if machine in ("x86_64", "aarch64"):
+        return machine
+    return machine
+
+
+def _build_manifest_sets(packages: dict, platform: str, arch: str) -> tuple[set[str], set[str]]:
+    """Build the set of expected package names for a platform and CPU arch.
 
     Returns (all_names, aur_names) where all_names includes everything
-    expected for this platform and aur_names is the subset installed via AUR.
+    expected for this platform+arch and aur_names is the subset installed via AUR.
     """
     all_names: set[str] = set()
     aur_names: set[str] = set()
@@ -48,6 +63,10 @@ def _build_manifest_sets(packages: dict, platform: str) -> tuple[set[str], set[s
     for entry in packages.get("tools", []) + packages.get("apps", []):
         platforms = entry.get("platforms", ["macos", "arch"])
         if platform not in platforms:
+            continue
+
+        arches = entry.get("arch")
+        if arches and arch not in arches:
             continue
 
         pkg_name = entry.get("pacman", entry["name"]) if platform == "arch" else entry.get("brew", entry["name"])
@@ -66,9 +85,10 @@ def _check_arch(
 ) -> DomainReport:
     """Run package compliance checks on Arch Linux."""
     findings: list[Finding] = []
+    arch = _detect_arch(host_config)
 
     # Build expected sets from packages.json
-    expected_all, expected_aur = _build_manifest_sets(packages, "arch")
+    expected_all, expected_aur = _build_manifest_sets(packages, "arch", arch)
 
     # Get explicitly installed packages
     installed_lines, pacman_rc = _run_cmd(["pacman", "-Qqe"])
@@ -88,7 +108,20 @@ def _check_arch(
     # Missing: in manifest but not installed (and not in absent list)
     absent_allowed = set(profile.packages.absent)
     missing = (expected_all - installed) - absent_allowed
+
+    actual_missing: list[str] = []
     for pkg in sorted(missing):
+        _, rc = _run_cmd(["pacman", "-Qi", pkg])
+        if rc == 0:
+            findings.append(Finding(
+                domain="packages", kind="installed_as_dep", item=pkg,
+                severity="info",
+                detail=f"Package is installed as a dependency (not explicitly)",
+            ))
+        else:
+            actual_missing.append(pkg)
+
+    for pkg in actual_missing:
         findings.append(Finding(
             domain="packages", kind="missing", item=pkg,
             severity="expected",
@@ -159,9 +192,10 @@ def _check_macos(
 ) -> DomainReport:
     """Run package compliance checks on macOS."""
     findings: list[Finding] = []
+    arch = _detect_arch(host_config)
 
     # Build expected sets from packages.json
-    expected_all, _ = _build_manifest_sets(packages, "macos")
+    expected_all, _ = _build_manifest_sets(packages, "macos", arch)
 
     # Homebrew formula leaves
     leaves_lines, leaves_rc = _run_cmd(["brew", "leaves", "--installed-on-request"])

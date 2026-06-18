@@ -14,16 +14,16 @@ from compliance.schema import resolve_compliance_profile
 
 class TestManifestSets:
     def test_build_arch_sets(self, sample_packages_json):
-        all_names, aur_names = _build_manifest_sets(sample_packages_json, "arch")
+        all_names, aur_names = _build_manifest_sets(sample_packages_json, "arch", "x86_64")
         assert "git" in all_names
         assert "neovim" in all_names
         assert "aws-cli" in all_names  # pacman override
         assert "lazygit" in all_names
         assert "discord" in all_names
-        assert aur_names == {"lazygit", "discord", "ghostty"}
+        assert aur_names == {"lazygit", "discord", "ghostty", "balena-etcher"}
 
     def test_macos_platform_filter(self, sample_packages_json):
-        all_names, _ = _build_manifest_sets(sample_packages_json, "macos")
+        all_names, _ = _build_manifest_sets(sample_packages_json, "macos", "x86_64")
         assert "git" in all_names
         assert "neovim" in all_names
         # blueutil is macOS-only
@@ -33,12 +33,42 @@ class TestManifestSets:
         assert "lazygit" in all_names
 
     def test_empty_packages(self):
-        all_names, aur_names = _build_manifest_sets({"tools": [], "apps": []}, "arch")
+        all_names, aur_names = _build_manifest_sets({"tools": [], "apps": []}, "arch", "x86_64")
         assert all_names == set()
         assert aur_names == set()
 
+    def test_arch_filter_includes_on_match(self, sample_packages_json):
+        """Package tagged x86_64 should appear when running on x86_64."""
+        all_names, aur_names = _build_manifest_sets(sample_packages_json, "arch", "x86_64")
+        assert "balena-etcher" in all_names
+        assert "balena-etcher" in aur_names
+
+    def test_arch_filter_excludes_on_mismatch(self, sample_packages_json):
+        """Package tagged x86_64 should NOT appear when running on aarch64."""
+        all_names, aur_names = _build_manifest_sets(sample_packages_json, "arch", "aarch64")
+        assert "balena-etcher" not in all_names
+        assert "balena-etcher" not in aur_names
+
+    def test_arch_filter_defaults_to_all(self, sample_packages_json):
+        """Package with no arch field should appear on both architectures."""
+        all_names_x86, _ = _build_manifest_sets(sample_packages_json, "arch", "x86_64")
+        all_names_arm, _ = _build_manifest_sets(sample_packages_json, "arch", "aarch64")
+        assert "git" in all_names_x86
+        assert "git" in all_names_arm
+
 
 class TestPackageChecker:
+    @staticmethod
+    def _mock_pacman_qe_qi(installed):
+        """Return a side_effect for _run_cmd that returns installed for
+        pacman -Qqe and rc=1 (not found) for pacman -Qi."""
+        def _side_effect(cmd_args):
+            cmd_str = " ".join(cmd_args)
+            if "-Qi" in cmd_args:
+                return ([], 1)
+            return (installed, 0)
+        return _side_effect
+
     def make_args(self, pre=True, quick=False, json=False):
         args = mock.Mock()
         args.pre = pre
@@ -85,7 +115,7 @@ class TestPackageChecker:
 
         with mock.patch(
             "compliance.checks.packages._run_cmd",
-            return_value=(installed, 0),
+            side_effect=self._mock_pacman_qe_qi(installed),
         ):
             checker = PackagesChecker(
                 sample_host_config, sample_packages_json, profile, None, args,
@@ -109,7 +139,7 @@ class TestPackageChecker:
 
         with mock.patch(
             "compliance.checks.packages._run_cmd",
-            return_value=(mock_pacman_installed, 0),
+            side_effect=self._mock_pacman_qe_qi(mock_pacman_installed),
         ):
             checker = PackagesChecker(
                 sample_host_config, sample_packages_json, profile, None, args,
@@ -134,7 +164,7 @@ class TestPackageChecker:
 
         with mock.patch(
             "compliance.checks.packages._run_cmd",
-            return_value=(installed, 0),
+            side_effect=self._mock_pacman_qe_qi(installed),
         ):
             checker = PackagesChecker(
                 sample_host_config, sample_packages_json, profile, None, args,

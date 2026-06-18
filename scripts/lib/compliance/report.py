@@ -113,18 +113,34 @@ def format_json_report(report: ComplianceReport, accept_items: Optional[list[str
     return json.dumps(output, indent=2)
 
 
-def format_markdown_report(report: ComplianceReport) -> str:
-    """Produce a human-readable Markdown summary."""
+def format_markdown_report(report: ComplianceReport, full: bool = False) -> str:
+    """Produce a human-readable Markdown summary.
+
+    When full=False (default), only [REQUIRED] and [EXPECTED] findings are
+    shown. [INFO] items are suppressed and replaced with a count line.
+    """
     lines = [
         f"# Compliance Report: {report.host}",
         f"Generated {report.timestamp}",
         "",
+    ]
+
+    s = report.summary
+    lines.append(f"Required: {s['fail']} | Expected: {s['warn']} | Info: {s['pass']} | Errors: {s['error']}")
+
+    if not full and s["pass"] > 0:
+        lines.append(f"({s['pass']} informational items hidden — use --full to show all)")
+    lines.append("")
+
+    lines.extend([
         "| Domain | Status | Findings |",
         "|--------|--------|----------|",
-    ]
+    ])
 
     for d in report.domains:
         non_accepted = [f for f in d.findings if not f.accepted]
+        if not full:
+            non_accepted = [f for f in non_accepted if f.severity != "info"]
         count = len(non_accepted)
         lines.append(f"| {d.domain} | {d.status} | {count} |")
 
@@ -132,6 +148,8 @@ def format_markdown_report(report: ComplianceReport) -> str:
 
     for d in report.domains:
         non_accepted = [f for f in d.findings if not f.accepted]
+        if not full:
+            non_accepted = [f for f in non_accepted if f.severity != "info"]
         if not non_accepted:
             continue
         lines.append(f"## {d.domain.title()}")
