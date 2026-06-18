@@ -8,11 +8,6 @@ __catfissh*
 .env
 venv/
 **/fishd.tmp*
-shell/fish/**/secret
-shell/fish/completions/
-shell/fish/conf.d/
-shell/fish/functions/
-shell/fish/user/env/env.s.fish
 
 .vscode/*
 !.vscode/extensions.json
@@ -40,7 +35,7 @@ dot_home/.gitconfig
 dot_home/.zshrc
 
 # Private overlay directory - never track (private repo stows here)
-dot_config/.config/fish/user/
+dot_config_common/.config/fish/private_user/
 
 # Symlinks created by private repo stow into public repo directories
 # These point to private/ (gitignored) so they're safe but untracked
@@ -55,3 +50,5 @@ dot_home/scripts/mongodump.sh
 # Compliance report artifacts (should live in ~/.config/dotfiles/ and ~/.cache/dotfiles/)
 *.compliance-report.json
 drift-state
+._*
+.DS_Store

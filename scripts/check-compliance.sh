@@ -6,8 +6,8 @@ set -euo pipefail
 #
 # Usage:
 #   check-compliance.sh [--pre | --post] [--packages-only] [--services-only]
-#                       [--files-only] [--json] [--quick]
-#                       [--accept TYPE:DOMAIN:ID] [...]
+#                       [--files-only] [--json] [--full] [--quick]
+#                       [--edit] [--fix [--yes]] [--accept TYPE:DOMAIN:ID] [...]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"

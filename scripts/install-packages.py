@@ -77,12 +77,25 @@ def install_macos(tools, apps, dry_run):
     casks = [
         a.get("brew", a["name"])
         for a in apps
-        if applies_to(a, "macos")
+        if applies_to(a, "macos") and a.get("cask", False)
     ]
     for pkg in casks:
         print(f"\n[package] {pkg} (cask)")
         try:
             run(["brew", "install", "--cask", pkg], dry_run)
+        except subprocess.CalledProcessError:
+            failed.append(pkg)
+            print(f"[WARNING] Failed to install {pkg} -- continuing", file=sys.stderr)
+
+    regular_apps = [
+        a.get("brew", a["name"])
+        for a in apps
+        if applies_to(a, "macos") and not a.get("cask", False)
+    ]
+    for pkg in regular_apps:
+        print(f"\n[package] {pkg}")
+        try:
+            run(["brew", "install", pkg], dry_run)
         except subprocess.CalledProcessError:
             failed.append(pkg)
             print(f"[WARNING] Failed to install {pkg} -- continuing", file=sys.stderr)

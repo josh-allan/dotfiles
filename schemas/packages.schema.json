@@ -74,6 +74,13 @@
         "tap": {
           "type": "string",
           "description": "Homebrew tap to enable before installing (macOS only)."
+        },
+        "arch": {
+          "type": "array",
+          "description": "CPU architectures this package supports. Defaults to all arches if omitted. Use ['x86_64'] to exclude from aarch64 (Asahi).",
+          "items": { "type": "string", "enum": ["x86_64", "aarch64"] },
+          "minItems": 1,
+          "uniqueItems": true
         }
       },
       "additionalProperties": false
