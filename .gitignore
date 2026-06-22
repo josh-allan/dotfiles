@@ -52,3 +52,8 @@ dot_home/scripts/mongodump.sh
 drift-state
 ._*
 .DS_Store
+
+# gnupg — only track gpg-agent.conf, everything else is machine-local secrets
+dot_config_macos/.gnupg/*
+!dot_config_macos/.gnupg/gpg-agent.conf
+dot_config_macos/.config/karabiner/automatic_backups/*
