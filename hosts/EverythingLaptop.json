@@ -4,7 +4,7 @@
   "notes": "Asahi Linux (Arch Linux ARM) on Apple Silicon",
   "packages": {
     "public": ["dot_home", "dot_config_common", "dot_config_linux", "asahi"],
-    "private": ["private_user", "opencode", "claude"],
+    "private": ["private_user", "opencode", "claude", "augment"],
     "system": [{"pkg": "etc_linux", "target": "/etc"}]
   },
   "asahi_system_packages": [
