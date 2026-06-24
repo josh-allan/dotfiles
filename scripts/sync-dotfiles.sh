@@ -219,6 +219,14 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
                                 ln -s "$source" "$target"
                                 echo "  Linked: $target -> $source"
                             fi
+                        elif [[ -d "$target" ]]; then
+                            # Real directory — remove if empty, then symlink
+                            if rmdir "$target" 2>/dev/null; then
+                                ln -s "$source" "$target"
+                                echo "  Linked: $target -> $source (replaced empty dir)"
+                            else
+                                echo "  WARNING: $target is a non-empty dir — skipping (remove it manually if you want the dotfiles version)"
+                            fi
                         elif [[ -e "$target" ]]; then
                             echo "  WARNING: $target exists and is not a symlink — skipping (remove it manually if you want the dotfiles version)"
                         else
