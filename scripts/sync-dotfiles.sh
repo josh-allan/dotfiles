@@ -94,8 +94,8 @@ render_templates() {
 # Step 1: Validate
 "$SCRIPT_DIR/validate-config.sh" "$HOST_CONFIG"
 
-# Step 1.5: Pre-sync compliance check (detect drift before stow fixes it)
-if [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
+# Step 1.5: Pre-sync compliance check (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)
+if [[ "${DOTFILES_COMPLIANCE:-}" == "1" || " ${*:-} " == *" --compliance "* ]] && [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     echo "Running pre-sync compliance check..."
     "$SCRIPT_DIR/check-compliance.sh" --pre || {
         echo "WARNING: Pre-sync compliance check found drift. See ~/.config/dotfiles/drift-report.json"
@@ -204,6 +204,28 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
                             echo "  Linked: $target -> $source"
                         fi
                     fi
+                    ;;
+                augment)
+                    echo "  Stow conflict: $pkg (using manual symlink fallback)"
+                    # ~/.augment already exists (Auggie runtime dir) — descend and link contents
+                    mkdir -p "$HOME/.augment"
+                    for sub in rules skills; do
+                        target="$HOME/.augment/$sub"
+                        source="$PRIVATE_DIR/augment/.augment/$sub"
+                        if [[ -L "$target" ]]; then
+                            current="$(readlink "$target")"
+                            if [[ "$current" != "$source" ]]; then
+                                rm "$target"
+                                ln -s "$source" "$target"
+                                echo "  Linked: $target -> $source"
+                            fi
+                        elif [[ -e "$target" ]]; then
+                            echo "  WARNING: $target exists and is not a symlink — skipping (remove it manually if you want the dotfiles version)"
+                        else
+                            ln -s "$source" "$target"
+                            echo "  Linked: $target -> $source"
+                        fi
+                    done
                     ;;
                 *)
                     echo "  Stow conflict: $pkg (target exists — manual fix required)"
@@ -370,8 +392,8 @@ for entry in ${system_packages[@]+"${system_packages[@]}"}; do
     validate_package "System" "$pkg" "$REPO_ROOT/$pkg" "$REPO_ROOT" "$target"
 done
 
-# Step 6.5: Post-sync compliance verification
-if [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
+# Step 6.5: Post-sync compliance verification (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)
+if [[ "${DOTFILES_COMPLIANCE:-}" == "1" || " ${*:-} " == *" --compliance "* ]] && [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     echo "Running post-sync compliance verification..."
     "$SCRIPT_DIR/check-compliance.sh" --post || {
         echo "WARNING: Post-sync compliance verification found issues. See ~/.config/dotfiles/drift-report.json"
