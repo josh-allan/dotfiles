@@ -9,7 +9,6 @@
     {"name": "btop"},
     {"name": "coreutils",       "platforms": ["macos"]},
     {"name": "cowsay"},
-    {"name": "ctx7"},
     {"name": "delve",        "arch": ["x86_64"]},
     {"name": "direnv"},
     {"name": "eza"},

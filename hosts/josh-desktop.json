@@ -2,7 +2,7 @@
   "os": "linux",
   "packages": {
     "public": ["dot_home", "dot_config_common", "dot_config_linux", "sunshine"],
-    "private": ["private_user", "opencode", "claude"],
+    "private": ["private_user", "opencode", "claude", "augment"],
     "system": [
       {"pkg": "etc_linux", "target": "/etc"},
       {"pkg": "etc_josh_desktop", "target": "/etc"}
