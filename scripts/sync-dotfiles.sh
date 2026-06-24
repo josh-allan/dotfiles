@@ -66,8 +66,8 @@ render_templates() {
 
             op_ref="$(jq -r ".templates[\"$template_key\"][\"$placeholder\"]" "$HOST_CONFIG")"
 
-            # Fetch value from 1Password
-            value="$(op read "$op_ref" 2>/dev/null || true)"
+            # Fetch value from 1Password (timeout prevents hang when desktop app is unreachable)
+            value="$(timeout "${DOTFILES_OP_TIMEOUT:-15}" op read "$op_ref" 2>/dev/null || true)"
 
             if [[ -z "$value" ]]; then
                 echo "WARNING: Could not read 1Password reference for '$placeholder' in '$template_key'"
