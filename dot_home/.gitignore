@@ -247,3 +247,6 @@ MODULE.bazel.lock
 .secrets/
 **/docs/*
 docs/
+scratch/
+
+**/.claude/settings.local.json
