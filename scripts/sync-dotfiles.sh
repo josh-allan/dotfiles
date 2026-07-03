@@ -28,24 +28,40 @@ fi
 
 echo "Host config: $HOST_CONFIG"
 
-if [[ "${1:-}" == "--check-only" ]]; then
-    echo "Running compliance check only..."
-    if [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
-        exec "$SCRIPT_DIR/check-compliance.sh" --pre
-    else
-        echo "ERROR: check-compliance.sh not found" >&2
-        exit 2
-    fi
-fi
+# Flags
+BOOTSTRAP=0
+COMPLIANCE="${DOTFILES_COMPLIANCE:-0}"
+for arg in "$@"; do
+    case "$arg" in
+        --bootstrap) BOOTSTRAP=1 ;;
+        --compliance) COMPLIANCE=1 ;;
+        --check-only)
+            echo "Running compliance check only..."
+            if [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
+                exec "$SCRIPT_DIR/check-compliance.sh" --pre
+            else
+                echo "ERROR: check-compliance.sh not found" >&2
+                exit 2
+            fi
+            ;;
+        *)
+            echo "Unknown flag: $arg" >&2
+            echo "Usage: sync-dotfiles.sh [--bootstrap] [--compliance] [--check-only]" >&2
+            exit 2
+            ;;
+    esac
+done
 
+# Render templates from 1Password references.
+# Skips templates whose output already exists unless --bootstrap is given,
+# so routine syncs don't depend on 1Password being unlocked.
+# Renders to a temp file and only replaces the output on full success, so a
+# failed `op read` can never clobber a working config with raw placeholders.
 render_templates() {
-    local template_key template_file output_file placeholder op_ref value
+    local template_key template_file output_file tmp_file placeholder op_ref value ok
 
-    # Read templates config (while read for Bash 3+ compat)
-    local found_templates=false
     while IFS= read -r template_key; do
         [[ -n "$template_key" ]] || continue
-        found_templates=true
 
         template_file="$TEMPLATES_DIR/$template_key.tmpl"
         output_file="$REPO_ROOT/$template_key"
@@ -55,39 +71,45 @@ render_templates() {
             continue
         fi
 
+        if [[ -f "$output_file" && $BOOTSTRAP -eq 0 ]]; then
+            echo "  $template_key: already rendered (--bootstrap to re-render)"
+            continue
+        fi
+
         mkdir -p "$(dirname "$output_file")"
+        tmp_file="$(mktemp)"
+        cp "$template_file" "$tmp_file"
+        ok=1
 
-        # Start with template content
-        cp "$template_file" "$output_file"
-
-        # Read placeholder mappings for this template (while read for Bash 3+ compat)
         while IFS= read -r placeholder; do
             [[ -n "$placeholder" ]] || continue
 
-            op_ref="$(jq -r ".templates[\"$template_key\"][\"$placeholder\"]" "$HOST_CONFIG")"
-
-            # Fetch value from 1Password
+            op_ref="$(jq -r --arg t "$template_key" --arg p "$placeholder" '.templates[$t][$p]' "$HOST_CONFIG")"
             value="$(op read "$op_ref" 2>/dev/null || true)"
 
             if [[ -z "$value" ]]; then
                 echo "WARNING: Could not read 1Password reference for '$placeholder' in '$template_key'"
-                continue
+                ok=0
+                break
             fi
 
-            # Replace placeholder in output file using perl (safe for special chars)
-            export OP_VALUE="$value"
-            perl -i -pe "s/\{\{\Q$placeholder\E\}\}/\$ENV{OP_VALUE}/g" -- "$output_file"
-            unset OP_VALUE
+            OP_KEY="{{$placeholder}}" OP_VALUE="$value" \
+                perl -i -pe 's/\Q$ENV{OP_KEY}\E/$ENV{OP_VALUE}/g' -- "$tmp_file"
             echo "  $template_key: {{$placeholder}} -> [redacted]"
-        done < <(jq -r ".templates[\"$template_key\"] | keys[]" "$HOST_CONFIG" 2>/dev/null || true)
+        done < <(jq -r --arg t "$template_key" '.templates[$t] | keys[]' "$HOST_CONFIG" 2>/dev/null || true)
+
+        if [[ $ok -eq 1 ]]; then
+            mv "$tmp_file" "$output_file"
+            echo "  Rendered: $template_key"
+        else
+            rm -f "$tmp_file"
+            if [[ -f "$output_file" ]]; then
+                echo "  Kept existing $template_key (render failed; is 1Password unlocked?)"
+            else
+                echo "  ERROR: $template_key not rendered and no existing file (unlock 1Password and re-run with --bootstrap)"
+            fi
+        fi
     done < <(jq -r '.templates | keys[]' "$HOST_CONFIG" 2>/dev/null || true)
-
-    if ! $found_templates; then
-        echo "No templates configured."
-        return
-    fi
-
-    echo "Templates rendered."
 }
 
 
@@ -95,7 +117,7 @@ render_templates() {
 "$SCRIPT_DIR/validate-config.sh" "$HOST_CONFIG"
 
 # Step 1.5: Pre-sync compliance check (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)
-if [[ "${DOTFILES_COMPLIANCE:-}" == "1" || " ${*:-} " == *" --compliance "* ]] && [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
+if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     echo "Running pre-sync compliance check..."
     "$SCRIPT_DIR/check-compliance.sh" --pre || {
         echo "WARNING: Pre-sync compliance check found drift. See ~/.config/dotfiles/drift-report.json"
@@ -168,6 +190,26 @@ while IFS= read -r pkg; do
     [[ -n "$pkg" ]] && private_packages+=("$pkg")
 done < <(jq -r '.packages.private[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 
+# Ensure $target is a symlink to $source. Replaces stale symlinks and empty
+# dirs; refuses to touch real files or non-empty dirs.
+link_fallback() {
+    local source="$1" target="$2"
+    if [[ -L "$target" ]]; then
+        [[ "$(readlink "$target")" == "$source" ]] && return
+        rm "$target"
+    elif [[ -d "$target" ]]; then
+        if ! rmdir "$target" 2>/dev/null; then
+            echo "  WARNING: $target is a non-empty dir — skipping (remove it manually if you want the dotfiles version)"
+            return
+        fi
+    elif [[ -e "$target" ]]; then
+        echo "  WARNING: $target exists and is not a symlink — skipping (remove it manually if you want the dotfiles version)"
+        return
+    fi
+    ln -s "$source" "$target"
+    echo "  Linked: $target -> $source"
+}
+
 if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
     echo "Stowing private packages: ${private_packages[*]}"
 
@@ -188,21 +230,7 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
                     echo "  Stow conflict: $pkg (using manual symlink fallback)"
                     # private_user fish functions need to merge into ~/.config/fish/ which is already a symlink
                     if [[ -d "$PRIVATE_DIR/private_user/.config/fish/private_user" ]]; then
-                        target="$HOME/.config/fish/private_user"
-                        source="$PRIVATE_DIR/private_user/.config/fish/private_user"
-                        if [[ -L "$target" ]]; then
-                            current="$(readlink "$target")"
-                            if [[ "$current" != "$source" ]]; then
-                                rm "$target"
-                                ln -s "$source" "$target"
-                                echo "  Linked: $target -> $source"
-                            fi
-                        elif [[ -e "$target" ]]; then
-                            echo "  WARNING: $target exists and is not a symlink"
-                        else
-                            ln -s "$source" "$target"
-                            echo "  Linked: $target -> $source"
-                        fi
+                        link_fallback "$PRIVATE_DIR/private_user/.config/fish/private_user" "$HOME/.config/fish/private_user"
                     fi
                     ;;
                 augment)
@@ -210,29 +238,7 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
                     # ~/.augment already exists (Auggie runtime dir) — descend and link contents
                     mkdir -p "$HOME/.augment"
                     for sub in rules skills; do
-                        target="$HOME/.augment/$sub"
-                        source="$PRIVATE_DIR/augment/.augment/$sub"
-                        if [[ -L "$target" ]]; then
-                            current="$(readlink "$target")"
-                            if [[ "$current" != "$source" ]]; then
-                                rm "$target"
-                                ln -s "$source" "$target"
-                                echo "  Linked: $target -> $source"
-                            fi
-                        elif [[ -d "$target" ]]; then
-                            # Real directory — remove if empty, then symlink
-                            if rmdir "$target" 2>/dev/null; then
-                                ln -s "$source" "$target"
-                                echo "  Linked: $target -> $source (replaced empty dir)"
-                            else
-                                echo "  WARNING: $target is a non-empty dir — skipping (remove it manually if you want the dotfiles version)"
-                            fi
-                        elif [[ -e "$target" ]]; then
-                            echo "  WARNING: $target exists and is not a symlink — skipping (remove it manually if you want the dotfiles version)"
-                        else
-                            ln -s "$source" "$target"
-                            echo "  Linked: $target -> $source"
-                        fi
+                        link_fallback "$PRIVATE_DIR/augment/.augment/$sub" "$HOME/.augment/$sub"
                     done
                     ;;
                 *)
@@ -401,7 +407,7 @@ for entry in ${system_packages[@]+"${system_packages[@]}"}; do
 done
 
 # Step 6.5: Post-sync compliance verification (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)
-if [[ "${DOTFILES_COMPLIANCE:-}" == "1" || " ${*:-} " == *" --compliance "* ]] && [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
+if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     echo "Running post-sync compliance verification..."
     "$SCRIPT_DIR/check-compliance.sh" --post || {
         echo "WARNING: Post-sync compliance verification found issues. See ~/.config/dotfiles/drift-report.json"
