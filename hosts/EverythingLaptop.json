@@ -38,6 +38,13 @@
     "url": "git@github.com:josh-allan/private-dots.git",
     "branch": "main"
   },
+  "repos": [
+    {
+      "url": "git@github.com:josh-allan/josh_nvim.git",
+      "target": "~/.config/josh_nvim",
+      "branch": "main"
+    }
+  ],
   "skip_paths": [],
   "compliance": {
     "schemaVersion": 1,

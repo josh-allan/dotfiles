@@ -2,7 +2,9 @@
 set -euo pipefail
 
 # install-deps.sh
-# Bootstraps dotfiles dependencies, then installs all packages from packages.json.
+# Installs GUI apps and system packages from packages.json via brew/yay.
+# Portable CLI tools are managed by mise (see mise.toml).
+# Normally invoked via `mise run install-apps` or `mise run bootstrap`.
 # Usage:
 #   ./scripts/install-deps.sh              # bootstrap + all packages
 #   ./scripts/install-deps.sh --system     # also install Arch system packages (Arch only)
@@ -133,7 +135,13 @@ install_packages() {
     log_info "Installing packages from packages.json..."
     local dry_run_flag=""
     $DRY_RUN && dry_run_flag="--dry-run"
-    python3 "$SCRIPT_DIR/install-packages.py" --platform "$OS_TYPE" $dry_run_flag
+    # install-packages.py takes macos|arch, not the generic linux OS_TYPE;
+    # omit --platform so its own detection picks arch vs archarm correctly.
+    if [[ "$OS_TYPE" == "macos" ]]; then
+        python3 "$SCRIPT_DIR/install-packages.py" --platform macos $dry_run_flag
+    else
+        python3 "$SCRIPT_DIR/install-packages.py" $dry_run_flag
+    fi
     log_success "Packages installed"
 }
 
@@ -213,4 +221,4 @@ if $RUN_COMPLIANCE; then
     fi
 fi
 
-log_success "Done. Run ./scripts/sync-dotfiles.sh to apply dotfiles."
+log_success "Done. Run 'mise run bootstrap' (or ./scripts/sync-dotfiles.sh) to apply dotfiles."

@@ -83,6 +83,20 @@
       },
       "additionalProperties": false
     },
+    "repos": {
+      "type": "array",
+      "description": "Auxiliary git repos to clone/pull at sync time (optional).",
+      "items": {
+        "type": "object",
+        "required": ["url", "target"],
+        "properties": {
+          "url": { "type": "string" },
+          "target": { "type": "string", "description": "Checkout path; leading ~ expands to $HOME." },
+          "branch": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
     "skip_paths": {
       "type": "array",
       "description": "Glob patterns to exclude when stowing.",

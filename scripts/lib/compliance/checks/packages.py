@@ -254,6 +254,34 @@ def _check_macos(
     return DomainReport(domain="packages", status=status, findings=findings)
 
 
+def _check_mise_missing() -> list[Finding]:
+    """Report mise-managed tools that are declared but not installed.
+
+    Silent (returns []) when mise is unavailable or output is unparseable:
+    mise is optional at compliance time and pacman/brew mocks must not trip this.
+    """
+    import json as _json
+
+    lines, rc = _run_cmd(["mise", "ls", "--missing", "--json"])
+    if rc != 0 or not lines:
+        return []
+    try:
+        entries = _json.loads("\n".join(lines))
+    except _json.JSONDecodeError:
+        return []
+    if not isinstance(entries, dict):
+        return []
+    # Verified shape (mise 2026.5.16): {"<tool>": [{"installed": false, ...}], ...}
+    return [
+        Finding(
+            domain="packages", kind="mise-missing", item=name,
+            severity="expected",
+            detail="declared in mise.toml but not installed (run: mise install)",
+        )
+        for name in entries
+    ]
+
+
 class PackagesChecker:
     """Checks installed packages against packages.json manifest."""
 
@@ -268,9 +296,9 @@ class PackagesChecker:
         platform = _detect_platform()
 
         if platform == "arch":
-            return _check_arch(self.host_config, self.packages, self.profile)
+            report = _check_arch(self.host_config, self.packages, self.profile)
         elif platform == "macos":
-            return _check_macos(self.host_config, self.packages, self.profile)
+            report = _check_macos(self.host_config, self.packages, self.profile)
         else:
             return DomainReport(
                 domain="packages",
@@ -282,3 +310,13 @@ class PackagesChecker:
                     detail="Only Arch Linux and macOS are supported",
                 )],
             )
+
+        if report.status == "error":
+            return report
+
+        mise_findings = _check_mise_missing()
+        if mise_findings:
+            report.findings.extend(mise_findings)
+            if report.status == "pass":
+                report.status = "warn"
+        return report
