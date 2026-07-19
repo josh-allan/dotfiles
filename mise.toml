@@ -1,0 +1,58 @@
+# Portable CLI tools. System/GUI packages live in packages.json.
+# Registry audit: docs/plans/2026-07-20-mise-installer.md
+
+[tools]
+ast-grep = "latest"
+bat = "latest"
+biome = "latest"
+btop = "latest"
+cowsay = "latest"
+delta = "latest"           # packages.json name: git-delta
+direnv = "latest"
+eza = "latest"
+fd = "latest"
+fzf = "latest"
+gh = "latest"
+golangci-lint = "latest"
+hugo = "latest"
+jq = "latest"
+lazygit = "latest"
+neovim = "latest"
+opencode = "latest"
+prettier = "latest"
+ripgrep = "latest"
+ruff = "latest"
+rust = "latest"
+shellcheck = "latest"
+tree-sitter = "latest"     # packages.json name: tree-sitter-cli
+yarn = "latest"
+zoxide = "latest"
+"npm:fish-lsp" = "latest"
+
+[tasks.install-tools]
+description = "Install portable CLI tools via mise"
+run = "mise install"
+
+[tasks.install-apps]
+description = "Install GUI apps and system packages via brew/yay (packages.json)"
+run = "./scripts/install-deps.sh"
+
+[tasks.bootstrap]
+description = "Full new-machine setup: tools, apps, templates, stow, private overlay"
+depends = ["install-tools", "install-apps"]
+run = [
+    "./scripts/sync-dotfiles.sh --bootstrap",
+    "echo 'Bootstrap complete. Open a new shell so fish picks up mise activation.'",
+]
+
+[tasks.sync]
+description = "Stow dotfiles (no template re-render)"
+run = "./scripts/sync-dotfiles.sh"
+
+[tasks.compliance]
+description = "Sync plus drift checks"
+run = "./scripts/sync-dotfiles.sh --compliance"
+
+[tasks.check]
+description = "Drift check only, no sync"
+run = "./scripts/sync-dotfiles.sh --check-only"
