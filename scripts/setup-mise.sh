@@ -27,3 +27,6 @@ echo '  export PATH="$HOME/.local/bin:$PATH"   # bash/zsh'
 echo '  fish_add_path ~/.local/bin             # fish'
 echo "  mise trust        # required once per clone"
 echo "  mise run bootstrap"
+echo
+echo "Tip: export a GitHub token first or installs may hit the 60/hr"
+echo "unauthenticated API limit (fish: set -gx MISE_GITHUB_TOKEN (gh auth token))"
