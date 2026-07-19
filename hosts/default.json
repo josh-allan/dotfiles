@@ -20,7 +20,7 @@
   "repos": [
     {
       "url": "git@github.com:josh-allan/josh_nvim.git",
-      "target": "~/.config/josh_nvim",
+      "target": "~/.config/nvim",
       "branch": "main"
     }
   ],
