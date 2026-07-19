@@ -164,6 +164,14 @@ while IFS=$'\t' read -r repo_url repo_target repo_branch; do
         git -C "$repo_target" pull origin "$repo_branch" || {
             echo "WARNING: Failed to update $repo_target. Continuing with existing copy." >&2
         }
+    elif [[ -L "$repo_target" && ! -e "$repo_target" ]]; then
+        # Dangling symlink (e.g. old stow link after a package rename): safe to replace.
+        echo "Removing dangling symlink $repo_target"
+        rm "$repo_target"
+        echo "Cloning $repo_url -> $repo_target"
+        git clone --branch "$repo_branch" "$repo_url" "$repo_target" || {
+            echo "WARNING: Failed to clone $repo_url. Continuing." >&2
+        }
     elif [[ -e "$repo_target" ]]; then
         echo "WARNING: $repo_target exists but is not a git repo. Skipping $repo_url." >&2
     else
