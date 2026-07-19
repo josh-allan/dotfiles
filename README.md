@@ -13,6 +13,10 @@ cd ~/.dotfiles
 ./scripts/setup-mise.sh
 mise trust
 
+# 2b. Recommended: a GitHub token, or tool downloads hit the 60/hr
+#     unauthenticated API limit. In fish:
+#     set -gx MISE_GITHUB_TOKEN (gh auth token)
+
 # 3. Bootstrap: CLI tools (mise), apps/system packages (brew/yay),
 #    templates from 1Password (needs op unlocked), stow, private overlay
 mise run bootstrap

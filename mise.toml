@@ -1,15 +1,14 @@
 # Portable CLI tools. System/GUI packages live in packages.json.
+# btop and eza stay in packages.json: their GitHub releases ship no macOS assets.
 # Registry audit: docs/plans/2026-07-20-mise-installer.md
 
 [tools]
 ast-grep = "latest"
 bat = "latest"
 biome = "latest"
-btop = "latest"
 cowsay = "latest"
 delta = "latest"           # packages.json name: git-delta
 direnv = "latest"
-eza = "latest"
 fd = "latest"
 fzf = "latest"
 gh = "latest"

@@ -3,8 +3,10 @@
   "tools": [
     {"name": "awscli",          "pacman": "aws-cli"},
     {"name": "blueutil",        "platforms": ["macos"]},
+    {"name": "btop"},
     {"name": "coreutils",       "platforms": ["macos"]},
     {"name": "delve",        "arch": ["x86_64"]},
+    {"name": "eza"},
     {"name": "fish"},
     {"name": "flatpak",         "platforms": ["arch"]},
     {"name": "fuzzel",          "platforms": ["arch"]},
