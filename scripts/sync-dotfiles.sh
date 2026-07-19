@@ -154,6 +154,26 @@ else
     echo "Step 3: No private repo configured — skipping"
 fi
 
+# Step 3b: Clone/pull auxiliary repos (e.g. josh_nvim)
+while IFS=$'\t' read -r repo_url repo_target repo_branch; do
+    [[ -z "$repo_url" ]] && continue
+    repo_target="${repo_target/#\~/$HOME}"
+    repo_branch="${repo_branch:-main}"
+    if [[ -d "$repo_target/.git" ]]; then
+        echo "Pulling $repo_url -> $repo_target"
+        git -C "$repo_target" pull origin "$repo_branch" || {
+            echo "WARNING: Failed to update $repo_target. Continuing with existing copy." >&2
+        }
+    elif [[ -e "$repo_target" ]]; then
+        echo "WARNING: $repo_target exists but is not a git repo. Skipping $repo_url." >&2
+    else
+        echo "Cloning $repo_url -> $repo_target"
+        git clone --branch "$repo_branch" "$repo_url" "$repo_target" || {
+            echo "WARNING: Failed to clone $repo_url. Continuing." >&2
+        }
+    fi
+done < <(jq -r '.repos[]? | [.url, .target, .branch // "main"] | @tsv' "$HOST_CONFIG" 2>/dev/null || true)
+
 # Step 4: Stow public packages
 # Bash 3.2 compat: use while read instead of mapfile
 public_packages=()

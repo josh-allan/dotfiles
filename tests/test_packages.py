@@ -195,6 +195,40 @@ class TestPackageChecker:
         assert report.status == "error"
 
 
+class TestMiseCheck:
+    def _reports_with_mise(self, sample_host_config, sample_packages_json, mise_lines, rc=0):
+        profile = resolve_compliance_profile(sample_host_config)
+        args = mock.Mock()
+        args.pre, args.post, args.quick, args.json = True, False, False, False
+
+        def side_effect(cmd):
+            if cmd[0] == "mise":
+                return (mise_lines, rc)
+            if "-Qi" in cmd:
+                return ([], 1)
+            return (["git", "neovim", "aws-cli", "lazygit", "discord", "ghostty"], 0)
+
+        with mock.patch("compliance.checks.packages._run_cmd", side_effect=side_effect):
+            checker = PackagesChecker(
+                sample_host_config, sample_packages_json, profile, None, args,
+            )
+            return checker.run()
+
+    def test_missing_mise_tools_reported(self, sample_host_config, sample_packages_json):
+        mise_json = ['{"ripgrep": [{"installed": false}], "fd": [{"installed": false}]}']
+        report = self._reports_with_mise(sample_host_config, sample_packages_json, mise_json)
+        mise_missing = {f.item for f in report.findings if f.kind == "mise-missing"}
+        assert mise_missing == {"ripgrep", "fd"}
+
+    def test_mise_absent_is_silent(self, sample_host_config, sample_packages_json):
+        report = self._reports_with_mise(sample_host_config, sample_packages_json, [], rc=-1)
+        assert not [f for f in report.findings if f.kind == "mise-missing"]
+
+    def test_mise_garbage_output_is_silent(self, sample_host_config, sample_packages_json):
+        report = self._reports_with_mise(sample_host_config, sample_packages_json, ["not json"])
+        assert not [f for f in report.findings if f.kind == "mise-missing"]
+
+
 class TestPlatformDetection:
     def test_linux_detection(self):
         with mock.patch("platform.system", return_value="Linux"):

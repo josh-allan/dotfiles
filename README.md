@@ -7,24 +7,26 @@ Machine-specific dotfiles managed with GNU Stow, templates, and per-host configs
 ```bash
 # 1. Clone this repo
 git clone git@github.com:josh-allan/dotfiles.git ~/.dotfiles
-cd ~/dotfiles
+cd ~/.dotfiles
 
-# 2. Install dependencies
-./scripts/install-deps.sh
+# 2. Install mise (the installer's only prerequisite) and trust the config
+./scripts/setup-mise.sh
+mise trust
 
-# 3. First run: render templates from 1Password (needs op unlocked) and stow packages
-./scripts/sync-dotfiles.sh --bootstrap
+# 3. Bootstrap: CLI tools (mise), apps/system packages (brew/yay),
+#    templates from 1Password (needs op unlocked), stow, private overlay
+mise run bootstrap
 
 # 4. Pray.
 ```
 
-Subsequent syncs skip template rendering (no 1Password needed) and just stow:
+Day-to-day tasks:
 
 ```bash
-./scripts/sync-dotfiles.sh                # sync only
-./scripts/sync-dotfiles.sh --bootstrap    # re-render templates (secrets changed)
-./scripts/sync-dotfiles.sh --compliance   # sync + drift checks
-./scripts/sync-dotfiles.sh --check-only   # drift check, no sync
+mise run sync         # stow only (no 1Password needed)
+mise run compliance   # sync + drift checks
+mise run check        # drift check, no sync
+mise install          # install/update portable CLI tools
 ```
 
 A missing rendered file is always rendered regardless of flags, and rendering is atomic: if 1Password is locked, the existing file is kept untouched.
@@ -33,6 +35,7 @@ A missing rendered file is always rendered regardless of flags, and rendering is
 
 | Component | Purpose |
 |-----------|---------|
+| `mise.toml` | Portable CLI tools + task entry points (`mise run bootstrap`) |
 | `hosts/<hostname>.json` | Per-machine config: packages, templates, private repo, compliance |
 | `templates/` | Base files with `{{placeholder}}` values rendered at sync |
 | `scripts/sync-dotfiles.sh` | Orchestrator: detect → render → pull → stow → compliance |
