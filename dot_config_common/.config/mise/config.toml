@@ -1,0 +1,26 @@
+# Global mise config (stow-managed via dot_config_common).
+
+[settings]
+# Repo mise configs mise loads without an interactive `mise trust` prompt.
+trusted_config_paths = ["~/.config/nvim", "~/.dotfiles"]
+
+[tools]
+tree-sitter = "latest"
+
+# Editor formatters/linters, made available to Neovim (conform + nvim-lint) on the
+# global shim PATH regardless of cwd. Consolidated here from mason so a single
+# `mise upgrade` updates them; mason keeps only the LSP servers it wires up.
+# aqua backend used for StyLua/yamlfmt to guarantee linux/arm64 builds.
+"aqua:JohnnyMorganz/StyLua" = "latest"
+"aqua:google/yamlfmt" = "latest"
+shellcheck = "latest"
+shfmt = "latest"
+taplo = "latest"
+ruff = "latest"
+
+# Formatters conform.nvim invokes on save; must be on the global shim PATH so
+# format-on-save works from any cwd, not just inside a repo that declares them.
+# biome/prettier are selected per-project by conform (biome.json vs .prettierrc).
+rumdl = "latest"
+biome = "latest"
+prettier = "latest"
