@@ -172,8 +172,17 @@ while IFS=$'\t' read -r repo_url repo_target repo_branch; do
         git clone --branch "$repo_branch" "$repo_url" "$repo_target" || {
             echo "WARNING: Failed to clone $repo_url. Continuing." >&2
         }
+    elif [[ -d "$repo_target" && ! -L "$repo_target" && -z "$(find "$repo_target" -type f -print -quit 2>/dev/null)" ]]; then
+        # Real directory but no regular files anywhere inside: stow residue
+        # (folded dir of now-dangling symlinks). Nothing to lose — replace it.
+        echo "Removing stow residue directory $repo_target"
+        rm -rf "$repo_target"
+        echo "Cloning $repo_url -> $repo_target"
+        git clone --branch "$repo_branch" "$repo_url" "$repo_target" || {
+            echo "WARNING: Failed to clone $repo_url. Continuing." >&2
+        }
     elif [[ -e "$repo_target" ]]; then
-        echo "WARNING: $repo_target exists but is not a git repo. Skipping $repo_url." >&2
+        echo "WARNING: $repo_target exists but is not a git repo (contains real files). Skipping $repo_url." >&2
     else
         echo "Cloning $repo_url -> $repo_target"
         git clone --branch "$repo_branch" "$repo_url" "$repo_target" || {
