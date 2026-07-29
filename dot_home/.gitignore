@@ -250,3 +250,6 @@ docs/
 scratch/
 
 **/.claude/settings.local.json
+.agents/
+.cmux/
+.codex/
