@@ -48,8 +48,8 @@
         },
         "platforms": {
           "type": "array",
-          "description": "Which platforms this package applies to. Defaults to ['macos','arch'] if omitted.",
-          "items": { "type": "string", "enum": ["macos", "arch"] },
+          "description": "Which platforms this package applies to. Defaults to ['macos','arch','fedora'] if omitted.",
+          "items": { "type": "string", "enum": ["macos", "arch", "fedora"] },
           "minItems": 1,
           "uniqueItems": true
         },
@@ -61,10 +61,22 @@
           "type": "string",
           "description": "Package name on macOS (Homebrew). Defaults to 'name' if omitted."
         },
+        "dnf": {
+          "type": "string",
+          "description": "Package name on Fedora (dnf). Defaults to 'name' if omitted."
+        },
         "aur": {
           "type": "boolean",
           "default": false,
           "description": "Install via yay (AUR) on Arch instead of pacman."
+        },
+        "copr": {
+          "type": "string",
+          "description": "Fedora COPR repo (owner/project) to enable before dnf install."
+        },
+        "flatpak": {
+          "type": "string",
+          "description": "Flathub application ID. When set, Fedora installs via 'flatpak install flathub <id>' instead of dnf."
         },
         "cask": {
           "type": "boolean",

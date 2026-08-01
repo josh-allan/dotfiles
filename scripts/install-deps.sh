@@ -2,12 +2,12 @@
 set -euo pipefail
 
 # install-deps.sh
-# Installs GUI apps and system packages from packages.json via brew/yay.
+# Installs GUI apps and system packages from packages.json via brew/yay/dnf.
 # Portable CLI tools are managed by mise (see mise.toml).
 # Normally invoked via `mise run install-apps` or `mise run bootstrap`.
 # Usage:
 #   ./scripts/install-deps.sh              # bootstrap + all packages
-#   ./scripts/install-deps.sh --system     # also install Arch system packages (Arch only)
+#   ./scripts/install-deps.sh --system     # also install the legacy Arch base package set (Arch only)
 #   ./scripts/install-deps.sh --dry-run    # preview package installs without running them
 #   ./scripts/install-deps.sh --compliance # run compliance check after package install
 
@@ -39,6 +39,20 @@ case "$OS" in
     *)       log_error "Unsupported OS: $OS"; exit 1 ;;
 esac
 log_info "Detected OS: $OS_TYPE"
+
+# All install logic keys off the package manager, not the distro name.
+# macOS is special-cased: brew may not exist yet (ensure_brew installs it).
+# On Linux we pick whichever manager is present -- a clean discriminator
+# (a Fedora box has dnf and no pacman, and vice versa).
+if [[ "$OS_TYPE" == "macos" ]]; then
+    PKG_MGR="brew"
+else
+    PKG_MGR=""
+    for pm in dnf pacman apt-get; do
+        command -v "$pm" >/dev/null 2>&1 && { PKG_MGR="$pm"; break; }
+    done
+fi
+log_info "Package manager: ${PKG_MGR:-unknown}"
 
 has_command() { command -v "$1" >/dev/null 2>&1; }
 
@@ -73,20 +87,32 @@ ensure_yay() {
     log_success "yay installed"
 }
 
+ensure_fedora_repos() {
+    log_info "Enabling COPR support, RPM Fusion, and Flathub..."
+    local ver
+    ver=$(rpm -E %fedora)
+    # dnf-plugins-core provides 'dnf copr'; flatpak is needed before Flathub apps.
+    sudo dnf install -y dnf-plugins-core flatpak || log_warn "core plugin/flatpak install failed"
+    sudo dnf install -y \
+        "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$ver.noarch.rpm" \
+        "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$ver.noarch.rpm" \
+        || log_warn "RPM Fusion setup failed (may already be present)"
+    flatpak remote-add --if-not-exists flathub \
+        https://dl.flathub.org/repo/flathub.flatpakrepo || log_warn "Flathub remote add failed"
+    log_success "Fedora repositories ready"
+}
+
 install_pkg() {
     local pkg="$1" brew_pkg="${2:-$1}"
     log_info "Installing $pkg..."
-    if [[ "$OS_TYPE" == "macos" ]]; then
-        brew install "$brew_pkg"
-    elif has_command yay; then
-        yay -S --needed --noconfirm "$pkg"
-    elif has_command pacman; then
-        sudo pacman -S --needed --noconfirm "$pkg"
-    elif has_command apt-get; then
-        sudo apt-get update -qq && sudo apt-get install -y -qq "$pkg"
-    else
-        log_error "No supported package manager"; return 1
-    fi
+    case "$PKG_MGR" in
+        brew)   brew install "$brew_pkg" ;;
+        pacman) if has_command yay; then yay -S --needed --noconfirm "$pkg"
+                else sudo pacman -S --needed --noconfirm "$pkg"; fi ;;
+        dnf)    sudo dnf install -y "$pkg" ;;
+        apt-get) sudo apt-get update -qq && sudo apt-get install -y -qq "$pkg" ;;
+        *)      log_error "No supported package manager"; return 1 ;;
+    esac
 }
 
 ensure_git() {
@@ -119,14 +145,26 @@ ensure_op() {
         return
     fi
     log_info "Installing 1Password CLI..."
-    if [[ "$OS_TYPE" == "macos" ]]; then
-        brew install 1password-cli
-    elif has_command yay; then
-        yay -S --needed --noconfirm 1password-cli
-    else
-        log_warn "Install 1Password CLI manually: https://developer.1password.com/docs/cli/get-started"
-        return
-    fi
+    case "$PKG_MGR" in
+        brew)
+            brew install 1password-cli ;;
+        dnf)
+            # 1Password ships its own RPM repo; not in Fedora or COPR.
+            sudo rpm --import https://downloads.1password.com/linux/keys/1password.asc || true
+            sudo sh -c 'printf "%s\n" \
+                "[1password]" \
+                "name=1Password Stable Channel" \
+                "baseurl=https://downloads.1password.com/linux/rpm/stable/\$basearch" \
+                "enabled=1" "gpgcheck=1" "repo_gpgcheck=1" \
+                "gpgkey=https://downloads.1password.com/linux/keys/1password.asc" \
+                > /etc/yum.repos.d/1password.repo'
+            sudo dnf install -y 1password-cli ;;
+        pacman)
+            yay -S --needed --noconfirm 1password-cli ;;
+        *)
+            log_warn "Install 1Password CLI manually: https://developer.1password.com/docs/cli/get-started"
+            return ;;
+    esac
     log_success "1Password CLI installed"
 }
 
@@ -135,8 +173,8 @@ install_packages() {
     log_info "Installing packages from packages.json..."
     local dry_run_flag=""
     $DRY_RUN && dry_run_flag="--dry-run"
-    # install-packages.py takes macos|arch, not the generic linux OS_TYPE;
-    # omit --platform so its own detection picks arch vs archarm correctly.
+    # install-packages.py takes macos|arch|fedora, not the generic linux OS_TYPE;
+    # omit --platform so its own detection picks arch vs archarm vs fedora correctly.
     if [[ "$OS_TYPE" == "macos" ]]; then
         python3 "$SCRIPT_DIR/install-packages.py" --platform macos $dry_run_flag
     else
@@ -190,13 +228,11 @@ install_system_packages() {
 
 log_info "Checking dotfiles dependencies..."
 
-if [[ "$OS_TYPE" == "macos" ]]; then
-    ensure_brew
-fi
-
-if [[ "$OS_TYPE" == "linux" ]]; then
-    ensure_yay
-fi
+case "$PKG_MGR" in
+    brew)   ensure_brew ;;
+    pacman) ensure_yay ;;
+    dnf)    ensure_fedora_repos ;;
+esac
 
 ensure_git
 ensure_stow
@@ -208,8 +244,12 @@ log_info "Fetching SSH keys from 1Password..."
 
 install_packages
 
-if $INSTALL_SYSTEM && [[ "$OS_TYPE" == "linux" ]]; then
-    install_system_packages
+if $INSTALL_SYSTEM; then
+    if [[ "$PKG_MGR" == "pacman" ]]; then
+        install_system_packages
+    else
+        log_warn "--system installs the legacy Arch base set (pacman only); skipping"
+    fi
 fi
 
 if $RUN_COMPLIANCE; then

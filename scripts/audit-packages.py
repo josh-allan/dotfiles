@@ -78,7 +78,7 @@ def _legacy_audit():
     def known_pacman_names(data):
         names = set()
         for entry in data.get("tools", []) + data.get("apps", []):
-            if "arch" not in entry.get("platforms", ["macos", "arch"]):
+            if "arch" not in entry.get("platforms", ["macos", "arch", "fedora"]):
                 continue
             names.add(entry.get("pacman", entry["name"]))
         return names

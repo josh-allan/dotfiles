@@ -297,15 +297,21 @@ if [[ ${#system_packages[@]} -gt 0 ]]; then
     for entry in "${system_packages[@]}"; do
         pkg="$(echo "$entry" | jq -r '.pkg')"
         target="$(echo "$entry" | jq -r '.target')"
-        pkg_dir="$REPO_ROOT/$pkg"
+        # A private system package lives in the private-dots repo, not the public root.
+        if [[ "$(echo "$entry" | jq -r '.private // false')" == "true" ]]; then
+            base_dir="$PRIVATE_DIR"
+        else
+            base_dir="$REPO_ROOT"
+        fi
+        pkg_dir="$base_dir/$pkg"
 
         if [[ ! -d "$pkg_dir" ]]; then
             echo "WARNING: System package not found: $pkg_dir"
             continue
         fi
 
-        if sudo stow --adopt ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$target" "$pkg"; then
-            git -C "$REPO_ROOT" restore "$pkg/" 2>/dev/null || true
+        if sudo stow --adopt ${skip_args+"${skip_args[@]}"} -d "$base_dir" -t "$target" "$pkg"; then
+            git -C "$base_dir" restore "$pkg/" 2>/dev/null || true
             echo "  Stowed: $pkg -> $target"
         else
             echo "WARNING: Failed to stow system package '$pkg' (target: $target)"

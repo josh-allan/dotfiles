@@ -5,7 +5,7 @@
     "private": ["private_user", "opencode", "claude", "augment"],
     "system": [
       {"pkg": "etc_linux", "target": "/etc"},
-      {"pkg": "etc_josh_desktop", "target": "/etc"}
+      {"pkg": "etc_josh_desktop", "target": "/etc", "private": true}
     ]
   },
   "templates": {

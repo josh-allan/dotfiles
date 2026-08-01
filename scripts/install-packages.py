@@ -16,12 +16,14 @@ def detect_platform():
         return "macos"
     if os.path.exists("/etc/arch-release"):
         return "arch"
-    # Arch Linux ARM (Asahi, ALARM) uses /etc/os-release with ID=archarm / ID_LIKE=arch
     if os.path.exists("/etc/os-release"):
         with open("/etc/os-release") as f:
             content = f.read()
+        # Arch Linux ARM (Asahi, ALARM) uses ID=archarm / ID_LIKE=arch
         if any(tok in content for tok in ("ID=arch", "ID_LIKE=arch")):
             return "arch"
+        if "ID=fedora" in content or "ID_LIKE=fedora" in content:
+            return "fedora"
     return "unknown"
 
 
@@ -48,7 +50,7 @@ def load_packages():
 
 
 def applies_to(entry, platform):
-    return platform in entry.get("platforms", ["macos", "arch"])
+    return platform in entry.get("platforms", ["macos", "arch", "fedora"])
 
 
 def install_macos(tools, apps, dry_run):
@@ -144,9 +146,54 @@ def install_arch(tools, apps, dry_run):
         print(f"\n[WARNING] {len(failed)} package(s) skipped: {', '.join(failed)}", file=sys.stderr)
 
 
+def install_fedora(tools, apps, dry_run):
+    coprs = set()
+    dnf_pkgs = []
+    flatpaks = []
+
+    for entry in tools + apps:
+        if not applies_to(entry, "fedora"):
+            continue
+        # Flathub apps bypass dnf entirely.
+        if entry.get("flatpak"):
+            flatpaks.append(entry["flatpak"])
+            continue
+        if entry.get("copr"):
+            coprs.add(entry["copr"])
+        dnf_pkgs.append(entry.get("dnf", entry["name"]))
+
+    # Enable each COPR once before installing anything from it.
+    for slug in sorted(coprs):
+        run(["sudo", "dnf", "-y", "copr", "enable", slug], dry_run)
+
+    failed = []
+    for pkg in dnf_pkgs:
+        print(f"\n[package] {pkg}")
+        try:
+            run(["sudo", "dnf", "install", "-y", pkg], dry_run)
+        except subprocess.CalledProcessError:
+            failed.append(pkg)
+            print(f"[WARNING] dnf: {pkg} failed -- skipping", file=sys.stderr)
+
+    if flatpaks:
+        if not shutil.which("flatpak"):
+            print("[ERROR] flatpak not found -- run install-deps.sh to set up Flathub first")
+            sys.exit(1)
+        for app in flatpaks:
+            print(f"\n[package] {app} (flatpak)")
+            try:
+                run(["flatpak", "install", "-y", "flathub", app], dry_run)
+            except subprocess.CalledProcessError:
+                failed.append(app)
+                print(f"[WARNING] flatpak: {app} failed -- skipping", file=sys.stderr)
+
+    if failed:
+        print(f"\n[WARNING] {len(failed)} package(s) skipped: {', '.join(failed)}", file=sys.stderr)
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--platform", choices=["macos", "arch"])
+    parser.add_argument("--platform", choices=["macos", "arch", "fedora"])
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -165,6 +212,8 @@ def main():
         install_macos(tools, apps, args.dry_run)
     elif plat == "arch":
         install_arch(tools, apps, args.dry_run)
+    elif plat == "fedora":
+        install_fedora(tools, apps, args.dry_run)
 
 
 if __name__ == "__main__":
