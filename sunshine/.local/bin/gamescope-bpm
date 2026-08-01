@@ -1,0 +1,73 @@
+#!/bin/bash
+# Outer compositor: Sway (headless, wlroots 0.20) -- Sunshine captures via wlr-screencopy.
+# Inner compositor: gamescope (nested in Sway) -- WSI bypass for games.
+#
+# WLR env vars are scoped to Sway only (inline assignment, not exported) so
+# gamescope's embedded wlroots does not inherit them and auto-detects correctly.
+set -e
+
+RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/1000}"
+LINK="${RUNTIME_DIR}/wayland-cage"
+SWAY_PID=""
+GAMESCOPE_PID=""
+
+cleanup() {
+    rm -f "${LINK}"
+    kill "${GAMESCOPE_PID}" 2>/dev/null || true
+    kill "${SWAY_PID}" 2>/dev/null || true
+}
+
+# SIGTERM/INT from systemd stop: clean exit so systemd does not restart
+trap 'cleanup; exit 0' TERM INT
+# Any other exit: clean up but preserve exit code for systemd restart decision
+trap cleanup EXIT
+
+BEFORE=$(ls "${RUNTIME_DIR}"/wayland-* 2>/dev/null | grep -v '\.lock$' || true)
+
+WLR_BACKENDS=headless \
+WLR_RENDER_DRM_DEVICE=/dev/dri/renderD128 \
+WLR_LIBINPUT_NO_DEVICES=1 \
+    /usr/bin/sway -c "${HOME}/.config/streaming/sway.conf" &
+SWAY_PID=$!
+
+SWAY_SOCKET=""
+for _ in $(seq 1 60); do
+    AFTER=$(ls "${RUNTIME_DIR}"/wayland-* 2>/dev/null | grep -v '\.lock$' || true)
+    NEW=$(comm -13 <(echo "${BEFORE}" | sort) <(echo "${AFTER}" | sort) | head -1)
+    if [ -n "${NEW}" ]; then
+        SWAY_SOCKET="${NEW}"
+        break
+    fi
+    sleep 0.25
+done
+
+if [ -z "${SWAY_SOCKET}" ]; then
+    echo "gamescope-bpm: timed out waiting for Sway socket" >&2
+    exit 1
+fi
+
+SWAY_SOCKET_NAME="$(basename "${SWAY_SOCKET}")"
+
+WAYLAND_DISPLAY="${SWAY_SOCKET_NAME}" \
+    /usr/bin/gamescope \
+        --backend wayland \
+        -W 2560 -H 1440 \
+        -r 60 \
+        -- /usr/bin/steam -gamepadui &
+GAMESCOPE_PID=$!
+
+for _ in $(seq 1 120); do
+    [ -S "${RUNTIME_DIR}/gamescope-0" ] && break
+    sleep 0.25
+done
+
+if [ ! -S "${RUNTIME_DIR}/gamescope-0" ]; then
+    echo "gamescope-bpm: timed out waiting for gamescope socket" >&2
+    exit 1
+fi
+
+ln -sf "${SWAY_SOCKET_NAME}" "${LINK}"
+systemd-notify --ready
+
+# Wait for either process to die; exit code determines whether systemd restarts
+wait -n "${SWAY_PID}" "${GAMESCOPE_PID}" 2>/dev/null
