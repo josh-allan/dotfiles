@@ -17,7 +17,7 @@ mise trust
 #     unauthenticated API limit. In fish:
 #     set -gx MISE_GITHUB_TOKEN (gh auth token)
 
-# 3. Bootstrap: CLI tools (mise), apps/system packages (brew/yay),
+# 3. Bootstrap: CLI tools (mise), apps/system packages (brew/yay/dnf),
 #    templates from 1Password (needs op unlocked), stow, private overlay
 mise run bootstrap
 

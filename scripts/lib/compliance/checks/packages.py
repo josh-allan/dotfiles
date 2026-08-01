@@ -26,13 +26,17 @@ def _run_cmd(cmd: list[str]) -> tuple[list[str], int]:
 
 
 def _detect_platform() -> str:
-    """Return 'arch', 'macos', or 'unknown'."""
+    """Return 'arch', 'fedora', 'macos', or 'unknown', keyed off the package manager."""
     import platform
+    import shutil
     system = platform.system()
     if system == "Darwin":
         return "macos"
     if system == "Linux":
-        return "arch"
+        if shutil.which("dnf"):
+            return "fedora"
+        if shutil.which("pacman"):
+            return "arch"
     return "unknown"
 
 
@@ -61,7 +65,7 @@ def _build_manifest_sets(packages: dict, platform: str, arch: str) -> tuple[set[
     aur_names: set[str] = set()
 
     for entry in packages.get("tools", []) + packages.get("apps", []):
-        platforms = entry.get("platforms", ["macos", "arch"])
+        platforms = entry.get("platforms", ["macos", "arch", "fedora"])
         if platform not in platforms:
             continue
 
@@ -69,7 +73,12 @@ def _build_manifest_sets(packages: dict, platform: str, arch: str) -> tuple[set[
         if arches and arch not in arches:
             continue
 
-        pkg_name = entry.get("pacman", entry["name"]) if platform == "arch" else entry.get("brew", entry["name"])
+        if platform == "arch":
+            pkg_name = entry.get("pacman", entry["name"])
+        elif platform == "fedora":
+            pkg_name = entry.get("dnf", entry["name"])
+        else:
+            pkg_name = entry.get("brew", entry["name"])
         all_names.add(pkg_name)
 
         if entry.get("aur", False):

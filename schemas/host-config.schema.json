@@ -42,7 +42,12 @@
             "required": ["pkg", "target"],
             "properties": {
               "pkg": { "type": "string" },
-              "target": { "type": "string" }
+              "target": { "type": "string" },
+              "private": {
+                "type": "boolean",
+                "default": false,
+                "description": "Resolve the package from the private-dots repo instead of the public root."
+              }
             },
             "additionalProperties": false
           }

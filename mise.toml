@@ -27,6 +27,7 @@ tree-sitter = "latest"     # packages.json name: tree-sitter-cli
 yarn = "latest"
 zoxide = "latest"
 "npm:fish-lsp" = "latest"
+"cargo:hyprswitch" = "latest"  # replaces the AUR package; built from crates.io (needs rust, above)
 
 [tasks.install-tools]
 description = "Install portable CLI tools via mise"
