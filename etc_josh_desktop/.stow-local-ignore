@@ -1,0 +1,9 @@
+# wol.service must be a real file on the root filesystem.
+# /home is a separate btrfs subvolume mounted AFTER early boot.
+# systemd loads unit files before /home mounts, so a symlink into
+# /home fails with ENOENT. Deploy manually:
+#   sudo cp ~/.dotfiles/etc_josh_desktop/systemd/system/wol.service /etc/systemd/system/wol.service
+#   sudo chown root:root /etc/systemd/system/wol.service
+#   sudo chmod 644 /etc/systemd/system/wol.service
+#   sudo systemctl daemon-reload && sudo systemctl enable --now wol.service
+systemd/system/wol\.service
