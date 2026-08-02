@@ -31,25 +31,42 @@ def _run_systemctl(args: list[str], user: bool = False) -> tuple[str, int]:
 
 
 def _discover_service_files(repo_root: Path, host_config: dict) -> list[tuple[str, str]]:
-    """Walk stow packages enabled for this host and find .service files.
+    """Walk stow packages enabled for this host and find .service/.timer files.
 
     Returns a list of (relative_path, unit_name) tuples.
     Determines user vs system based on the package destination path.
+    Private packages (packages.private, and system entries flagged
+    "private": true) live under repo_root/private, mirroring how
+    sync-dotfiles.sh resolves PRIVATE_DIR — a package only listed there
+    (e.g. the "systemd" package) is invisible to this check otherwise.
     """
+    private_dir = repo_root / "private"
+
     public_pkgs = host_config.get("packages", {}).get("public", [])
-    system_pkgs = [s["pkg"] for s in host_config.get("packages", {}).get("system", [])]
-    all_pkgs = set(public_pkgs + system_pkgs)
+    private_pkgs = host_config.get("packages", {}).get("private", [])
+    system_entries = host_config.get("packages", {}).get("system", [])
+
+    pkg_dirs: dict[str, Path] = {}
+    for pkg_name in public_pkgs:
+        pkg_dirs.setdefault(pkg_name, repo_root / pkg_name)
+    for pkg_name in private_pkgs:
+        pkg_dirs.setdefault(pkg_name, private_dir / pkg_name)
+    for entry in system_entries:
+        pkg_name = entry["pkg"]
+        base_dir = private_dir if entry.get("private", False) else repo_root
+        pkg_dirs.setdefault(pkg_name, base_dir / pkg_name)
 
     services: list[tuple[str, str]] = []
 
-    for pkg_name in sorted(all_pkgs):
-        pkg_dir = repo_root / pkg_name
+    for pkg_name in sorted(pkg_dirs):
+        pkg_dir = pkg_dirs[pkg_name]
         if not pkg_dir.is_dir():
             continue
 
-        for service_file in sorted(pkg_dir.rglob("*.service")):
-            rel = str(service_file.relative_to(repo_root))
-            unit_name = service_file.name
+        unit_files = sorted(pkg_dir.rglob("*.service")) + sorted(pkg_dir.rglob("*.timer"))
+        for unit_file in unit_files:
+            rel = str(unit_file.relative_to(repo_root))
+            unit_name = unit_file.name
 
             # Determine scope: user vs system
             rel_lower = rel.lower()
