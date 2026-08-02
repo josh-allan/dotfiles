@@ -20,6 +20,11 @@
       "type": "string",
       "description": "Freeform notes about this host (optional)."
     },
+    "enable_linger": {
+      "type": "boolean",
+      "default": false,
+      "description": "Run 'loginctl enable-linger' for this user during sync (Linux only, optional). Keeps user-scope systemd units (timers, streaming daemons) running without an active login session. Host-specific — only set true where that's actually wanted (e.g. an always-on desktop with a backup timer or streaming host), not machine-wide."
+    },
     "packages": {
       "type": "object",
       "required": ["public"],

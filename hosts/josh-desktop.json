@@ -1,5 +1,6 @@
 {
   "os": "linux",
+  "enable_linger": true,
   "packages": {
     "public": ["dot_home", "dot_config_common", "dot_config_linux", "sunshine"],
     "private": ["private_user", "opencode", "claude", "augment", "systemd"],
