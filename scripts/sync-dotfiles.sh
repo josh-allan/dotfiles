@@ -334,6 +334,24 @@ if [[ ${#system_packages[@]} -gt 0 ]]; then
     done
 fi
 
+# Step 5.6: Enable lingering (opt-in per host via enable_linger).
+# User-scope systemd units (timers, streaming daemons) only run while a
+# login session is active; logind tears down the user manager — and
+# everything in it — some time after the last session ends. Lingering
+# keeps it running regardless of login state. Host-specific: only set
+# enable_linger where that's actually wanted, not a blanket default.
+if [[ "$(jq -r '.enable_linger // false' "$HOST_CONFIG")" == "true" ]]; then
+    if [[ "$(uname -s)" == "Linux" ]] && command -v loginctl >/dev/null 2>&1; then
+        if sudo loginctl enable-linger "$(id -un)"; then
+            echo "  Linger enabled for $(id -un)"
+        else
+            echo "WARNING: Failed to enable linger for $(id -un)"
+        fi
+    else
+        echo "  enable_linger set but loginctl unavailable — skipping"
+    fi
+fi
+
 # Step 6: Post-sync validation — verify stow-created symlinks exist
 echo "Running post-sync validation..."
 
