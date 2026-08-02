@@ -204,6 +204,21 @@ while IFS= read -r skip; do
     [[ -n "$skip" ]] && skip_args+=(--ignore="$skip")
 done < <(jq -r '.skip_paths[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 
+# Packages that share a target directory with another package (e.g. both
+# "sunshine" and the private "systemd" package populate .config/systemd/user).
+# GNU Stow folds a directory into one symlink when it's first claimed by a
+# single package; a second package then can't add files alongside it —
+# "target exists" conflict. --no-folding keeps the shared dir real so both
+# packages' files can coexist. Scoped to just these two (not applied
+# blanket) since it changes maintenance behavior: files added later inside
+# a --no-folding'd package need a re-sync to appear, unlike a folded symlink
+# where new files show up automatically.
+fold_flag_for() {
+    case "$1" in
+        sunshine|systemd) echo "--no-folding" ;;
+    esac
+}
+
 if [[ ${#public_packages[@]} -gt 0 ]]; then
     echo "Stowing public packages: ${public_packages[*]}"
 
@@ -215,7 +230,7 @@ if [[ ${#public_packages[@]} -gt 0 ]]; then
             continue
         fi
 
-        stow --adopt ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$HOME" "$pkg"
+        stow $(fold_flag_for "$pkg") --adopt ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$HOME" "$pkg"
         git -C "$REPO_ROOT" restore "$pkg/" 2>/dev/null || true
         echo "  Stowed: $pkg"
     done
@@ -258,7 +273,7 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
             continue
         fi
 
-        if stow --adopt ${skip_args+"${skip_args[@]}"} -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
+        if stow $(fold_flag_for "$pkg") --adopt ${skip_args+"${skip_args[@]}"} -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
             git -C "$PRIVATE_DIR" restore "$pkg/" 2>/dev/null || true
             echo "  Stowed: $pkg (private)"
         else
@@ -446,7 +461,14 @@ done
 for entry in ${system_packages[@]+"${system_packages[@]}"}; do
     pkg="$(echo "$entry" | jq -r '.pkg')"
     target="$(echo "$entry" | jq -r '.target')"
-    validate_package "System" "$pkg" "$REPO_ROOT/$pkg" "$REPO_ROOT" "$target"
+    # Mirror the base_dir resolution in the Step 5.5 stow loop above — a
+    # private system package lives in the private-dots repo, not the public root.
+    if [[ "$(echo "$entry" | jq -r '.private // false')" == "true" ]]; then
+        base_dir="$PRIVATE_DIR"
+    else
+        base_dir="$REPO_ROOT"
+    fi
+    validate_package "System" "$pkg" "$base_dir/$pkg" "$base_dir" "$target"
 done
 
 # Step 6.5: Post-sync compliance verification (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)
