@@ -32,6 +32,40 @@ class TestServiceDiscovery:
         services = _discover_service_files(repo, {"packages": {"public": []}})
         assert services == []
 
+    def test_discovers_private_package_units(self, temp_dir):
+        """packages.private units live under repo_root/private (mirrors
+        sync-dotfiles.sh's PRIVATE_DIR), not repo_root directly."""
+        repo = temp_dir / "repo"
+        svc_dir = repo / "private" / "systemd" / ".config" / "systemd" / "user"
+        svc_dir.mkdir(parents=True)
+        (svc_dir / "backup.service").write_text("[Unit]\nDescription=Test\n")
+        (svc_dir / "backup.timer").write_text("[Timer]\nOnCalendar=daily\n")
+
+        host_config = {"packages": {"public": [], "private": ["systemd"]}}
+        services = _discover_service_files(repo, host_config)
+
+        unit_names = {s[1] for s in services}
+        assert unit_names == {"backup.service", "backup.timer"}
+        assert all(s[0].startswith("user:") for s in services)
+
+    def test_discovers_private_system_package_units(self, temp_dir):
+        """A system entry flagged private: true resolves under repo_root/private,
+        not repo_root — same as sync-dotfiles.sh's base_dir selection."""
+        repo = temp_dir / "repo"
+        svc_dir = repo / "private" / "etc_josh_desktop" / "systemd" / "system"
+        svc_dir.mkdir(parents=True)
+        (svc_dir / "wol.service").write_text("[Unit]\nDescription=Test\n")
+
+        host_config = {
+            "packages": {
+                "public": [],
+                "system": [{"pkg": "etc_josh_desktop", "target": "/etc", "private": True}],
+            }
+        }
+        services = _discover_service_files(repo, host_config)
+
+        assert services == [("system:wol.service", "wol.service")]
+
 
 class TestServiceState:
     def test_enabled_active_passes(self):
