@@ -1,6 +1,6 @@
 [Unit]
 Description=Headless Steam Big Picture Mode
-After=network.target
+After=network.target pipewire.service wireplumber.service
 
 [Service]
 Type=notify

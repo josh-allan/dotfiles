@@ -1,5 +1,5 @@
 [bar]
-scale = 0.6499999761581421
+scale = 0.800000011920929
 bg = "bg-overlay"
 background-opacity = 61
 
@@ -29,6 +29,10 @@ modules = [
 [styling]
 theme-provider = "matugen"
 matugen-scheme = "expressive"
+
+[modules.battery]
+icon-show = false
+label-show = false
 
 [modules.clock]
 format = "%d-%m %H:%M"

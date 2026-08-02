@@ -12,6 +12,15 @@ export WLR_BACKENDS=headless
 export WLR_RENDER_DRM_DEVICE=/dev/dri/renderD128
 export WLR_LIBINPUT_NO_DEVICES=1
 
+# Force the real DAC as default sink before Steam starts. On boot, pipewire's
+# RAOP auto-discovery can register a Sonos speaker before wireplumber restores
+# the persisted default, so Steam's startup chime races onto a random Sonos.
+# Retry briefly in case pipewire/wireplumber aren't fully up yet.
+for _ in $(seq 1 20); do
+    pactl set-default-sink alsa_output.usb-Topping_DX3_Pro_-00.HiFi__Headphones__sink 2>/dev/null && break
+    sleep 0.25
+done
+
 # Snapshot existing sockets before cage creates its own
 BEFORE=$(ls "${RUNTIME_DIR}"/wayland-* 2>/dev/null | grep -v '\.lock$' || true)
 
