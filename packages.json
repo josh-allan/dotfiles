@@ -4,6 +4,7 @@
     {"name": "awscli",          "pacman": "aws-cli", "dnf": "awscli2"},
     {"name": "blueutil",        "platforms": ["macos"]},
     {"name": "btop"},
+    {"name": "cage",            "platforms": ["arch", "fedora"]},
     {"name": "coreutils",       "platforms": ["macos"]},
     {"name": "delve",           "arch": ["x86_64"]},
     {"name": "eza"},
@@ -27,7 +28,8 @@
     {"name": "telnet",          "pacman": "inetutils", "dnf": "telnet"},
     {"name": "trash",           "pacman": "trash-cli", "dnf": "trash-cli"},
     {"name": "wireplumber",     "platforms": ["arch", "fedora"]},
-    {"name": "wl-clipboard",    "platforms": ["arch", "fedora"]}
+    {"name": "wl-clipboard",    "platforms": ["arch", "fedora"]},
+    {"name": "wlr-randr",       "platforms": ["arch", "fedora"]}
   ],
   "apps": [
     {"name": "1password-cli",  "brew": "1password-cli",  "pacman": "1password-cli", "dnf": "1password-cli", "cask": true, "aur": true},
@@ -40,6 +42,7 @@
     {"name": "hyprpaper",      "platforms": ["arch", "fedora"], "copr": "solopasha/hyprland"},
     {"name": "sikarugir",      "brew": "sikarugir",      "tap": "sikarugir-app/sikarugir", "cask": true, "platforms": ["macos"]},
     {"name": "stats",          "brew": "stats",                                    "cask": true, "platforms": ["macos"]},
+    {"name": "steam",          "platforms": ["arch", "fedora"], "arch": ["x86_64"]},
     {"name": "vesktop",        "brew": "vesktop",        "pacman": "vesktop",       "flatpak": "dev.vencord.Vesktop", "cask": true, "aur": true},
     {"name": "xquartz",        "brew": "xquartz",                                   "cask": true, "platforms": ["macos"]}
   ]
