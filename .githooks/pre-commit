@@ -54,7 +54,7 @@ if [[ -n "$STAGED_HOST_CONFIGS" ]]; then
 fi
 
 # Run shellcheck on staged shell scripts
-STAGED_SHELL=$(git diff --cached --name-only | grep -E '\.sh$' || true)
+STAGED_SHELL=$(git diff --cached --diff-filter=d --name-only | grep -E '\.sh$' || true)
 if [[ -n "$STAGED_SHELL" ]] && command -v shellcheck >/dev/null 2>&1; then
     # shellcheck disable=SC2086
     shellcheck $STAGED_SHELL || ERRORS=$((ERRORS + 1))

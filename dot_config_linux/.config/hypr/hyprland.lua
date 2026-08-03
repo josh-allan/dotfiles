@@ -2,26 +2,14 @@
 -- Only hyprland itself reads this file; hypridle/hyprlock/hyprpaper/hyprsunset
 -- remain in their own *.conf files (those binaries do not support Lua).
 
--------------------------------
----- ENVIRONMENT VARIABLES ----
--------------------------------
-
 hl.env("XCURSOR_SIZE", "24")
 hl.env("WLR_NO_HARDWARE_CURSORS", "1")
-
-------------------
----- MONITORS ----
-------------------
 
 require("monitors")
 require("workspaces")
 
 -- Host-specific overrides (env, extra monitors). Optional: absent on some hosts.
 pcall(require, "host")
-
--------------------
----- AUTOSTART ----
--------------------
 
 hl.on("hyprland.start", function()
 	hl.exec_cmd("hyprctl dispatch workspace 1")
@@ -36,10 +24,6 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 	hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 end)
-
------------------------
----- LOOK AND FEEL ----
------------------------
 
 hl.config({
 	general = {
@@ -74,10 +58,6 @@ hl.config({
 	},
 })
 
----------------
----- INPUT ----
----------------
-
 hl.config({
 	input = {
 		kb_layout = "us",
@@ -91,10 +71,6 @@ hl.config({
 	},
 })
 
---------------------
----- ANIMATIONS ----
---------------------
-
 hl.curve("myBezier", { type = "bezier", points = { { 0.05, 0.9 }, { 0.1, 1.05 } } })
 
 hl.animation({ leaf = "windows", enabled = true, speed = 7, bezier = "myBezier" })
@@ -102,11 +78,6 @@ hl.animation({ leaf = "windowsOut", enabled = true, speed = 7, bezier = "default
 hl.animation({ leaf = "border", enabled = true, speed = 10, bezier = "default" })
 hl.animation({ leaf = "fade", enabled = true, speed = 7, bezier = "default" })
 
----------------------
----- KEYBINDINGS ----
----------------------
-
 require("keybinds")
 
--- Reload panel
-hl.bind("CTRL + SHIFT + R", hl.dsp.exec_cmd("hyprpanel"))
+hl.bind("CTRL + SHIFT + R", hl.dsp.exec_cmd("wayle"))
