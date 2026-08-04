@@ -219,6 +219,23 @@ fold_flag_for() {
     esac
 }
 
+# Restore only files that stow --adopt dirtied, preserving uncommitted edits.
+# Usage: capture dirty list before adopt, pass it after.
+#   _pre=$(git -C "$repo" diff --name-only -- "$pkg/" 2>/dev/null | sort)
+#   stow --adopt ...
+#   restore_only_adopted "$repo" "$pkg" "$_pre"
+restore_only_adopted() {
+    local repo_dir="$1" pkg="$2" pre_dirty="$3"
+    local post_dirty adopted
+    post_dirty=$(git -C "$repo_dir" diff --name-only -- "$pkg/" 2>/dev/null | sort)
+    adopted=$(comm -13 <(printf '%s\n' "$pre_dirty") <(printf '%s\n' "$post_dirty"))
+    if [[ -n "$adopted" ]]; then
+        while IFS= read -r f; do
+            [[ -n "$f" ]] && git -C "$repo_dir" restore -- "$f"
+        done <<< "$adopted"
+    fi
+}
+
 if [[ ${#public_packages[@]} -gt 0 ]]; then
     echo "Stowing public packages: ${public_packages[*]}"
 
@@ -230,8 +247,9 @@ if [[ ${#public_packages[@]} -gt 0 ]]; then
             continue
         fi
 
+        _pre=$(git -C "$REPO_ROOT" diff --name-only -- "$pkg/" 2>/dev/null | sort)
         stow $(fold_flag_for "$pkg") --adopt ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$HOME" "$pkg"
-        git -C "$REPO_ROOT" restore "$pkg/" 2>/dev/null || true
+        restore_only_adopted "$REPO_ROOT" "$pkg" "$_pre"
         echo "  Stowed: $pkg"
     done
 fi
@@ -273,8 +291,9 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
             continue
         fi
 
+        _pre=$(git -C "$PRIVATE_DIR" diff --name-only -- "$pkg/" 2>/dev/null | sort)
         if stow $(fold_flag_for "$pkg") --adopt ${skip_args+"${skip_args[@]}"} -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
-            git -C "$PRIVATE_DIR" restore "$pkg/" 2>/dev/null || true
+            restore_only_adopted "$PRIVATE_DIR" "$pkg" "$_pre"
             echo "  Stowed: $pkg (private)"
         else
             case "$pkg" in
@@ -325,8 +344,9 @@ if [[ ${#system_packages[@]} -gt 0 ]]; then
             continue
         fi
 
+        _pre=$(git -C "$base_dir" diff --name-only -- "$pkg/" 2>/dev/null | sort)
         if sudo stow --adopt ${skip_args+"${skip_args[@]}"} -d "$base_dir" -t "$target" "$pkg"; then
-            git -C "$base_dir" restore "$pkg/" 2>/dev/null || true
+            restore_only_adopted "$base_dir" "$pkg" "$_pre"
             echo "  Stowed: $pkg -> $target"
         else
             echo "WARNING: Failed to stow system package '$pkg' (target: $target)"
