@@ -1,0 +1,6 @@
+[Apple Laptop Touchpad (SPI) Override]
+MatchUdevType=touchpad
+MatchBus=spi
+MatchVendor=0x05AC
+AttrThumbSizeThreshold=800
+AttrPalmSizeThreshold=1100

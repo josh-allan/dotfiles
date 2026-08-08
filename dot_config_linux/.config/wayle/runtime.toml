@@ -30,10 +30,6 @@ modules = [
 theme-provider = "matugen"
 matugen-scheme = "expressive"
 
-[modules.battery]
-icon-show = false
-label-show = false
-
 [modules.clock]
 format = "%d-%m %H:%M"
 

@@ -5,9 +5,9 @@ set -euo pipefail
 # Symlinks ~/.config/zen/user.js into the active Zen profile directory.
 # Must run after stow has linked dot_config_linux so user.js exists at ~/.config/zen/user.js.
 
-ZEN_DIR="$HOME/.config/zen"
+ZEN_DIR="$HOME/.zen"
 PROFILES_INI="$ZEN_DIR/profiles.ini"
-USER_JS_SRC="$ZEN_DIR/user.js"
+USER_JS_SRC="$HOME/.config/zen/user.js"
 
 if [[ ! -f "$PROFILES_INI" ]]; then
     echo "zen-setup: no profiles.ini found at $PROFILES_INI — skipping"
