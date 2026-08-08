@@ -19,8 +19,18 @@ if [[ ! -f "$USER_JS_SRC" ]]; then
     exit 1
 fi
 
-# Extract the default profile path from profiles.ini
-PROFILE_PATH="$(awk -F= '/^Path=/ { path=$2 } /^Default=1/ { print path }' "$PROFILES_INI")"
+# Extract the default profile path from profiles.ini.
+# The [Install*] section's Default= key holds the actual active profile directory;
+# fall back to the [Profile*] section with Default=1 if the Install key is absent.
+PROFILE_PATH="$(awk -F= '
+    /^\[Install/       { in_install=1; next }
+    /^\[/              { in_install=0 }
+    in_install && /^Default=/ { print $2; exit }
+' "$PROFILES_INI")"
+
+if [[ -z "$PROFILE_PATH" ]]; then
+    PROFILE_PATH="$(awk -F= '/^Path=/ { path=$2 } /^Default=1/ { print path }' "$PROFILES_INI")"
+fi
 
 if [[ -z "$PROFILE_PATH" ]]; then
     echo "zen-setup: could not determine default profile path from $PROFILES_INI"
