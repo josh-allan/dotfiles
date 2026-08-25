@@ -1,0 +1,11 @@
+[Unit]
+Description=Apple Trackpad dead-band configuration (titdb)
+BindsTo=dev-input-apple\x2dtrackpad.device
+After=dev-input-apple\x2dtrackpad.device
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/titdb -b 5 -r 20 -l 20 -t 10 -d /dev/input/apple-trackpad
+
+[Install]
+WantedBy=multi-user.target

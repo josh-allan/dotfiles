@@ -320,18 +320,19 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
     done
 fi
 
-# Step 5.5: Stow system packages (requires sudo, Linux only)
+# Step 5.5: Copy system packages (requires sudo, Linux only)
+# Uses cp instead of stow because systemd refuses to load unit files
+# that are symlinks into user home directories.
 system_packages=()
 while IFS= read -r entry; do
     [[ -n "$entry" ]] && system_packages+=("$entry")
 done < <(jq -c '.packages.system[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 
 if [[ ${#system_packages[@]} -gt 0 ]]; then
-    echo "Stowing system packages..."
+    echo "Deploying system packages..."
     for entry in "${system_packages[@]}"; do
         pkg="$(echo "$entry" | jq -r '.pkg')"
         target="$(echo "$entry" | jq -r '.target')"
-        # A private system package lives in the private-dots repo, not the public root.
         if [[ "$(echo "$entry" | jq -r '.private // false')" == "true" ]]; then
             base_dir="$PRIVATE_DIR"
         else
@@ -344,12 +345,21 @@ if [[ ${#system_packages[@]} -gt 0 ]]; then
             continue
         fi
 
-        _pre=$(git -C "$base_dir" diff --name-only -- "$pkg/" 2>/dev/null | sort)
-        if sudo stow --adopt ${skip_args+"${skip_args[@]}"} -d "$base_dir" -t "$target" "$pkg"; then
-            restore_only_adopted "$base_dir" "$pkg" "$_pre"
-            echo "  Stowed: $pkg -> $target"
+        local_failed=0
+        while IFS= read -r -d '' file; do
+            rel="${file#"$pkg_dir"/}"
+            dest="$target/$rel"
+            sudo mkdir -p "$(dirname "$dest")"
+            if ! sudo cp --remove-destination "$file" "$dest"; then
+                echo "  WARNING: Failed to copy $rel"
+                local_failed=1
+            fi
+        done < <(find "$pkg_dir" -type f -not -path '*/.git/*' -print0 2>/dev/null)
+
+        if [[ $local_failed -eq 0 ]]; then
+            echo "  Deployed: $pkg -> $target"
         else
-            echo "WARNING: Failed to stow system package '$pkg' (target: $target)"
+            echo "WARNING: Some files failed to deploy for system package '$pkg'"
         fi
     done
 fi
@@ -488,6 +498,27 @@ validate_package() {
     echo "  Likely cause: Target paths already exist as real files/directories. Run '$suggestion' to see conflicts."
 }
 
+validate_system_package() {
+    local pkg_label="$1" pkg="$2" pkg_dir="$3" target_dir="$4"
+    local file rel dest
+    pkg_dir="${pkg_dir%/}"
+
+    if [[ ! -d "$pkg_dir" ]]; then
+        echo "WARNING: ${pkg_label} package '$pkg' not found at $pkg_dir"
+        return
+    fi
+
+    while IFS= read -r -d '' file; do
+        rel="${file#"$pkg_dir"/}"
+        dest="$target_dir/$rel"
+        if [[ ! -f "$dest" ]]; then
+            echo "WARNING: ${pkg_label} package '$pkg' missing deployed file: $dest"
+        elif ! cmp -s "$file" "$dest"; then
+            echo "WARNING: ${pkg_label} package '$pkg' file differs from source: $dest"
+        fi
+    done < <(find "$pkg_dir" -type f -not -path '*/.git/*' -print0 2>/dev/null)
+}
+
 for pkg in "${public_packages[@]}"; do
     validate_package "Public" "$pkg" "$REPO_ROOT/$pkg" "$REPO_ROOT"
 done
@@ -499,14 +530,12 @@ done
 for entry in ${system_packages[@]+"${system_packages[@]}"}; do
     pkg="$(echo "$entry" | jq -r '.pkg')"
     target="$(echo "$entry" | jq -r '.target')"
-    # Mirror the base_dir resolution in the Step 5.5 stow loop above — a
-    # private system package lives in the private-dots repo, not the public root.
     if [[ "$(echo "$entry" | jq -r '.private // false')" == "true" ]]; then
         base_dir="$PRIVATE_DIR"
     else
         base_dir="$REPO_ROOT"
     fi
-    validate_package "System" "$pkg" "$base_dir/$pkg" "$base_dir" "$target"
+    validate_system_package "System" "$pkg" "$base_dir/$pkg" "$target"
 done
 
 # Step 6.5: Post-sync compliance verification (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)

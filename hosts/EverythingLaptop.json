@@ -5,7 +5,10 @@
   "packages": {
     "public": ["dot_home", "dot_config_common", "dot_config_linux", "asahi"],
     "private": ["private_user", "opencode", "claude", "augment"],
-    "system": [{"pkg": "etc_linux", "target": "/etc"}]
+    "system": [
+      {"pkg": "etc_linux", "target": "/etc"},
+      {"pkg": "asahi_system", "target": "/"}
+    ]
   },
   "asahi_system_packages": [
     "archlinuxarm-keyring",
@@ -50,7 +53,8 @@
     "schemaVersion": 1,
     "packages": { "mode": "expected", "expected": [], "absent": [] },
     "services": { "mode": "expected", "units": [
-      {"unit": "mpris-proxy.service", "expectedEnabled": true, "expectedActive": null, "severity": "expected"}
+      {"unit": "mpris-proxy.service", "expectedEnabled": true, "expectedActive": null, "severity": "expected"},
+      {"unit": "titdb.service", "expectedEnabled": true, "expectedActive": null, "severity": "expected"}
     ] },
     "files": { "mode": "expected", "expected": [] }
   }

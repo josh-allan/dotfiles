@@ -1,12 +1,6 @@
--- Hyprland configuration (Lua). Ported from hyprland.conf.
--- Only hyprland itself reads this file; hypridle/hyprlock/hyprpaper/hyprsunset
--- remain in their own *.conf files (those binaries do not support Lua).
-
-hl.env("XCURSOR_SIZE", "24")
-hl.env("WLR_NO_HARDWARE_CURSORS", "1")
-
 require("monitors")
 require("workspaces")
+require("env")
 
 -- Host-specific overrides (env, extra monitors). Optional: absent on some hosts.
 pcall(require, "host")
@@ -23,6 +17,7 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("hyprpaper")
 	hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 	hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
+	hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
 end)
 
 hl.config({

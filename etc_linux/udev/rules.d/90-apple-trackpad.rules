@@ -1,0 +1,1 @@
+SUBSYSTEM=="input", ATTRS{name}=="Apple SPI Trackpad", KERNEL=="event*", SYMLINK+="input/apple-trackpad", TAG+="systemd", ENV{SYSTEMD_WANTS}="titdb.service"
