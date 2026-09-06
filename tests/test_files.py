@@ -1,9 +1,9 @@
 """Tests for the file integrity checker."""
 
+import os
 from pathlib import Path
 from unittest import mock
 
-import pytest
 
 from compliance.checks.files import (
     FilesChecker,
@@ -108,29 +108,31 @@ class TestFileIntegrity:
         )
         assert any(f.kind == "missing" for f in findings)
 
-    def test_accepted_file_filtered(self, temp_dir, sample_host_config):
-        """File in compliance.files.expected should be marked accepted."""
+    def test_accepted_real_file_is_marked_accepted(
+        self, temp_dir, sample_host_config, sample_packages_json,
+    ):
+        """A real file listed in compliance.files.expected is reported but accepted."""
         repo = temp_dir / "repo"
-        target = temp_dir / "home"
-        target.mkdir()
-
+        home = temp_dir / "home"
+        home.mkdir()
         pkg_dir = repo / "dot_home"
         pkg_dir.mkdir(parents=True)
         (pkg_dir / ".gitignore").write_text("*.log\n")
+        (home / ".gitignore").write_text("modified content\n")
 
-        # Create real file at target
-        (target / ".gitignore").write_text("modified content\n")
+        sample_host_config["packages"] = {"public": ["dot_home"]}
+        sample_host_config["compliance"]["files"]["expected"] = [str(home / ".gitignore")]
+        profile = resolve_compliance_profile(sample_host_config)
+        args = mock.Mock(quick=False, pre=True, post=False)
 
-        expected_path = str(target / ".gitignore")
-        profile = ComplianceProfile(
-            files=mock.Mock(mode="expected", expected=[expected_path]),
-        )
-        findings = _check_file_integrity(
-            repo, "dot_home", "dot_home/.gitignore", target,
-            sample_host_config, profile, quick=False,
-        )
-        # Should still find the issue, but it will be marked accepted upstream
-        assert any(f.kind == "real_file" for f in findings)
+        with mock.patch("pathlib.Path.home", return_value=home):
+            report = FilesChecker(
+                sample_host_config, sample_packages_json, profile, repo, args,
+            ).run()
+
+        real_file = [f for f in report.findings if f.kind == "real_file"]
+        assert [f.accepted for f in real_file] == [True]
+        assert report.status == "pass"
 
 
 class TestFilesChecker:
@@ -151,34 +153,49 @@ class TestFilesChecker:
         report = checker.run()
         assert report.status == "pass"
 
-    def test_template_freshness(self, temp_dir, sample_host_config, sample_packages_json):
-        """Template freshness check should run when templates are configured."""
+    @staticmethod
+    def _template_repo(temp_dir, sample_host_config):
+        """Lay out one template and its rendered output; return (repo, tmpl, rendered)."""
         repo = temp_dir / "repo"
-        repo.mkdir()
-        templates_dir = repo / "templates"
-        templates_dir.mkdir()
-
-        # Create a template and rendered output
-        tmpl_dir = templates_dir / "dot_home"
-        tmpl_dir.mkdir(parents=True)
-        tmpl = tmpl_dir / ".gitconfig.tmpl"
+        tmpl = repo / "templates" / "dot_home" / ".gitconfig.tmpl"
+        tmpl.parent.mkdir(parents=True)
         tmpl.write_text("[user]\n    name = {{user.name}}\n")
-        rendered = repo / "dot_home"
-        rendered.mkdir(parents=True)
-        (rendered / ".gitconfig").write_text("[user]\n    name = Josh\n")
+        rendered = repo / "dot_home" / ".gitconfig"
+        rendered.parent.mkdir(parents=True)
+        rendered.write_text("[user]\n    name = Josh\n")
+        (temp_dir / "home").mkdir()
 
+        sample_host_config["packages"] = {"public": []}
         sample_host_config["templates"] = {
             "dot_home/.gitconfig": {"user.name": "fake://ref"},
         }
+        return repo, tmpl, rendered
+
+    @staticmethod
+    def _stale_findings(repo, temp_dir, sample_host_config, sample_packages_json):
         profile = resolve_compliance_profile(sample_host_config)
+        args = mock.Mock(quick=False, pre=True, post=False)
+        with mock.patch("pathlib.Path.home", return_value=temp_dir / "home"):
+            report = FilesChecker(
+                sample_host_config, sample_packages_json, profile, repo, args,
+            ).run()
+        return [f for f in report.findings if f.kind == "stale_template"]
 
-        args = mock.Mock()
-        args.quick = False
-        args.pre = True
-        args.post = False
+    def test_rendered_newer_than_template_is_fresh(
+        self, temp_dir, sample_host_config, sample_packages_json,
+    ):
+        repo, tmpl, rendered = self._template_repo(temp_dir, sample_host_config)
+        os.utime(tmpl, (1_000_000, 1_000_000))
+        os.utime(rendered, (2_000_000, 2_000_000))
 
-        checker = FilesChecker(
-            sample_host_config, sample_packages_json, profile, repo, args,
-        )
-        report = checker.run()
-        assert report.status in ("pass", "warn")
+        assert self._stale_findings(repo, temp_dir, sample_host_config, sample_packages_json) == []
+
+    def test_template_newer_than_rendered_is_stale(
+        self, temp_dir, sample_host_config, sample_packages_json,
+    ):
+        repo, tmpl, rendered = self._template_repo(temp_dir, sample_host_config)
+        os.utime(rendered, (1_000_000, 1_000_000))
+        os.utime(tmpl, (2_000_000, 2_000_000))
+
+        stale = self._stale_findings(repo, temp_dir, sample_host_config, sample_packages_json)
+        assert [f.item for f in stale] == [str(rendered)]

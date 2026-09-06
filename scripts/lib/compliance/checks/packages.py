@@ -7,8 +7,6 @@ for intentional drift acceptance.
 """
 
 import subprocess
-import sys
-from typing import Optional
 
 from compliance.report import DomainReport, Finding
 from compliance.schema import ComplianceProfile
@@ -125,7 +123,7 @@ def _check_arch(
             findings.append(Finding(
                 domain="packages", kind="installed_as_dep", item=pkg,
                 severity="info",
-                detail=f"Package is installed as a dependency (not explicitly)",
+                detail="Package is installed as a dependency (not explicitly)",
             ))
         else:
             actual_missing.append(pkg)
@@ -134,7 +132,7 @@ def _check_arch(
         findings.append(Finding(
             domain="packages", kind="missing", item=pkg,
             severity="expected",
-            detail=f"Package is in packages.json but not installed",
+            detail="Package is in packages.json but not installed",
         ))
 
     # Extra: installed but not in manifest (and not in expected list)
@@ -144,7 +142,7 @@ def _check_arch(
         findings.append(Finding(
             domain="packages", kind="extra", item=pkg,
             severity="info",
-            detail=f"Package is installed but not in packages.json",
+            detail="Package is installed but not in packages.json",
         ))
 
     # AUR updates
@@ -173,14 +171,14 @@ def _check_arch(
             findings.append(Finding(
                 domain="packages", kind="asahi_missing", item=pkg,
                 severity="required",
-                detail=f"Asahi system package is missing (critical for Asahi functionality)",
+                detail="Asahi system package is missing (critical for Asahi functionality)",
             ))
         asahi_extra = installed & asahi_set
         for pkg in sorted(asahi_extra):
             findings.append(Finding(
                 domain="packages", kind="asahi_present", item=pkg,
                 severity="info",
-                detail=f"Asahi system package is installed",
+                detail="Asahi system package is installed",
             ))
 
     # Determine status
@@ -239,7 +237,7 @@ def _check_macos(
         findings.append(Finding(
             domain="packages", kind="missing", item=pkg,
             severity="expected",
-            detail=f"Package is in packages.json but not installed",
+            detail="Package is in packages.json but not installed",
         ))
 
     # Extra: installed but not in manifest (and not in expected list)
@@ -249,7 +247,7 @@ def _check_macos(
         findings.append(Finding(
             domain="packages", kind="extra", item=pkg,
             severity="info",
-            detail=f"Package is installed but not in packages.json",
+            detail="Package is installed but not in packages.json",
         ))
 
     # Determine status

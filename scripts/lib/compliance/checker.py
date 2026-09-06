@@ -38,11 +38,20 @@ from compliance.schema import (  # noqa: E402
 from compliance.report import (  # noqa: E402
     ComplianceReport,
     DomainReport,
-    Finding,
     format_json_report,
     format_markdown_report,
     persist_reports,
 )
+from compliance.checks.files import FilesChecker  # noqa: E402
+from compliance.checks.packages import PackagesChecker  # noqa: E402
+from compliance.checks.services import ServicesChecker  # noqa: E402
+
+_CHECKERS = {
+    "packages": PackagesChecker,
+    "services": ServicesChecker,
+    "files": FilesChecker,
+}
+
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -118,45 +127,10 @@ def _run_domain_check(
     repo_root: Path,
     args: argparse.Namespace,
 ) -> DomainReport:
-    """Run a single domain check. Returns a DomainReport with status 'skipped'
-    if the domain is off in the profile or the checker module is unavailable."""
-    profile_mode = {
-        "packages": profile.packages.mode,
-        "services": profile.services.mode,
-        "files": profile.files.mode,
-    }.get(domain, "off")
-
-    if profile_mode == "off":
+    """Run a single domain check; status 'skipped' when the domain is off in the profile."""
+    if getattr(profile, domain).mode == "off":
         return DomainReport(domain=domain, status="skipped")
-
-    # Try to import the domain checker module
-    module_name = f"compliance.checks.{domain}"
-    try:
-        import importlib
-        mod = importlib.import_module(module_name)
-        checker_cls = getattr(mod, f"{domain.title()}Checker", None)
-        if checker_cls is None:
-            return DomainReport(
-                domain=domain,
-                status="error",
-                findings=[Finding(
-                    domain=domain, kind="internal",
-                    item=f"Checker class not found in {module_name}",
-                    severity="required", detail="checker class missing",
-                )],
-            )
-        checker = checker_cls(host_config, packages, profile, repo_root, args)
-        return checker.run()
-    except ImportError:
-        return DomainReport(
-            domain=domain,
-            status="error",
-            findings=[Finding(
-                domain=domain, kind="internal",
-                item=f"Module {module_name} unavailable",
-                severity="required", detail="checker module missing",
-            )],
-        )
+    return _CHECKERS[domain](host_config, packages, profile, repo_root, args).run()
 
 def _apply_accept_items(
     accept_args: list[str],
@@ -298,18 +272,15 @@ def _fix_missing_packages(
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
 
-    # Load configurations
     host_config, packages, repo_root = load_and_validate_all(
         args.host_config, args.packages_json, args.repo_root,
     )
     profile = resolve_compliance_profile(host_config)
     hostname = os.path.splitext(os.path.basename(args.host_config))[0]
 
-    # Determine mode
     if args.post:
         args.pre = False
 
-    # Determine which domains to check
     all_domains = ["packages", "services", "files"]
     if args.packages_only:
         domains = ["packages"]
@@ -320,7 +291,6 @@ def main(argv: list[str] | None = None) -> int:
     else:
         domains = all_domains
 
-    # Run domain checks
     domain_reports: list[DomainReport] = []
     for domain in domains:
         dr = _run_domain_check(domain, host_config, packages, profile, repo_root, args)
@@ -354,7 +324,6 @@ def main(argv: list[str] | None = None) -> int:
     # Handle --accept
     accept_items = _apply_accept_items(args.accept, args.host_config, host_config)
 
-    # Build report
     report = ComplianceReport(
         host=hostname,
         domains=domain_reports,
@@ -362,10 +331,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     report.exit_code = report.compute_exit_code()
 
-    # Persist
     persist_reports(report)
 
-    # Output
     json_output = format_json_report(report, accept_items)
     if args.json:
         print(json_output)

@@ -7,7 +7,6 @@ compliance.files.expected for intentional drift acceptance.
 
 import hashlib
 import os
-import shutil
 from pathlib import Path
 from typing import Optional
 
@@ -100,11 +99,8 @@ def _check_file_integrity(
     if not repo_file.exists():
         return findings
 
-    # For dot_home: the package IS the home dir contents, no prefix stripping
-    # For dot_config_*: the .config/ in the package IS the .config/ prefix
-    # So target = target_base / path_within_package
-
-    # Strip the package name prefix to get the package-relative path
+    # Stow mirrors the package's internal layout under the target, so the
+    # target path is target_base / <path within the package>.
     prefix = pkg_name + "/"
     if file_rel.startswith(prefix):
         pkg_rel = file_rel[len(prefix):]
@@ -123,16 +119,14 @@ def _check_file_integrity(
     if any(target_str.endswith(sp.replace("*", "")) or sp in target_str for sp in skip_paths):
         return findings
 
-    # Check if target exists
     if not target_path.exists() and not target_path.is_symlink():
         findings.append(Finding(
             domain="files", kind="missing", item=str(target_path),
             severity="expected",
-            detail=f"Stow-managed file is missing from target location",
+            detail="Stow-managed file is missing from target location",
         ))
         return findings
 
-    # Check if it's a symlink
     if target_path.is_symlink():
         try:
             resolved = target_path.resolve()
@@ -168,7 +162,6 @@ def _check_file_integrity(
         # File is OK
         return findings
 
-    # Not a symlink — it's a real file
     if target_path.is_file():
         severity = "expected"
         detail = "Expected symlink but found a regular file (stow not applied or file was overwritten)"
@@ -295,7 +288,6 @@ def _check_template_freshness(
     """Check template-rendered files for freshness.
 
     Compares mtime of rendered output against .tmpl source.
-    If op CLI is available, also compares content hash against a fresh render.
     """
     findings: list[Finding] = []
     templates = host_config.get("templates", {})
@@ -326,19 +318,6 @@ def _check_template_freshness(
                 detail="Template source is newer than rendered output; template may have changed",
             ))
 
-        # If op CLI is available, check content freshness
-        if shutil.which("op"):
-            try:
-                rendered_hash = _compute_sha256(rendered_path)
-                if rendered_hash:
-                    findings.append(Finding(
-                        domain="files", kind="template_hash_ok", item=str(rendered_path),
-                        severity="info",
-                        detail=f"Template content hash: {rendered_hash[:12]}",
-                    ))
-            except Exception:
-                pass
-
     return findings
 
 
@@ -355,7 +334,8 @@ class FilesChecker:
 
     def run(self) -> DomainReport:
         findings: list[Finding] = []
-        quick = self.args.quick if hasattr(self.args, "quick") else False
+        # --post only verifies symlinks; content hashing is --pre work.
+        quick = self.args.quick or self.args.post
 
         public_pkgs = self.host_config.get("packages", {}).get("public", [])
         system_pkgs = self.host_config.get("packages", {}).get("system", [])
@@ -394,11 +374,6 @@ class FilesChecker:
                 if repo_file.name == ".stow-local-ignore":
                     continue
 
-                # In post mode, only check symlink integrity (not content, not templates)
-                is_post = getattr(self.args, "post", False)
-                if is_post and not quick:
-                    quick = True  # post mode implies quick (symlink-only)
-
                 file_findings = _check_file_integrity(
                     self.repo_root, pkg_name, rel, target_base,
                     self.host_config, self.profile, quick,
@@ -406,7 +381,7 @@ class FilesChecker:
                 findings.extend(file_findings)
 
         # Orphan detection (only in --pre mode, not --post)
-        if not getattr(self.args, "post", False):
+        if not self.args.post:
             orphan_findings = _check_orphans(self.repo_root, self.host_config, self.profile)
             findings.extend(orphan_findings)
 

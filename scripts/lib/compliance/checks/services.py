@@ -7,7 +7,6 @@ the compliance.services.units policy.
 
 import os
 import subprocess
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -109,35 +108,31 @@ def _check_service_state(
     expected_active = policy.get("expectedActive") if policy else None
     severity = policy.get("severity", "expected") if policy else "expected"
 
-    # is-enabled
     enabled_out, enabled_rc = _run_systemctl(["is-enabled", unit_name], user=user)
     enabled_state = enabled_out if enabled_rc in (0, 1) else "unknown"
 
-    # is-active
     active_out, active_rc = _run_systemctl(["is-active", unit_name], user=user)
     active_state = active_out if active_rc in (0, 3) else "unknown"
 
-    # Handle service not found
     if "not-found" in enabled_state.lower() or enabled_rc == 4:
         return [Finding(
             domain="services", kind="not_found", item=unit_name,
             severity=severity,
-            detail=f"Service unit not loaded on this system",
+            detail="Service unit not loaded on this system",
         )]
 
-    # is-enabled check
     if expected_enabled and enabled_state not in ("enabled", "enabled-runtime", "static"):
         if enabled_state == "masked":
             findings.append(Finding(
                 domain="services", kind="masked", item=unit_name,
                 severity=severity,
-                detail=f"Service is masked (expected enabled)",
+                detail="Service is masked (expected enabled)",
             ))
         elif enabled_state == "disabled":
             findings.append(Finding(
                 domain="services", kind="disabled", item=unit_name,
                 severity=severity,
-                detail=f"Service is disabled (expected enabled)",
+                detail="Service is disabled (expected enabled)",
             ))
         elif enabled_state == "indirect":
             findings.append(Finding(
@@ -149,10 +144,9 @@ def _check_service_state(
         findings.append(Finding(
             domain="services", kind="enabled_unexpected", item=unit_name,
             severity=severity,
-            detail=f"Service is enabled but should not be",
+            detail="Service is enabled but should not be",
         ))
 
-    # is-active check (only if expected_active is explicitly set)
     if expected_active is True and active_state != "active":
         if active_state == "inactive":
             # Check if it's a oneshot service that completed
@@ -167,22 +161,21 @@ def _check_service_state(
                 findings.append(Finding(
                     domain="services", kind="inactive", item=unit_name,
                     severity=severity,
-                    detail=f"Service is inactive (expected active)",
+                    detail="Service is inactive (expected active)",
                 ))
         elif active_state == "failed":
             findings.append(Finding(
                 domain="services", kind="failed", item=unit_name,
                 severity="required",
-                detail=f"Service has failed",
+                detail="Service has failed",
             ))
     elif expected_active is False and active_state == "active":
         findings.append(Finding(
             domain="services", kind="active_unexpected", item=unit_name,
             severity=severity,
-            detail=f"Service is active but should not be",
+            detail="Service is active but should not be",
         ))
 
-    # Transient services
     if active_state == "transient":
         findings.append(Finding(
             domain="services", kind="transient", item=unit_name,
@@ -231,7 +224,6 @@ class ServicesChecker:
         self.args = args
 
     def run(self) -> DomainReport:
-        # Check if systemctl is available
         if not _systemctl_available():
             return DomainReport(
                 domain="services",
@@ -244,7 +236,6 @@ class ServicesChecker:
                 )],
             )
 
-        # Discover services
         all_services = _discover_service_files(self.repo_root, self.host_config)
 
         if not all_services:
@@ -259,7 +250,6 @@ class ServicesChecker:
                 )],
             )
 
-        # Check each service
         findings: list[Finding] = []
         for service_key, unit_name in all_services:
             scope = service_key.split(":")[0]
@@ -267,7 +257,6 @@ class ServicesChecker:
             unit_findings = _check_service_state(unit_name, scope, policy)
             findings.extend(unit_findings)
 
-        # Determine status
         if any(f.severity == "required" for f in findings):
             status = "fail"
         elif any(f.severity == "expected" for f in findings):

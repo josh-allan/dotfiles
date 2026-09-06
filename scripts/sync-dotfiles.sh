@@ -116,7 +116,7 @@ render_templates() {
 # Step 1: Validate
 "$SCRIPT_DIR/validate-config.sh" "$HOST_CONFIG"
 
-# Step 1.5: Pre-sync compliance check (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)
+# Step 2: Pre-sync compliance check (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)
 if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     echo "Running pre-sync compliance check..."
     "$SCRIPT_DIR/check-compliance.sh" --pre || {
@@ -124,15 +124,15 @@ if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     }
 fi
 
-# Step 2: Render templates
+# Step 3: Render templates
 if [[ -d "$TEMPLATES_DIR" ]]; then
     echo "Rendering templates..."
     render_templates
 else
-    echo "Step 2: No templates directory — skipping"
+    echo "No templates directory — skipping"
 fi
 
-# Step 3: Clone/pull private repo
+# Step 4: Clone/pull private repo
 PRIVATE_REPO_URL="$(jq -r '.private_repo.url // empty' "$HOST_CONFIG")"
 PRIVATE_REPO_BRANCH="$(jq -r '.private_repo.branch // "main"' "$HOST_CONFIG")"
 
@@ -151,10 +151,10 @@ if [[ -n "$PRIVATE_REPO_URL" ]]; then
         }
     fi
 else
-    echo "Step 3: No private repo configured — skipping"
+    echo "No private repo configured — skipping"
 fi
 
-# Step 3b: Clone/pull auxiliary repos (e.g. josh_nvim)
+# Step 5: Clone/pull auxiliary repos (e.g. josh_nvim)
 while IFS=$'\t' read -r repo_url repo_target repo_branch; do
     [[ -z "$repo_url" ]] && continue
     repo_target="${repo_target/#\~/$HOME}"
@@ -191,7 +191,7 @@ while IFS=$'\t' read -r repo_url repo_target repo_branch; do
     fi
 done < <(jq -r '.repos[]? | [.url, .target, .branch // "main"] | @tsv' "$HOST_CONFIG" 2>/dev/null || true)
 
-# Step 4: Stow public packages
+# Step 6: Stow public packages
 # Bash 3.2 compat: use while read instead of mapfile
 public_packages=()
 while IFS= read -r pkg; do
@@ -213,9 +213,11 @@ done < <(jq -r '.skip_paths[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 # blanket) since it changes maintenance behavior: files added later inside
 # a --no-folding'd package need a re-sync to appear, unlike a folded symlink
 # where new files show up automatically.
-fold_flag_for() {
+# Sets the global fold_args array (bash 3.2 has no namerefs).
+fold_args_for() {
+    fold_args=()
     case "$1" in
-        sunshine|systemd) echo "--no-folding" ;;
+        sunshine|systemd) fold_args=(--no-folding) ;;
     esac
 }
 
@@ -248,13 +250,14 @@ if [[ ${#public_packages[@]} -gt 0 ]]; then
         fi
 
         _pre=$(git -C "$REPO_ROOT" diff --name-only -- "$pkg/" 2>/dev/null | sort)
-        stow $(fold_flag_for "$pkg") --adopt ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$HOME" "$pkg"
+        fold_args_for "$pkg"
+        stow ${fold_args[@]+"${fold_args[@]}"} --adopt ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$HOME" "$pkg"
         restore_only_adopted "$REPO_ROOT" "$pkg" "$_pre"
         echo "  Stowed: $pkg"
     done
 fi
 
-# Step 5: Stow private packages
+# Step 7: Stow private packages
 private_packages=()
 while IFS= read -r pkg; do
     [[ -n "$pkg" ]] && private_packages+=("$pkg")
@@ -292,7 +295,8 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
         fi
 
         _pre=$(git -C "$PRIVATE_DIR" diff --name-only -- "$pkg/" 2>/dev/null | sort)
-        if stow $(fold_flag_for "$pkg") --adopt ${skip_args+"${skip_args[@]}"} -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
+        fold_args_for "$pkg"
+        if stow ${fold_args[@]+"${fold_args[@]}"} --adopt ${skip_args+"${skip_args[@]}"} -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
             restore_only_adopted "$PRIVATE_DIR" "$pkg" "$_pre"
             echo "  Stowed: $pkg (private)"
         else
@@ -320,7 +324,7 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
     done
 fi
 
-# Step 5.5: Copy system packages (requires sudo, Linux only)
+# Step 8: Copy system packages (requires sudo, Linux only)
 # Uses cp instead of stow because systemd refuses to load unit files
 # that are symlinks into user home directories.
 system_packages=()
@@ -364,7 +368,7 @@ if [[ ${#system_packages[@]} -gt 0 ]]; then
     done
 fi
 
-# Step 5.6: Enable lingering (opt-in per host via enable_linger).
+# Step 9: Enable lingering (opt-in per host via enable_linger).
 # User-scope systemd units (timers, streaming daemons) only run while a
 # login session is active; logind tears down the user manager — and
 # everything in it — some time after the last session ends. Lingering
@@ -382,7 +386,7 @@ if [[ "$(jq -r '.enable_linger // false' "$HOST_CONFIG")" == "true" ]]; then
     fi
 fi
 
-# Step 6: Post-sync validation — verify stow-created symlinks exist
+# Step 10: Post-sync validation — verify stow-created symlinks exist
 echo "Running post-sync validation..."
 
 # Portable canonical path resolution.
@@ -538,7 +542,7 @@ for entry in ${system_packages[@]+"${system_packages[@]}"}; do
     validate_system_package "System" "$pkg" "$base_dir/$pkg" "$target"
 done
 
-# Step 6.5: Post-sync compliance verification (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)
+# Step 11: Post-sync compliance verification (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)
 if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     echo "Running post-sync compliance verification..."
     "$SCRIPT_DIR/check-compliance.sh" --post || {
@@ -560,7 +564,7 @@ if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     fi
 fi
 
-# Step 7: Browser-specific setup
+# Step 12: Browser-specific setup
 if [[ "$(jq -r '.os // empty' "$HOST_CONFIG")" == "linux" ]]; then
     echo "Running zen-setup..."
     "$SCRIPT_DIR/zen-setup.sh" || echo "WARNING: zen-setup failed — run scripts/zen-setup.sh manually"

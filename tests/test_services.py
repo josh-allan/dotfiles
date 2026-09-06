@@ -2,7 +2,6 @@
 
 from unittest import mock
 
-import pytest
 
 from compliance.checks.services import (
     ServicesChecker,

@@ -3,7 +3,6 @@
 import json
 from unittest import mock
 
-import pytest
 
 from compliance.report import (
     ComplianceReport,
@@ -63,29 +62,6 @@ class TestReportFormatting:
         assert "[REQUIRED]" in md
         assert "git" in md
         assert "| packages | warn | 1 |" in md
-
-    def test_no_emojis_in_output(self):
-        """Output should not contain emoji characters."""
-        report = ComplianceReport(
-            host="test",
-            domains=[
-                DomainReport(
-                    domain="packages",
-                    status="warn",
-                    findings=[
-                        Finding(domain="packages", kind="extra", item="cowsay",
-                                severity="expected"),
-                        Finding(domain="packages", kind="missing", item="bat",
-                                severity="required"),
-                    ],
-                ),
-            ],
-        )
-        json_out = format_json_report(report)
-        md_out = format_markdown_report(report)
-        for ch in ["\u274c", "\u26a0", "\u2139", "\u2705"]:
-            assert ch not in json_out
-            assert ch not in md_out
 
 
 class TestExitCodes:

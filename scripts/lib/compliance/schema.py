@@ -156,7 +156,7 @@ def load_and_validate_all(
                 host_schema = load_schema(str(host_schema_path))
                 validate_against_schema(host_config, host_schema,
                                         label=host_config_path)
-            except Exception as e:
+            except (jsonschema.ValidationError, jsonschema.SchemaError, OSError, ValueError) as e:
                 print(f"WARNING: host config schema validation: {e}", file=sys.stderr)
 
         if pkg_schema_path.exists():
@@ -164,7 +164,7 @@ def load_and_validate_all(
                 pkg_schema = load_schema(str(pkg_schema_path))
                 validate_against_schema(packages, pkg_schema,
                                         label=packages_json_path)
-            except Exception as e:
+            except (jsonschema.ValidationError, jsonschema.SchemaError, OSError, ValueError) as e:
                 print(f"WARNING: packages.json schema validation: {e}", file=sys.stderr)
 
     return host_config, packages, repo
