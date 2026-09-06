@@ -26,3 +26,7 @@ biome = "latest"
 prettier = "latest"
 rust = "1.97.1"
 hunk = "latest"
+"npm:@colbymchenry/codegraph" = "1.4.1"
+
+[env]
+CODEGRAPH_TELEMETRY = "0"

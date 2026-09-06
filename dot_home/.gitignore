@@ -135,9 +135,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
-env/
 venv/
-ENV/
 env.bak/
 venv.bak/
 
@@ -226,16 +224,20 @@ terraform.rc
 .claude/worktrees/
 .beads/
 
+# Dotenv files that commonly contain secrets. Keep `env/` directories and
+# checked-in YAML/JSON environment overlays trackable.
 .env
-*env
+.env.*
+*.env
+*.env.*
+!.env.example
+!*.env.example
 ~/.secrets/
 
 docs/superpowers/
 
 .DS_Store
 *.zshenv
-.env
-*.env*
 *.code-workspace
 .idea/
 .venv/
@@ -253,3 +255,5 @@ scratch/
 .agents/
 .cmux/
 .codex/
+
+**/herdr/session.json
