@@ -14,7 +14,7 @@ window-padding-y = 0
 macos-titlebar-style = transparent
 
 # Background
-background-opacity = 0.8
+background-opacity = 1
 background-blur = 75
 
 # Option key behavior
@@ -43,3 +43,5 @@ keybind = ctrl+semicolon=toggle_split_zoom
 # --- Word Movement ---
 keybind = alt+arrow_left=esc:b
 keybind = alt+arrow_right=esc:f
+
+keybind = ctrl+,=unbind
