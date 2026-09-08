@@ -15,7 +15,7 @@ macos-titlebar-style = transparent
 
 # Background
 background-opacity = 1
-background-blur = 75
+background-blur = 0
 
 # Option key behavior
 macos-option-as-alt = true
