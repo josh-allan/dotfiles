@@ -3,11 +3,27 @@
   "arch": "aarch64",
   "notes": "Asahi Linux (Arch Linux ARM) on Apple Silicon",
   "packages": {
-    "public": ["dot_home", "dot_config_common", "dot_config_linux", "asahi"],
-    "private": ["private_user", "opencode", "claude", "augment"],
+    "public": [
+      "dot_home",
+      "dot_config_common",
+      "dot_config_linux",
+      "asahi"
+    ],
+    "private": [
+      "private_user",
+      "opencode",
+      "claude",
+      "augment"
+    ],
     "system": [
-      {"pkg": "etc_linux", "target": "/etc"},
-      {"pkg": "asahi_system", "target": "/"}
+      {
+        "pkg": "etc_linux",
+        "target": "/etc"
+      },
+      {
+        "pkg": "asahi_system",
+        "target": "/"
+      }
     ]
   },
   "asahi_system_packages": [
@@ -46,16 +62,41 @@
       "url": "git@github.com:josh-allan/josh_nvim.git",
       "target": "~/.config/nvim",
       "branch": "main"
+    },
+    {
+      "url": "git@github.com:josh-allan/go-git",
+      "target": "~/src/go-git",
+      "branch": "main"
     }
   ],
   "skip_paths": [],
   "compliance": {
     "schemaVersion": 1,
-    "packages": { "mode": "expected", "expected": [], "absent": [] },
-    "services": { "mode": "expected", "units": [
-      {"unit": "mpris-proxy.service", "expectedEnabled": true, "expectedActive": null, "severity": "expected"},
-      {"unit": "titdb.service", "expectedEnabled": true, "expectedActive": null, "severity": "expected"}
-    ] },
-    "files": { "mode": "expected", "expected": [] }
+    "packages": {
+      "mode": "expected",
+      "expected": [],
+      "absent": []
+    },
+    "services": {
+      "mode": "expected",
+      "units": [
+        {
+          "unit": "mpris-proxy.service",
+          "expectedEnabled": true,
+          "expectedActive": null,
+          "severity": "expected"
+        },
+        {
+          "unit": "titdb.service",
+          "expectedEnabled": true,
+          "expectedActive": null,
+          "severity": "expected"
+        }
+      ]
+    },
+    "files": {
+      "mode": "expected",
+      "expected": []
+    }
   }
 }

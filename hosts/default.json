@@ -1,9 +1,23 @@
 {
   "os": "linux",
   "packages": {
-    "public": ["dot_home", "dot_config_common", "dot_config_linux"],
-    "private": ["private_user", "opencode", "claude", "augment"],
-    "system": [{"pkg": "etc_linux", "target": "/etc"}]
+    "public": [
+      "dot_home",
+      "dot_config_common",
+      "dot_config_linux"
+    ],
+    "private": [
+      "private_user",
+      "opencode",
+      "claude",
+      "augment"
+    ],
+    "system": [
+      {
+        "pkg": "etc_linux",
+        "target": "/etc"
+      }
+    ]
   },
   "templates": {
     "dot_home/.gitconfig": {
@@ -22,13 +36,27 @@
       "url": "git@github.com:josh-allan/josh_nvim.git",
       "target": "~/.config/nvim",
       "branch": "main"
+    },
+    {
+      "url": "git@github.com:josh-allan/go-git",
+      "target": "~/src/go-git",
+      "branch": "main"
     }
   ],
   "skip_paths": [],
   "compliance": {
     "schemaVersion": 1,
-    "packages": { "mode": "expected", "expected": [], "absent": [] },
-    "services": { "mode": "off" },
-    "files": { "mode": "expected", "expected": [] }
+    "packages": {
+      "mode": "expected",
+      "expected": [],
+      "absent": []
+    },
+    "services": {
+      "mode": "off"
+    },
+    "files": {
+      "mode": "expected",
+      "expected": []
+    }
   }
 }

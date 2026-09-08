@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# sync-dotfiles.sh
-# Machine-specific dotfiles sync orchestrator.
-# Detects hostname, loads host config, renders templates, pulls private repo, stows packages.
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 HOSTS_DIR="$REPO_ROOT/hosts"
@@ -14,13 +10,11 @@ PRIVATE_DIR="$REPO_ROOT/private"
 HOSTNAME="$(hostname | cut -d. -f1)"
 HOST_CONFIG="$HOSTS_DIR/$HOSTNAME.json"
 
-# Allow explicit override
 if [[ -n "${DOTFILES_HOST_CONFIG:-}" ]]; then
     HOST_CONFIG="$DOTFILES_HOST_CONFIG"
     echo "Using explicit host config: $HOST_CONFIG"
 fi
 
-# Fallback to default
 if [[ ! -f "$HOST_CONFIG" ]]; then
     HOST_CONFIG="$HOSTS_DIR/default.json"
     echo "No host config found for '$HOSTNAME'. Using default."
@@ -28,7 +22,6 @@ fi
 
 echo "Host config: $HOST_CONFIG"
 
-# Flags
 BOOTSTRAP=0
 COMPLIANCE="${DOTFILES_COMPLIANCE:-0}"
 for arg in "$@"; do
@@ -52,7 +45,6 @@ for arg in "$@"; do
     esac
 done
 
-# Render templates from 1Password references.
 # Skips templates whose output already exists unless --bootstrap is given,
 # so routine syncs don't depend on 1Password being unlocked.
 # Renders to a temp file and only replaces the output on full success, so a
@@ -113,10 +105,8 @@ render_templates() {
 }
 
 
-# Step 1: Validate
 "$SCRIPT_DIR/validate-config.sh" "$HOST_CONFIG"
 
-# Step 2: Pre-sync compliance check (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)
 if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     echo "Running pre-sync compliance check..."
     "$SCRIPT_DIR/check-compliance.sh" --pre || {
@@ -124,7 +114,6 @@ if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     }
 fi
 
-# Step 3: Render templates
 if [[ -d "$TEMPLATES_DIR" ]]; then
     echo "Rendering templates..."
     render_templates
@@ -132,7 +121,6 @@ else
     echo "No templates directory — skipping"
 fi
 
-# Step 4: Clone/pull private repo
 PRIVATE_REPO_URL="$(jq -r '.private_repo.url // empty' "$HOST_CONFIG")"
 PRIVATE_REPO_BRANCH="$(jq -r '.private_repo.branch // "main"' "$HOST_CONFIG")"
 
@@ -154,7 +142,6 @@ else
     echo "No private repo configured — skipping"
 fi
 
-# Step 5: Clone/pull auxiliary repos (e.g. josh_nvim)
 while IFS=$'\t' read -r repo_url repo_target repo_branch; do
     [[ -z "$repo_url" ]] && continue
     repo_target="${repo_target/#\~/$HOME}"
@@ -191,14 +178,28 @@ while IFS=$'\t' read -r repo_url repo_target repo_branch; do
     fi
 done < <(jq -r '.repos[]? | [.url, .target, .branch // "main"] | @tsv' "$HOST_CONFIG" 2>/dev/null || true)
 
-# Step 6: Stow public packages
-# Bash 3.2 compat: use while read instead of mapfile
+if command -v mise >/dev/null 2>&1; then
+    while IFS=$'\t' read -r _ repo_target _; do
+        [[ -z "$repo_target" ]] && continue
+        repo_target="${repo_target/#\~/$HOME}"
+        if [[ -f "$repo_target/mise.toml" ]]; then
+            echo "Running mise install in $repo_target..."
+            mise install -C "$repo_target" || {
+                echo "WARNING: mise install failed in $repo_target. Continuing." >&2
+            }
+        fi
+    done < <(jq -r '.repos[]? | [.url, .target, .branch // "main"] | @tsv' "$HOST_CONFIG" 2>/dev/null || true)
+else
+    echo "mise not found — skipping tool installation for repos"
+fi
+
+# Bash 3.2 compat: use while-read instead of mapfile.
 public_packages=()
 while IFS= read -r pkg; do
     [[ -n "$pkg" ]] && public_packages+=("$pkg")
 done < <(jq -r '.packages.public[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 
-# Build ignore list from skip_paths (once, shared by public and private stow)
+# Shared by public and private stow loops below.
 skip_args=()
 while IFS= read -r skip; do
     [[ -n "$skip" ]] && skip_args+=(--ignore="$skip")
@@ -257,14 +258,11 @@ if [[ ${#public_packages[@]} -gt 0 ]]; then
     done
 fi
 
-# Step 7: Stow private packages
 private_packages=()
 while IFS= read -r pkg; do
     [[ -n "$pkg" ]] && private_packages+=("$pkg")
 done < <(jq -r '.packages.private[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 
-# Ensure $target is a symlink to $source. Replaces stale symlinks and empty
-# dirs; refuses to touch real files or non-empty dirs.
 link_fallback() {
     local source="$1" target="$2"
     if [[ -L "$target" ]]; then
@@ -324,7 +322,6 @@ if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
     done
 fi
 
-# Step 8: Copy system packages (requires sudo, Linux only)
 # Uses cp instead of stow because systemd refuses to load unit files
 # that are symlinks into user home directories.
 system_packages=()
@@ -368,7 +365,6 @@ if [[ ${#system_packages[@]} -gt 0 ]]; then
     done
 fi
 
-# Step 9: Enable lingering (opt-in per host via enable_linger).
 # User-scope systemd units (timers, streaming daemons) only run while a
 # login session is active; logind tears down the user manager — and
 # everything in it — some time after the last session ends. Lingering
@@ -386,7 +382,6 @@ if [[ "$(jq -r '.enable_linger // false' "$HOST_CONFIG")" == "true" ]]; then
     fi
 fi
 
-# Step 10: Post-sync validation — verify stow-created symlinks exist
 echo "Running post-sync validation..."
 
 # Portable canonical path resolution.
@@ -542,14 +537,12 @@ for entry in ${system_packages[@]+"${system_packages[@]}"}; do
     validate_system_package "System" "$pkg" "$base_dir/$pkg" "$target"
 done
 
-# Step 11: Post-sync compliance verification (opt-in via --compliance flag or DOTFILES_COMPLIANCE=1)
 if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     echo "Running post-sync compliance verification..."
     "$SCRIPT_DIR/check-compliance.sh" --post || {
         echo "WARNING: Post-sync compliance verification found issues. See ~/.config/dotfiles/drift-report.json"
     }
 
-    # Notify if drift detected (guarded: requires notify-send + graphical session)
     DRIFT_REPORT="$HOME/.config/dotfiles/drift-report.json"
     if [[ -f "$DRIFT_REPORT" ]]; then
         EXIT_CODE="$(jq -r '.exitCode // 0' "$DRIFT_REPORT")"
@@ -564,7 +557,6 @@ if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
     fi
 fi
 
-# Step 12: Browser-specific setup
 if [[ "$(jq -r '.os // empty' "$HOST_CONFIG")" == "linux" ]]; then
     echo "Running zen-setup..."
     "$SCRIPT_DIR/zen-setup.sh" || echo "WARNING: zen-setup failed — run scripts/zen-setup.sh manually"
