@@ -1,0 +1,45 @@
+#!/usr/bin/fish
+
+set IF wld0
+set CONF /run/openwifi.conf
+
+if test "$argv[1]" = off
+    systemctl stop systemd-networkd
+    pkill -f "wpa_supplicant -i $IF -c $CONF"
+    nmcli dev set $IF managed yes
+    echo "wld0 returned to NetworkManager"
+    exit 0
+end
+
+if test -z "$argv[1]"
+    echo 'usage: openwifi "SSID" | openwifi off'
+    exit 1
+end
+
+# suppress p2p output because because it's expected.
+printf 'p2p_disabled=1\nnetwork={\n  ssid="%s"\n  key_mgmt=NONE\n}\n' "$argv[1]" > $CONF
+
+
+nmcli dev set $IF managed no
+systemctl stop wpa_supplicant
+pkill -f "wpa_supplicant -i $IF -c $CONF"
+
+printf 'network={\n  ssid="%s"\n  key_mgmt=NONE\n}\n' "$argv[1]" > $CONF
+wpa_supplicant -i $IF -c $CONF -B
+
+for i in (seq 1 15)
+    if iw dev $IF link | grep -q Connected
+        break
+    end
+    sleep 1
+end
+if not iw dev $IF link | grep -q Connected
+    echo "association failed"
+    exit 1
+end
+
+systemctl start systemd-networkd
+networkctl reconfigure $IF
+sleep 3
+networkctl status $IF | grep -E 'State|Address|Gateway'
+echo "Now open http://captive.apple.com in a browser"
