@@ -1,0 +1,93 @@
+#!/usr/bin/fish
+
+set IF wld0
+set CONF /run/openwifi.conf
+set PIDFILE /run/openwifi.pid
+# Runtime-only so networkd never matches $IF while NetworkManager owns it,
+# even if socket activation restarts networkd behind our back.
+set NETWORK_FILE /run/systemd/network/10-$IF.network
+
+function stop_supplicant
+    test -f $PIDFILE; and kill (cat $PIDFILE)
+end
+
+function associated
+    iw dev $IF link | grep -q Connected
+end
+
+function stop_networkd
+    # Stopping only the service is not enough: its sockets reactivate it.
+    systemctl stop systemd-networkd.socket systemd-networkd-varlink.socket \
+        systemd-networkd-resolve-hook.socket systemd-networkd
+end
+
+function return_to_networkmanager
+    stop_networkd
+    if test -f $NETWORK_FILE
+        rm $NETWORK_FILE
+        # networkd leaves its DHCP address behind on stop; a stale second
+        # address breaks captive portals, which authorise a single IP.
+        ip addr flush dev $IF
+    end
+    stop_supplicant
+    # No need to restart wpa_supplicant.service: NetworkManager brings it
+    # back via D-Bus activation (BusName=fi.w1.wpa_supplicant1).
+    nmcli dev set $IF managed yes
+    echo "$IF returned to NetworkManager"
+end
+
+# fish has no `set -e`; every failure after NM releases $IF must go through here
+# or the interface is left unmanaged.
+function fail
+    echo $argv
+    return_to_networkmanager
+    exit 1
+end
+
+if not fish_is_root_user
+    echo "openwifi must run as root"
+    exit 1
+end
+
+switch "$argv[1]"
+    case off
+        return_to_networkmanager
+        exit 0
+    case ''
+        echo 'usage: openwifi "SSID" | openwifi off'
+        exit 1
+end
+
+nmcli dev set $IF managed no
+systemctl stop wpa_supplicant
+stop_supplicant
+
+# Hex SSID survives quotes and backslashes; p2p_disabled suppresses expected p2p noise.
+set ssid_hex (printf %s $argv[1] | xxd -p | string join '')
+printf 'p2p_disabled=1\nnetwork={\n  ssid=%s\n  key_mgmt=NONE\n}\n' $ssid_hex >$CONF
+wpa_supplicant -i $IF -c $CONF -P $PIDFILE -B; or fail "wpa_supplicant failed to start"
+
+for attempt in (seq 15)
+    associated; and break
+    sleep 1
+end
+associated; or fail "association failed"
+
+mkdir -p (path dirname $NETWORK_FILE)
+printf '[Match]\nName=%s\n\n[Network]\nDHCP=yes\n' $IF >$NETWORK_FILE
+systemctl start systemd-networkd
+networkctl reload
+networkctl reconfigure $IF
+/usr/lib/systemd/systemd-networkd-wait-online -i $IF -o routable --timeout=15; or fail "no DHCP lease"
+networkctl status $IF | grep -E 'State|Address|Gateway'
+
+set PORTAL_PROBE http://captive.apple.com
+if curl -s --max-time 5 $PORTAL_PROBE | string match -q '*Success*'
+    echo "online, no captive portal"
+else if set -q SUDO_USER
+    # Root has no graphical session; the invoking user's systemd manager has
+    # WAYLAND_DISPLAY imported by hyprland, so xdg-open reaches their browser.
+    systemd-run --user -M $SUDO_USER@ --quiet xdg-open $PORTAL_PROBE
+else
+    echo "Open $PORTAL_PROBE in a browser to sign in"
+end
