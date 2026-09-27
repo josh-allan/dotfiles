@@ -91,6 +91,12 @@
           "expectedEnabled": true,
           "expectedActive": null,
           "severity": "expected"
+        },
+        {
+          "unit": "tzupdate.timer",
+          "expectedEnabled": true,
+          "expectedActive": null,
+          "severity": "expected"
         }
       ]
     },

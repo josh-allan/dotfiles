@@ -1,0 +1,10 @@
+[Unit]
+Description=Set system timezone from IP geolocation (tzupdate)
+Wants=network-online.target
+After=network-online.target
+# etc_linux deploys to every Linux host; skip cleanly where tzupdate isn't installed.
+ConditionFileIsExecutable=/usr/local/bin/tzupdate
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/tzupdate

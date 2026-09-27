@@ -1,0 +1,10 @@
+#!/bin/sh
+# Re-detect the timezone as soon as a connection comes up, instead of
+# waiting for the next hourly tzupdate.timer run.
+# NetworkManager passes: $1 = interface, $2 = action.
+
+[ "$2" = "up" ] || exit 0
+
+# --no-block: the dispatcher kills slow hooks, and tzupdate waits on a
+# geolocation API. Concurrent "up" events coalesce into one oneshot run.
+exec systemctl start --no-block tzupdate.service
