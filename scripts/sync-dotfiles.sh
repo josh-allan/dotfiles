@@ -193,6 +193,13 @@ else
     echo "mise not found — skipping tool installation for repos"
 fi
 
+# Submodules (e.g. nvim config) live inside stow packages; populate them
+# before stowing so fresh clones don't link empty directories.
+echo "Updating submodules..."
+git -C "$REPO_ROOT" submodule update --init --recursive || {
+    echo "WARNING: Failed to update submodules. Continuing." >&2
+}
+
 # Bash 3.2 compat: use while-read instead of mapfile.
 public_packages=()
 while IFS= read -r pkg; do

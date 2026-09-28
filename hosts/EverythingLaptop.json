@@ -59,11 +59,6 @@
   },
   "repos": [
     {
-      "url": "git@github.com:josh-allan/josh_nvim.git",
-      "target": "~/.config/nvim",
-      "branch": "main"
-    },
-    {
       "url": "git@github.com:josh-allan/go-git",
       "target": "~/src/go-git",
       "branch": "main"
