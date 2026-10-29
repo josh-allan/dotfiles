@@ -11,13 +11,13 @@ HOSTNAME="$(hostname | cut -d. -f1)"
 HOST_CONFIG="$HOSTS_DIR/$HOSTNAME.json"
 
 if [[ -n "${DOTFILES_HOST_CONFIG:-}" ]]; then
-    HOST_CONFIG="$DOTFILES_HOST_CONFIG"
-    echo "Using explicit host config: $HOST_CONFIG"
+	HOST_CONFIG="$DOTFILES_HOST_CONFIG"
+	echo "Using explicit host config: $HOST_CONFIG"
 fi
 
 if [[ ! -f "$HOST_CONFIG" ]]; then
-    HOST_CONFIG="$HOSTS_DIR/default.json"
-    echo "No host config found for '$HOSTNAME'. Using default."
+	HOST_CONFIG="$HOSTS_DIR/default.json"
+	echo "No host config found for '$HOSTNAME'. Using default."
 fi
 
 echo "Host config: $HOST_CONFIG"
@@ -25,24 +25,24 @@ echo "Host config: $HOST_CONFIG"
 BOOTSTRAP=0
 COMPLIANCE="${DOTFILES_COMPLIANCE:-0}"
 for arg in "$@"; do
-    case "$arg" in
-        --bootstrap) BOOTSTRAP=1 ;;
-        --compliance) COMPLIANCE=1 ;;
-        --check-only)
-            echo "Running compliance check only..."
-            if [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
-                exec "$SCRIPT_DIR/check-compliance.sh" --pre
-            else
-                echo "ERROR: check-compliance.sh not found" >&2
-                exit 2
-            fi
-            ;;
-        *)
-            echo "Unknown flag: $arg" >&2
-            echo "Usage: sync-dotfiles.sh [--bootstrap] [--compliance] [--check-only]" >&2
-            exit 2
-            ;;
-    esac
+	case "$arg" in
+	--bootstrap) BOOTSTRAP=1 ;;
+	--compliance) COMPLIANCE=1 ;;
+	--check-only)
+		echo "Running compliance check only..."
+		if [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
+			exec "$SCRIPT_DIR/check-compliance.sh" --pre
+		else
+			echo "ERROR: check-compliance.sh not found" >&2
+			exit 2
+		fi
+		;;
+	*)
+		echo "Unknown flag: $arg" >&2
+		echo "Usage: sync-dotfiles.sh [--bootstrap] [--compliance] [--check-only]" >&2
+		exit 2
+		;;
+	esac
 done
 
 # Skips templates whose output already exists unless --bootstrap is given,
@@ -50,166 +50,165 @@ done
 # Renders to a temp file and only replaces the output on full success, so a
 # failed `op read` can never clobber a working config with raw placeholders.
 render_templates() {
-    local template_key template_file output_file tmp_file placeholder op_ref value ok
+	local template_key template_file output_file tmp_file placeholder op_ref value ok
 
-    while IFS= read -r template_key; do
-        [[ -n "$template_key" ]] || continue
+	while IFS= read -r template_key; do
+		[[ -n "$template_key" ]] || continue
 
-        template_file="$TEMPLATES_DIR/$template_key.tmpl"
-        output_file="$REPO_ROOT/$template_key"
+		template_file="$TEMPLATES_DIR/$template_key.tmpl"
+		output_file="$REPO_ROOT/$template_key"
 
-        if [[ ! -f "$template_file" ]]; then
-            echo "WARNING: Template not found: $template_file"
-            continue
-        fi
+		if [[ ! -f "$template_file" ]]; then
+			echo "WARNING: Template not found: $template_file"
+			continue
+		fi
 
-        if [[ -f "$output_file" && $BOOTSTRAP -eq 0 ]]; then
-            echo "  $template_key: already rendered (--bootstrap to re-render)"
-            continue
-        fi
+		if [[ -f "$output_file" && $BOOTSTRAP -eq 0 ]]; then
+			echo "  $template_key: already rendered (--bootstrap to re-render)"
+			continue
+		fi
 
-        mkdir -p "$(dirname "$output_file")"
-        tmp_file="$(mktemp)"
-        cp "$template_file" "$tmp_file"
-        ok=1
+		mkdir -p "$(dirname "$output_file")"
+		tmp_file="$(mktemp)"
+		cp "$template_file" "$tmp_file"
+		ok=1
 
-        while IFS= read -r placeholder; do
-            [[ -n "$placeholder" ]] || continue
+		while IFS= read -r placeholder; do
+			[[ -n "$placeholder" ]] || continue
 
-            op_ref="$(jq -r --arg t "$template_key" --arg p "$placeholder" '.templates[$t][$p]' "$HOST_CONFIG")"
-            value="$(op read "$op_ref" 2>/dev/null || true)"
+			op_ref="$(jq -r --arg t "$template_key" --arg p "$placeholder" '.templates[$t][$p]' "$HOST_CONFIG")"
+			value="$(op read "$op_ref" 2>/dev/null || true)"
 
-            if [[ -z "$value" ]]; then
-                echo "WARNING: Could not read 1Password reference for '$placeholder' in '$template_key'"
-                ok=0
-                break
-            fi
+			if [[ -z "$value" ]]; then
+				echo "WARNING: Could not read 1Password reference for '$placeholder' in '$template_key'"
+				ok=0
+				break
+			fi
 
-            OP_KEY="{{$placeholder}}" OP_VALUE="$value" \
-                perl -i -pe 's/\Q$ENV{OP_KEY}\E/$ENV{OP_VALUE}/g' -- "$tmp_file"
-            echo "  $template_key: {{$placeholder}} -> [redacted]"
-        done < <(jq -r --arg t "$template_key" '.templates[$t] | keys[]' "$HOST_CONFIG" 2>/dev/null || true)
+			OP_KEY="{{$placeholder}}" OP_VALUE="$value" \
+				perl -i -pe 's/\Q$ENV{OP_KEY}\E/$ENV{OP_VALUE}/g' -- "$tmp_file"
+			echo "  $template_key: {{$placeholder}} -> [redacted]"
+		done < <(jq -r --arg t "$template_key" '.templates[$t] | keys[]' "$HOST_CONFIG" 2>/dev/null || true)
 
-        if [[ $ok -eq 1 ]]; then
-            mv "$tmp_file" "$output_file"
-            echo "  Rendered: $template_key"
-        else
-            rm -f "$tmp_file"
-            if [[ -f "$output_file" ]]; then
-                echo "  Kept existing $template_key (render failed; is 1Password unlocked?)"
-            else
-                echo "  ERROR: $template_key not rendered and no existing file (unlock 1Password and re-run with --bootstrap)"
-            fi
-        fi
-    done < <(jq -r '.templates | keys[]' "$HOST_CONFIG" 2>/dev/null || true)
+		if [[ $ok -eq 1 ]]; then
+			mv "$tmp_file" "$output_file"
+			echo "  Rendered: $template_key"
+		else
+			rm -f "$tmp_file"
+			if [[ -f "$output_file" ]]; then
+				echo "  Kept existing $template_key (render failed; is 1Password unlocked?)"
+			else
+				echo "  ERROR: $template_key not rendered and no existing file (unlock 1Password and re-run with --bootstrap)"
+			fi
+		fi
+	done < <(jq -r '.templates | keys[]' "$HOST_CONFIG" 2>/dev/null || true)
 }
-
 
 "$SCRIPT_DIR/validate-config.sh" "$HOST_CONFIG"
 
 if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
-    echo "Running pre-sync compliance check..."
-    "$SCRIPT_DIR/check-compliance.sh" --pre || {
-        echo "WARNING: Pre-sync compliance check found drift. See ~/.config/dotfiles/drift-report.json"
-    }
+	echo "Running pre-sync compliance check..."
+	"$SCRIPT_DIR/check-compliance.sh" --pre || {
+		echo "WARNING: Pre-sync compliance check found drift. See ~/.config/dotfiles/drift-report.json"
+	}
 fi
 
 if [[ -d "$TEMPLATES_DIR" ]]; then
-    echo "Rendering templates..."
-    render_templates
+	echo "Rendering templates..."
+	render_templates
 else
-    echo "No templates directory — skipping"
+	echo "No templates directory — skipping"
 fi
 
 PRIVATE_REPO_URL="$(jq -r '.private_repo.url // empty' "$HOST_CONFIG")"
 PRIVATE_REPO_BRANCH="$(jq -r '.private_repo.branch // "main"' "$HOST_CONFIG")"
 
 if [[ -n "$PRIVATE_REPO_URL" ]]; then
-    echo "Setting up private repo..."
+	echo "Setting up private repo..."
 
-    if [[ -d "$PRIVATE_DIR/.git" ]]; then
-        echo "Pulling latest private repo..."
-        git -C "$PRIVATE_DIR" pull origin "$PRIVATE_REPO_BRANCH" || {
-            echo "WARNING: Failed to update private repo. Continuing with existing copy." >&2
-        }
-    else
-        echo "Cloning private repo..."
-        git clone --branch "$PRIVATE_REPO_BRANCH" "$PRIVATE_REPO_URL" "$PRIVATE_DIR" || {
-            echo "WARNING: Failed to clone private repo. Skipping private packages." >&2
-        }
-    fi
+	if [[ -d "$PRIVATE_DIR/.git" ]]; then
+		echo "Pulling latest private repo..."
+		git -C "$PRIVATE_DIR" pull origin "$PRIVATE_REPO_BRANCH" || {
+			echo "WARNING: Failed to update private repo. Continuing with existing copy." >&2
+		}
+	else
+		echo "Cloning private repo..."
+		git clone --branch "$PRIVATE_REPO_BRANCH" "$PRIVATE_REPO_URL" "$PRIVATE_DIR" || {
+			echo "WARNING: Failed to clone private repo. Skipping private packages." >&2
+		}
+	fi
 else
-    echo "No private repo configured — skipping"
+	echo "No private repo configured — skipping"
 fi
 
 while IFS=$'\t' read -r repo_url repo_target repo_branch; do
-    [[ -z "$repo_url" ]] && continue
-    repo_target="${repo_target/#\~/$HOME}"
-    repo_branch="${repo_branch:-main}"
-    if [[ -d "$repo_target/.git" ]]; then
-        echo "Pulling $repo_url -> $repo_target"
-        git -C "$repo_target" pull origin "$repo_branch" || {
-            echo "WARNING: Failed to update $repo_target. Continuing with existing copy." >&2
-        }
-    elif [[ -L "$repo_target" && ! -e "$repo_target" ]]; then
-        # Dangling symlink (e.g. old stow link after a package rename): safe to replace.
-        echo "Removing dangling symlink $repo_target"
-        rm "$repo_target"
-        echo "Cloning $repo_url -> $repo_target"
-        git clone --branch "$repo_branch" "$repo_url" "$repo_target" || {
-            echo "WARNING: Failed to clone $repo_url. Continuing." >&2
-        }
-    elif [[ -d "$repo_target" && ! -L "$repo_target" && -z "$(find "$repo_target" -type f -print -quit 2>/dev/null)" ]]; then
-        # Real directory but no regular files anywhere inside: stow residue
-        # (folded dir of now-dangling symlinks). Nothing to lose — replace it.
-        echo "Removing stow residue directory $repo_target"
-        rm -rf "$repo_target"
-        echo "Cloning $repo_url -> $repo_target"
-        git clone --branch "$repo_branch" "$repo_url" "$repo_target" || {
-            echo "WARNING: Failed to clone $repo_url. Continuing." >&2
-        }
-    elif [[ -e "$repo_target" ]]; then
-        echo "WARNING: $repo_target exists but is not a git repo (contains real files). Skipping $repo_url." >&2
-    else
-        echo "Cloning $repo_url -> $repo_target"
-        git clone --branch "$repo_branch" "$repo_url" "$repo_target" || {
-            echo "WARNING: Failed to clone $repo_url. Continuing." >&2
-        }
-    fi
+	[[ -z "$repo_url" ]] && continue
+	repo_target="${repo_target/#\~/$HOME}"
+	repo_branch="${repo_branch:-main}"
+	if [[ -d "$repo_target/.git" ]]; then
+		echo "Pulling $repo_url -> $repo_target"
+		git -C "$repo_target" pull origin "$repo_branch" || {
+			echo "WARNING: Failed to update $repo_target. Continuing with existing copy." >&2
+		}
+	elif [[ -L "$repo_target" && ! -e "$repo_target" ]]; then
+		# Dangling symlink (e.g. old stow link after a package rename): safe to replace.
+		echo "Removing dangling symlink $repo_target"
+		rm "$repo_target"
+		echo "Cloning $repo_url -> $repo_target"
+		git clone --branch "$repo_branch" "$repo_url" "$repo_target" || {
+			echo "WARNING: Failed to clone $repo_url. Continuing." >&2
+		}
+	elif [[ -d "$repo_target" && ! -L "$repo_target" && -z "$(find "$repo_target" -type f -print -quit 2>/dev/null)" ]]; then
+		# Real directory but no regular files anywhere inside: stow residue
+		# (folded dir of now-dangling symlinks). Nothing to lose — replace it.
+		echo "Removing stow residue directory $repo_target"
+		rm -rf "$repo_target"
+		echo "Cloning $repo_url -> $repo_target"
+		git clone --branch "$repo_branch" "$repo_url" "$repo_target" || {
+			echo "WARNING: Failed to clone $repo_url. Continuing." >&2
+		}
+	elif [[ -e "$repo_target" ]]; then
+		echo "WARNING: $repo_target exists but is not a git repo (contains real files). Skipping $repo_url." >&2
+	else
+		echo "Cloning $repo_url -> $repo_target"
+		git clone --branch "$repo_branch" "$repo_url" "$repo_target" || {
+			echo "WARNING: Failed to clone $repo_url. Continuing." >&2
+		}
+	fi
 done < <(jq -r '.repos[]? | [.url, .target, .branch // "main"] | @tsv' "$HOST_CONFIG" 2>/dev/null || true)
 
 if command -v mise >/dev/null 2>&1; then
-    while IFS=$'\t' read -r _ repo_target _; do
-        [[ -z "$repo_target" ]] && continue
-        repo_target="${repo_target/#\~/$HOME}"
-        if [[ -f "$repo_target/mise.toml" ]]; then
-            echo "Running mise install in $repo_target..."
-            mise install -C "$repo_target" || {
-                echo "WARNING: mise install failed in $repo_target. Continuing." >&2
-            }
-        fi
-    done < <(jq -r '.repos[]? | [.url, .target, .branch // "main"] | @tsv' "$HOST_CONFIG" 2>/dev/null || true)
+	while IFS=$'\t' read -r _ repo_target _; do
+		[[ -z "$repo_target" ]] && continue
+		repo_target="${repo_target/#\~/$HOME}"
+		if [[ -f "$repo_target/mise.toml" ]]; then
+			echo "Running mise install in $repo_target..."
+			mise install -C "$repo_target" || {
+				echo "WARNING: mise install failed in $repo_target. Continuing." >&2
+			}
+		fi
+	done < <(jq -r '.repos[]? | [.url, .target, .branch // "main"] | @tsv' "$HOST_CONFIG" 2>/dev/null || true)
 else
-    echo "mise not found — skipping tool installation for repos"
+	echo "mise not found — skipping tool installation for repos"
 fi
 
 # Submodules (e.g. nvim config) live inside stow packages; populate them
 # before stowing so fresh clones don't link empty directories.
 echo "Updating submodules..."
 git -C "$REPO_ROOT" submodule update --init --recursive || {
-    echo "WARNING: Failed to update submodules. Continuing." >&2
+	echo "WARNING: Failed to update submodules. Continuing." >&2
 }
 
 # Bash 3.2 compat: use while-read instead of mapfile.
 public_packages=()
 while IFS= read -r pkg; do
-    [[ -n "$pkg" ]] && public_packages+=("$pkg")
+	[[ -n "$pkg" ]] && public_packages+=("$pkg")
 done < <(jq -r '.packages.public[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 
 # Shared by public and private stow loops below.
 skip_args=()
 while IFS= read -r skip; do
-    [[ -n "$skip" ]] && skip_args+=(--ignore="$skip")
+	[[ -n "$skip" ]] && skip_args+=(--ignore="$skip")
 done < <(jq -r '.skip_paths[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 
 # Packages that share a target directory with another package (e.g. both
@@ -223,10 +222,10 @@ done < <(jq -r '.skip_paths[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 # where new files show up automatically.
 # Sets the global fold_args array (bash 3.2 has no namerefs).
 fold_args_for() {
-    fold_args=()
-    case "$1" in
-        sunshine|systemd) fold_args=(--no-folding) ;;
-    esac
+	fold_args=()
+	case "$1" in
+	sunshine | systemd) fold_args=(--no-folding) ;;
+	esac
 }
 
 # Restore only files that stow --adopt dirtied, preserving uncommitted edits.
@@ -235,141 +234,148 @@ fold_args_for() {
 #   stow --adopt ...
 #   restore_only_adopted "$repo" "$pkg" "$_pre"
 restore_only_adopted() {
-    local repo_dir="$1" pkg="$2" pre_dirty="$3"
-    local post_dirty adopted
-    post_dirty=$(git -C "$repo_dir" diff --name-only -- "$pkg/" 2>/dev/null | sort)
-    adopted=$(comm -13 <(printf '%s\n' "$pre_dirty") <(printf '%s\n' "$post_dirty"))
-    if [[ -n "$adopted" ]]; then
-        while IFS= read -r f; do
-            [[ -n "$f" ]] && git -C "$repo_dir" restore -- "$f"
-        done <<< "$adopted"
-    fi
+	local repo_dir="$1" pkg="$2" pre_dirty="$3"
+	local post_dirty adopted
+	post_dirty=$(git -C "$repo_dir" diff --name-only -- "$pkg/" 2>/dev/null | sort)
+	adopted=$(comm -13 <(printf '%s\n' "$pre_dirty") <(printf '%s\n' "$post_dirty"))
+	if [[ -n "$adopted" ]]; then
+		while IFS= read -r f; do
+			[[ -n "$f" ]] && git -C "$repo_dir" restore -- "$f"
+		done <<<"$adopted"
+	fi
 }
 
 if [[ ${#public_packages[@]} -gt 0 ]]; then
-    echo "Stowing public packages: ${public_packages[*]}"
+	echo "Stowing public packages: ${public_packages[*]}"
 
-    for pkg in "${public_packages[@]}"; do
-        pkg_dir="$REPO_ROOT/$pkg"
+	for pkg in "${public_packages[@]}"; do
+		pkg_dir="$REPO_ROOT/$pkg"
 
-        if [[ ! -d "$pkg_dir" ]]; then
-            echo "WARNING: Public package not found: $pkg_dir"
-            continue
-        fi
+		if [[ ! -d "$pkg_dir" ]]; then
+			echo "WARNING: Public package not found: $pkg_dir"
+			continue
+		fi
 
-        _pre=$(git -C "$REPO_ROOT" diff --name-only -- "$pkg/" 2>/dev/null | sort)
-        fold_args_for "$pkg"
-        stow ${fold_args[@]+"${fold_args[@]}"} --adopt ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$HOME" "$pkg"
-        restore_only_adopted "$REPO_ROOT" "$pkg" "$_pre"
-        echo "  Stowed: $pkg"
-    done
+		_pre=$(git -C "$REPO_ROOT" diff --name-only -- "$pkg/" 2>/dev/null | sort)
+		fold_args_for "$pkg"
+		stow ${fold_args[@]+"${fold_args[@]}"} --adopt ${skip_args+"${skip_args[@]}"} -d "$REPO_ROOT" -t "$HOME" "$pkg"
+		restore_only_adopted "$REPO_ROOT" "$pkg" "$_pre"
+		echo "  Stowed: $pkg"
+	done
+fi
+
+# This feature belongs to one host package; other hosts leave Herdr untouched.
+if jq -e --arg package "host_M-J7KGT9QHDJ" \
+	'.packages.public | index($package) != null' "$HOST_CONFIG" >/dev/null; then
+	echo "Setting up host-only Herdr plugins..."
+	bash "$SCRIPT_DIR/setup-herdr-plugins.sh" "$HOST_CONFIG"
 fi
 
 private_packages=()
 while IFS= read -r pkg; do
-    [[ -n "$pkg" ]] && private_packages+=("$pkg")
+	[[ -n "$pkg" ]] && private_packages+=("$pkg")
 done < <(jq -r '.packages.private[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 
 link_fallback() {
-    local source="$1" target="$2"
-    if [[ -L "$target" ]]; then
-        [[ "$(readlink "$target")" == "$source" ]] && return
-        rm "$target"
-    elif [[ -d "$target" ]]; then
-        if ! rmdir "$target" 2>/dev/null; then
-            echo "  WARNING: $target is a non-empty dir — skipping (remove it manually if you want the dotfiles version)"
-            return
-        fi
-    elif [[ -e "$target" ]]; then
-        echo "  WARNING: $target exists and is not a symlink — skipping (remove it manually if you want the dotfiles version)"
-        return
-    fi
-    ln -s "$source" "$target"
-    echo "  Linked: $target -> $source"
+	local source="$1" target="$2"
+	if [[ -L "$target" ]]; then
+		[[ "$(readlink "$target")" == "$source" ]] && return
+		rm "$target"
+	elif [[ -d "$target" ]]; then
+		if ! rmdir "$target" 2>/dev/null; then
+			echo "  WARNING: $target is a non-empty dir — skipping (remove it manually if you want the dotfiles version)"
+			return
+		fi
+	elif [[ -e "$target" ]]; then
+		echo "  WARNING: $target exists and is not a symlink — skipping (remove it manually if you want the dotfiles version)"
+		return
+	fi
+	ln -s "$source" "$target"
+	echo "  Linked: $target -> $source"
 }
 
 if [[ ${#private_packages[@]} -gt 0 && -d "$PRIVATE_DIR" ]]; then
-    echo "Stowing private packages: ${private_packages[*]}"
+	echo "Stowing private packages: ${private_packages[*]}"
 
-    for pkg in "${private_packages[@]}"; do
-        pkg_dir="$PRIVATE_DIR/$pkg"
+	for pkg in "${private_packages[@]}"; do
+		pkg_dir="$PRIVATE_DIR/$pkg"
 
-        if [[ ! -d "$pkg_dir" ]]; then
-            echo "WARNING: Private package not found: $pkg_dir"
-            continue
-        fi
+		if [[ ! -d "$pkg_dir" ]]; then
+			echo "WARNING: Private package not found: $pkg_dir"
+			continue
+		fi
 
-        _pre=$(git -C "$PRIVATE_DIR" diff --name-only -- "$pkg/" 2>/dev/null | sort)
-        fold_args_for "$pkg"
-        if stow ${fold_args[@]+"${fold_args[@]}"} --adopt ${skip_args+"${skip_args[@]}"} -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
-            restore_only_adopted "$PRIVATE_DIR" "$pkg" "$_pre"
-            echo "  Stowed: $pkg (private)"
-        else
-            case "$pkg" in
-                private_user)
-                    echo "  Stow conflict: $pkg (using manual symlink fallback)"
-                    # private_user fish functions need to merge into ~/.config/fish/ which is already a symlink
-                    if [[ -d "$PRIVATE_DIR/private_user/.config/fish/private_user" ]]; then
-                        link_fallback "$PRIVATE_DIR/private_user/.config/fish/private_user" "$HOME/.config/fish/private_user"
-                    fi
-                    ;;
-                augment)
-                    echo "  Stow conflict: $pkg (using manual symlink fallback)"
-                    # ~/.augment already exists (Auggie runtime dir) — descend and link contents
-                    mkdir -p "$HOME/.augment"
-                    for sub in rules skills; do
-                        link_fallback "$PRIVATE_DIR/augment/.augment/$sub" "$HOME/.augment/$sub"
-                    done
-                    ;;
-                *)
-                    echo "  Stow conflict: $pkg (target exists — manual fix required)"
-                    ;;
-            esac
-        fi
-    done
+		_pre=$(git -C "$PRIVATE_DIR" diff --name-only -- "$pkg/" 2>/dev/null | sort)
+		fold_args_for "$pkg"
+		if stow ${fold_args[@]+"${fold_args[@]}"} --adopt ${skip_args+"${skip_args[@]}"} -d "$PRIVATE_DIR" -t "$HOME" "$pkg" 2>/dev/null; then
+			restore_only_adopted "$PRIVATE_DIR" "$pkg" "$_pre"
+			echo "  Stowed: $pkg (private)"
+		else
+			case "$pkg" in
+			private_user)
+				echo "  Stow conflict: $pkg (using manual symlink fallback)"
+				# private_user fish functions need to merge into ~/.config/fish/ which is already a symlink
+				if [[ -d "$PRIVATE_DIR/private_user/.config/fish/private_user" ]]; then
+					link_fallback "$PRIVATE_DIR/private_user/.config/fish/private_user" "$HOME/.config/fish/private_user"
+				fi
+				;;
+			augment)
+				echo "  Stow conflict: $pkg (using manual symlink fallback)"
+				# ~/.augment already exists (Auggie runtime dir) — descend and link contents
+				mkdir -p "$HOME/.augment"
+				for sub in rules skills; do
+					link_fallback "$PRIVATE_DIR/augment/.augment/$sub" "$HOME/.augment/$sub"
+				done
+				;;
+			*)
+				echo "  Stow conflict: $pkg (target exists — manual fix required)"
+				;;
+			esac
+		fi
+	done
 fi
 
 # Uses cp instead of stow because systemd refuses to load unit files
 # that are symlinks into user home directories.
 system_packages=()
 while IFS= read -r entry; do
-    [[ -n "$entry" ]] && system_packages+=("$entry")
+	[[ -n "$entry" ]] && system_packages+=("$entry")
 done < <(jq -c '.packages.system[] // empty' "$HOST_CONFIG" 2>/dev/null || true)
 
 if [[ ${#system_packages[@]} -gt 0 ]]; then
-    echo "Deploying system packages..."
-    for entry in "${system_packages[@]}"; do
-        pkg="$(echo "$entry" | jq -r '.pkg')"
-        target="$(echo "$entry" | jq -r '.target')"
-        if [[ "$(echo "$entry" | jq -r '.private // false')" == "true" ]]; then
-            base_dir="$PRIVATE_DIR"
-        else
-            base_dir="$REPO_ROOT"
-        fi
-        pkg_dir="$base_dir/$pkg"
+	echo "Deploying system packages..."
+	for entry in "${system_packages[@]}"; do
+		pkg="$(echo "$entry" | jq -r '.pkg')"
+		target="$(echo "$entry" | jq -r '.target')"
+		if [[ "$(echo "$entry" | jq -r '.private // false')" == "true" ]]; then
+			base_dir="$PRIVATE_DIR"
+		else
+			base_dir="$REPO_ROOT"
+		fi
+		pkg_dir="$base_dir/$pkg"
 
-        if [[ ! -d "$pkg_dir" ]]; then
-            echo "WARNING: System package not found: $pkg_dir"
-            continue
-        fi
+		if [[ ! -d "$pkg_dir" ]]; then
+			echo "WARNING: System package not found: $pkg_dir"
+			continue
+		fi
 
-        local_failed=0
-        while IFS= read -r -d '' file; do
-            rel="${file#"$pkg_dir"/}"
-            dest="$target/$rel"
-            sudo mkdir -p "$(dirname "$dest")"
-            if ! sudo cp --remove-destination "$file" "$dest"; then
-                echo "  WARNING: Failed to copy $rel"
-                local_failed=1
-            fi
-        done < <(find "$pkg_dir" -type f -not -path '*/.git/*' -print0 2>/dev/null)
+		local_failed=0
+		while IFS= read -r -d '' file; do
+			rel="${file#"$pkg_dir"/}"
+			dest="$target/$rel"
+			sudo mkdir -p "$(dirname "$dest")"
+			if ! sudo cp --remove-destination "$file" "$dest"; then
+				echo "  WARNING: Failed to copy $rel"
+				local_failed=1
+			fi
+		done < <(find "$pkg_dir" -type f -not -path '*/.git/*' -print0 2>/dev/null)
 
-        if [[ $local_failed -eq 0 ]]; then
-            echo "  Deployed: $pkg -> $target"
-        else
-            echo "WARNING: Some files failed to deploy for system package '$pkg'"
-        fi
-    done
+		if [[ $local_failed -eq 0 ]]; then
+			echo "  Deployed: $pkg -> $target"
+		else
+			echo "WARNING: Some files failed to deploy for system package '$pkg'"
+		fi
+	done
 fi
 
 # User-scope systemd units (timers, streaming daemons) only run while a
@@ -378,15 +384,15 @@ fi
 # keeps it running regardless of login state. Host-specific: only set
 # enable_linger where that's actually wanted, not a blanket default.
 if [[ "$(jq -r '.enable_linger // false' "$HOST_CONFIG")" == "true" ]]; then
-    if [[ "$(uname -s)" == "Linux" ]] && command -v loginctl >/dev/null 2>&1; then
-        if sudo loginctl enable-linger "$(id -un)"; then
-            echo "  Linger enabled for $(id -un)"
-        else
-            echo "WARNING: Failed to enable linger for $(id -un)"
-        fi
-    else
-        echo "  enable_linger set but loginctl unavailable — skipping"
-    fi
+	if [[ "$(uname -s)" == "Linux" ]] && command -v loginctl >/dev/null 2>&1; then
+		if sudo loginctl enable-linger "$(id -un)"; then
+			echo "  Linger enabled for $(id -un)"
+		else
+			echo "WARNING: Failed to enable linger for $(id -un)"
+		fi
+	else
+		echo "  enable_linger set but loginctl unavailable — skipping"
+	fi
 fi
 
 echo "Running post-sync validation..."
@@ -395,13 +401,13 @@ echo "Running post-sync validation..."
 # Prefers realpath (macOS 13+, Linux), falls back to perl (available on
 # all macOS versions), then readlink -f (GNU coreutils).
 _resolve_canonical() {
-    if command -v realpath >/dev/null 2>&1; then
-        realpath "$1" 2>/dev/null || true
-    elif command -v perl >/dev/null 2>&1; then
-        perl -MCwd -e 'print Cwd::realpath($ARGV[0])' -- "$1" 2>/dev/null || true
-    else
-        readlink -f "$1" 2>/dev/null || true
-    fi
+	if command -v realpath >/dev/null 2>&1; then
+		realpath "$1" 2>/dev/null || true
+	elif command -v perl >/dev/null 2>&1; then
+		perl -MCwd -e 'print Cwd::realpath($ARGV[0])' -- "$1" 2>/dev/null || true
+	else
+		readlink -f "$1" 2>/dev/null || true
+	fi
 }
 
 # Validate that a stow package is correctly linked by sampling files
@@ -409,164 +415,164 @@ _resolve_canonical() {
 # because stow is atomic: either all files are linked or the operation
 # fails entirely (modulo conflicts).
 validate_package() {
-    local pkg_label pkg pkg_dir stow_dir target_dir
-    local found total checked remaining
-    local file rel target target_canon expected_canon status
-    local -a issues
-    local suggestion
+	local pkg_label pkg pkg_dir stow_dir target_dir
+	local found total checked remaining
+	local file rel target target_canon expected_canon status
+	local -a issues
+	local suggestion
 
-    pkg_label="$1"
-    pkg="$2"
-    pkg_dir="$3"
-    stow_dir="$4"
-    target_dir="${5:-$HOME}"
-    found=0
-    total=0
-    checked=0
-    issues=()
+	pkg_label="$1"
+	pkg="$2"
+	pkg_dir="$3"
+	stow_dir="$4"
+	target_dir="${5:-$HOME}"
+	found=0
+	total=0
+	checked=0
+	issues=()
 
-    # Defensive: strip trailing slash so ${file#"$pkg_dir"/} works correctly.
-    pkg_dir="${pkg_dir%/}"
+	# Defensive: strip trailing slash so ${file#"$pkg_dir"/} works correctly.
+	pkg_dir="${pkg_dir%/}"
 
-    if [[ ! -d "$pkg_dir" ]]; then
-        echo "WARNING: ${pkg_label} package '$pkg' not found at $pkg_dir"
-        return
-    fi
+	if [[ ! -d "$pkg_dir" ]]; then
+		echo "WARNING: ${pkg_label} package '$pkg' not found at $pkg_dir"
+		return
+	fi
 
-    # Walk all files in the package directory.
-    while IFS= read -r -d '' file; do
-        rel="${file#"$pkg_dir"/}"
-        target="$target_dir/$rel"
-        total=$((total + 1))
+	# Walk all files in the package directory.
+	while IFS= read -r -d '' file; do
+		rel="${file#"$pkg_dir"/}"
+		target="$target_dir/$rel"
+		total=$((total + 1))
 
-        # Once we know stow succeeded, stop doing expensive canonicalisation.
-        if [[ $found -eq 0 ]]; then
-            target_canon="$(_resolve_canonical "$target")"
-            expected_canon="$(_resolve_canonical "$file")"
-            if [[ -n "$target_canon" && "$target_canon" == "$expected_canon" ]]; then
-                found=1
-            fi
-        fi
+		# Once we know stow succeeded, stop doing expensive canonicalisation.
+		if [[ $found -eq 0 ]]; then
+			target_canon="$(_resolve_canonical "$target")"
+			expected_canon="$(_resolve_canonical "$file")"
+			if [[ -n "$target_canon" && "$target_canon" == "$expected_canon" ]]; then
+				found=1
+			fi
+		fi
 
-        # Collect up to 5 sample issues while we still think stow failed.
-        if [[ $found -eq 0 && $checked -lt 5 ]]; then
-            if [[ -L "$target" ]]; then
-                status="(exists as symlink but points elsewhere)"
-            elif [[ -e "$target" ]]; then
-                status="(exists but is not a symlink)"
-            else
-                status="(does not exist)"
-            fi
-            # shellcheck disable=SC2088 # Tilde is intentional for display output.
-            issues+=("~/$rel $status")
-            checked=$((checked + 1))
-        fi
+		# Collect up to 5 sample issues while we still think stow failed.
+		if [[ $found -eq 0 && $checked -lt 5 ]]; then
+			if [[ -L "$target" ]]; then
+				status="(exists as symlink but points elsewhere)"
+			elif [[ -e "$target" ]]; then
+				status="(exists but is not a symlink)"
+			else
+				status="(does not exist)"
+			fi
+			# shellcheck disable=SC2088 # Tilde is intentional for display output.
+			issues+=("~/$rel $status")
+			checked=$((checked + 1))
+		fi
 
-        # No need to keep walking once we have confirmed stow worked.
-        if [[ $found -eq 1 ]]; then
-            break
-        fi
-    done < <(find "$pkg_dir" -type f -not -path '*/.git/*' -print0 2>/dev/null || true)
+		# No need to keep walking once we have confirmed stow worked.
+		if [[ $found -eq 1 ]]; then
+			break
+		fi
+	done < <(find "$pkg_dir" -type f -not -path '*/.git/*' -print0 2>/dev/null || true)
 
-    if [[ $found -eq 1 ]]; then
-        return
-    fi
+	if [[ $found -eq 1 ]]; then
+		return
+	fi
 
-    if [[ $total -eq 0 ]]; then
-        echo "WARNING: ${pkg_label} package '$pkg' may not be stowed correctly"
-        echo "  Package dir: $pkg_dir (exists)"
-        echo "  Note: Package contains no files to stow."
-        return
-    fi
+	if [[ $total -eq 0 ]]; then
+		echo "WARNING: ${pkg_label} package '$pkg' may not be stowed correctly"
+		echo "  Package dir: $pkg_dir (exists)"
+		echo "  Note: Package contains no files to stow."
+		return
+	fi
 
-    echo "WARNING: ${pkg_label} package '$pkg' may not be stowed correctly"
+	echo "WARNING: ${pkg_label} package '$pkg' may not be stowed correctly"
 
-    for issue in "${issues[@]}"; do
-        echo "  Checked: $issue"
-    done
+	for issue in "${issues[@]}"; do
+		echo "  Checked: $issue"
+	done
 
-    remaining=$((total - checked))
-    if [[ $remaining -gt 0 ]]; then
-        if [[ $remaining -eq 1 ]]; then
-            echo "  ... (1 more file)"
-        else
-            echo "  ... ($remaining more files)"
-        fi
-    fi
+	remaining=$((total - checked))
+	if [[ $remaining -gt 0 ]]; then
+		if [[ $remaining -eq 1 ]]; then
+			echo "  ... (1 more file)"
+		else
+			echo "  ... ($remaining more files)"
+		fi
+	fi
 
-    echo "  Package dir: $pkg_dir (exists)"
+	echo "  Package dir: $pkg_dir (exists)"
 
-    suggestion="stow -n"
-    for arg in ${skip_args[@]+"${skip_args[@]}"}; do
-        suggestion+=" $(printf '%q' "$arg")"
-    done
-    suggestion+=" -d \"$stow_dir\" -t \"$target_dir\" \"$pkg\""
-    echo "  Likely cause: Target paths already exist as real files/directories. Run '$suggestion' to see conflicts."
+	suggestion="stow -n"
+	for arg in ${skip_args[@]+"${skip_args[@]}"}; do
+		suggestion+=" $(printf '%q' "$arg")"
+	done
+	suggestion+=" -d \"$stow_dir\" -t \"$target_dir\" \"$pkg\""
+	echo "  Likely cause: Target paths already exist as real files/directories. Run '$suggestion' to see conflicts."
 }
 
 validate_system_package() {
-    local pkg_label="$1" pkg="$2" pkg_dir="$3" target_dir="$4"
-    local file rel dest
-    pkg_dir="${pkg_dir%/}"
+	local pkg_label="$1" pkg="$2" pkg_dir="$3" target_dir="$4"
+	local file rel dest
+	pkg_dir="${pkg_dir%/}"
 
-    if [[ ! -d "$pkg_dir" ]]; then
-        echo "WARNING: ${pkg_label} package '$pkg' not found at $pkg_dir"
-        return
-    fi
+	if [[ ! -d "$pkg_dir" ]]; then
+		echo "WARNING: ${pkg_label} package '$pkg' not found at $pkg_dir"
+		return
+	fi
 
-    while IFS= read -r -d '' file; do
-        rel="${file#"$pkg_dir"/}"
-        dest="$target_dir/$rel"
-        if [[ ! -f "$dest" ]]; then
-            echo "WARNING: ${pkg_label} package '$pkg' missing deployed file: $dest"
-        elif ! cmp -s "$file" "$dest"; then
-            echo "WARNING: ${pkg_label} package '$pkg' file differs from source: $dest"
-        fi
-    done < <(find "$pkg_dir" -type f -not -path '*/.git/*' -print0 2>/dev/null)
+	while IFS= read -r -d '' file; do
+		rel="${file#"$pkg_dir"/}"
+		dest="$target_dir/$rel"
+		if [[ ! -f "$dest" ]]; then
+			echo "WARNING: ${pkg_label} package '$pkg' missing deployed file: $dest"
+		elif ! cmp -s "$file" "$dest"; then
+			echo "WARNING: ${pkg_label} package '$pkg' file differs from source: $dest"
+		fi
+	done < <(find "$pkg_dir" -type f -not -path '*/.git/*' -print0 2>/dev/null)
 }
 
 for pkg in "${public_packages[@]}"; do
-    validate_package "Public" "$pkg" "$REPO_ROOT/$pkg" "$REPO_ROOT"
+	validate_package "Public" "$pkg" "$REPO_ROOT/$pkg" "$REPO_ROOT"
 done
 
 for pkg in "${private_packages[@]}"; do
-    validate_package "Private" "$pkg" "$PRIVATE_DIR/$pkg" "$PRIVATE_DIR"
+	validate_package "Private" "$pkg" "$PRIVATE_DIR/$pkg" "$PRIVATE_DIR"
 done
 
 for entry in ${system_packages[@]+"${system_packages[@]}"}; do
-    pkg="$(echo "$entry" | jq -r '.pkg')"
-    target="$(echo "$entry" | jq -r '.target')"
-    if [[ "$(echo "$entry" | jq -r '.private // false')" == "true" ]]; then
-        base_dir="$PRIVATE_DIR"
-    else
-        base_dir="$REPO_ROOT"
-    fi
-    validate_system_package "System" "$pkg" "$base_dir/$pkg" "$target"
+	pkg="$(echo "$entry" | jq -r '.pkg')"
+	target="$(echo "$entry" | jq -r '.target')"
+	if [[ "$(echo "$entry" | jq -r '.private // false')" == "true" ]]; then
+		base_dir="$PRIVATE_DIR"
+	else
+		base_dir="$REPO_ROOT"
+	fi
+	validate_system_package "System" "$pkg" "$base_dir/$pkg" "$target"
 done
 
 if [[ "$COMPLIANCE" == "1" && -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
-    echo "Running post-sync compliance verification..."
-    "$SCRIPT_DIR/check-compliance.sh" --post || {
-        echo "WARNING: Post-sync compliance verification found issues. See ~/.config/dotfiles/drift-report.json"
-    }
+	echo "Running post-sync compliance verification..."
+	"$SCRIPT_DIR/check-compliance.sh" --post || {
+		echo "WARNING: Post-sync compliance verification found issues. See ~/.config/dotfiles/drift-report.json"
+	}
 
-    DRIFT_REPORT="$HOME/.config/dotfiles/drift-report.json"
-    if [[ -f "$DRIFT_REPORT" ]]; then
-        EXIT_CODE="$(jq -r '.exitCode // 0' "$DRIFT_REPORT")"
-        if [[ "$EXIT_CODE" -ne 0 ]] && command -v notify-send >/dev/null 2>&1; then
-            if [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
-                SUMMARY="$(jq -r '.summary | "\(.fail) required, \(.warn) warnings"' "$DRIFT_REPORT")"
-                notify-send -a dotfiles -u normal \
-                    "Dotfiles sync: drift detected" \
-                    "$SUMMARY — run check-compliance.sh to review"
-            fi
-        fi
-    fi
+	DRIFT_REPORT="$HOME/.config/dotfiles/drift-report.json"
+	if [[ -f "$DRIFT_REPORT" ]]; then
+		EXIT_CODE="$(jq -r '.exitCode // 0' "$DRIFT_REPORT")"
+		if [[ "$EXIT_CODE" -ne 0 ]] && command -v notify-send >/dev/null 2>&1; then
+			if [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
+				SUMMARY="$(jq -r '.summary | "\(.fail) required, \(.warn) warnings"' "$DRIFT_REPORT")"
+				notify-send -a dotfiles -u normal \
+					"Dotfiles sync: drift detected" \
+					"$SUMMARY — run check-compliance.sh to review"
+			fi
+		fi
+	fi
 fi
 
 if [[ "$(jq -r '.os // empty' "$HOST_CONFIG")" == "linux" ]]; then
-    echo "Running zen-setup..."
-    "$SCRIPT_DIR/zen-setup.sh" || echo "WARNING: zen-setup failed — run scripts/zen-setup.sh manually"
+	echo "Running zen-setup..."
+	"$SCRIPT_DIR/zen-setup.sh" || echo "WARNING: zen-setup failed — run scripts/zen-setup.sh manually"
 fi
 
 echo "Sync complete."

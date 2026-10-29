@@ -1,0 +1,38 @@
+[project]
+name            = "herdr-tools"
+version         = "0.1.0"
+description     = "The herdr scripts' commands and the shared herdr client they use"
+requires-python = ">=3.13"
+dependencies    = ["cyclopts>=5.1.1", "pydantic>=2.13.5"]
+
+[project.scripts]
+herdr-tools = "herdr_tools.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=9.1.1"]
+
+[build-system]
+requires      = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.workspace]
+
+[tool.ruff]
+line-length = 90
+
+[tool.ruff.format]
+preview = true
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "D", "COM812"]
+ignore = ["E501"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts   = ["--strict-markers", "--strict-config"]

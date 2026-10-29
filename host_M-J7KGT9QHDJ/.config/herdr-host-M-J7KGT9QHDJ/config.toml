@@ -1,0 +1,101 @@
+onboarding = false
+
+[keys]
+focus_pane_left = ["prefix+h", "ctrl+alt+h"]
+focus_pane_down = ["prefix+j", "ctrl+alt+j"]
+focus_pane_up = ["prefix+k", "ctrl+alt+k"]
+focus_pane_right = ["prefix+l", "ctrl+alt+l"]
+new_tab = ["prefix+c", "ctrl+alt+c"]
+split_vertical = ["prefix+v", "ctrl+alt+d"]
+split_horizontal = ["prefix+minus", "ctrl+alt+shift+d"]
+next_tab = ["prefix+n", "ctrl+alt+n"]
+previous_tab = ["prefix+p", "ctrl+alt+b"]
+previous_workspace = ["ctrl+alt+["]
+next_workspace = ["ctrl+alt+]"]
+
+# Move goto off prefix+g for lazygit and the sidebar off prefix+b for Ghostty.
+goto = "prefix+b"
+toggle_sidebar = "prefix+backslash"
+
+# These close and zoom actions are handled by plugins/custom commands below.
+close_pane = ""
+close_tab = ""
+close_workspace = ""
+zoom = ""
+
+[[keys.command]]
+key = "prefix+g"
+type = "shell"
+command = '"$HERDR_BIN_PATH" plugin pane open --plugin user.lazygit --entrypoint lazygit --cwd "$HERDR_ACTIVE_PANE_CWD"'
+description = "lazygit"
+
+[[keys.command]]
+key = "prefix+z"
+type = "shell"
+command = '"$HERDR_BIN_PATH" pane zoom --pane "$HERDR_ACTIVE_PANE_ID" --toggle && "$HOME/.local/bin/herdr-tools" label pane'
+description = "zoom"
+
+[[keys.command]]
+key = "ctrl+alt+z"
+type = "shell"
+command = '"$HERDR_BIN_PATH" pane zoom --pane "$HERDR_ACTIVE_PANE_ID" --toggle && "$HOME/.local/bin/herdr-tools" label pane'
+description = "zoom"
+
+[[keys.command]]
+key = "prefix+["
+type = "plugin_action"
+command = "user.pane-history.back"
+description = "back to the previous pane"
+
+[[keys.command]]
+key = "prefix+]"
+type = "plugin_action"
+command = "user.pane-history.forward"
+description = "forward to the next pane"
+
+[[keys.command]]
+key = "prefix+x"
+type = "plugin_action"
+command = "user.close-confirm.pane"
+description = "close this pane"
+
+[[keys.command]]
+key = "prefix+shift+x"
+type = "plugin_action"
+command = "user.close-confirm.tab"
+description = "close this tab"
+
+[[keys.command]]
+key = "prefix+shift+d"
+type = "plugin_action"
+command = "user.close-confirm.workspace"
+description = "close this space"
+
+[[keys.command]]
+key = "prefix+d"
+type = "plugin_action"
+command = "persiyanov.reviewr.toggle"
+description = "toggle the reviewr diff pane"
+
+[ui]
+show_agent_labels_on_pane_borders = true
+status_indicators = "dots"
+confirm_close = false
+prompt_new_tab_name = false
+window_title = ""
+
+[ui.toast]
+delivery = "system"
+
+[theme]
+name = "terminal"
+auto_switch = false
+
+[ui.sidebar.agents]
+rows = [["state_icon", "workspace", "tab"], ["agent", "$branch"]]
+
+[ui.sidebar.spaces]
+rows = [
+  ["state_icon", "$repo"],
+  [{ token = "$focused_branch", bold = true }, "$branch", "git_status"],
+]

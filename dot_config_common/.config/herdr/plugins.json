@@ -1,0 +1,440 @@
+[
+  {
+    "plugin_id": "persiyanov.reviewr",
+    "name": "reviewr",
+    "version": "0.46.0",
+    "min_herdr_version": "0.9.3",
+    "description": "Review agent-written diffs beside the chat and add line comments to the agent input.",
+    "manifest_path": "/Users/josh/.dotfiles/dot_config_common/.config/herdr/plugins/github/persiyanov.reviewr-e87b654a74f8/herdr-plugin.toml",
+    "plugin_root": "/Users/josh/.dotfiles/dot_config_common/.config/herdr/plugins/github/persiyanov.reviewr-e87b654a74f8",
+    "enabled": true,
+    "platforms": [
+      "macos",
+      "linux",
+      "windows"
+    ],
+    "build": [
+      {
+        "platforms": [
+          "macos",
+          "linux"
+        ],
+        "command": [
+          "bash",
+          "herdr/install.sh"
+        ]
+      },
+      {
+        "platforms": [
+          "windows"
+        ],
+        "command": [
+          "powershell",
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "herdr/install.ps1"
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "close",
+        "title": "reviewr: close pane",
+        "contexts": [
+          "pane",
+          "workspace"
+        ],
+        "command": [
+          "bin/herdr-reviewr",
+          "--action",
+          "close"
+        ]
+      },
+      {
+        "id": "open",
+        "title": "reviewr: open pane",
+        "contexts": [
+          "pane",
+          "workspace"
+        ],
+        "command": [
+          "bin/herdr-reviewr",
+          "--action",
+          "open"
+        ]
+      },
+      {
+        "id": "toggle",
+        "title": "reviewr: toggle pane",
+        "contexts": [
+          "pane",
+          "workspace"
+        ],
+        "command": [
+          "bin/herdr-reviewr",
+          "--action",
+          "toggle"
+        ]
+      }
+    ],
+    "events": [
+      {
+        "on": "worktree.created",
+        "command": [
+          "bin/herdr-reviewr",
+          "--action",
+          "auto-open"
+        ]
+      },
+      {
+        "on": "worktree.opened",
+        "command": [
+          "bin/herdr-reviewr",
+          "--action",
+          "auto-open"
+        ]
+      }
+    ],
+    "panes": [
+      {
+        "id": "pane",
+        "title": "reviewr",
+        "placement": "split",
+        "command": [
+          "bin/herdr-reviewr"
+        ]
+      }
+    ],
+    "source": {
+      "kind": "github",
+      "owner": "persiyanov",
+      "repo": "herdr-reviewr",
+      "resolved_commit": "859dd5b11a5280fe282de56b52378b20a54fa10a",
+      "managed_path": "/Users/josh/.config/herdr/plugins/github/persiyanov.reviewr-e87b654a74f8",
+      "installed_unix_ms": 1791494805118
+    }
+  },
+  {
+    "plugin_id": "user.close-confirm",
+    "name": "Close Confirm",
+    "version": "0.1.0",
+    "min_herdr_version": "0.8.0",
+    "description": "Confirm a close that would throw work away, and only then",
+    "manifest_path": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/close-confirm/herdr-plugin.toml",
+    "plugin_root": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/close-confirm",
+    "enabled": true,
+    "platforms": [
+      "macos"
+    ],
+    "actions": [
+      {
+        "id": "pane",
+        "title": "Close this pane",
+        "description": "Close the focused pane, confirming first if it is busy or the last one",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "close",
+          "pane"
+        ]
+      },
+      {
+        "id": "tab",
+        "title": "Close this tab",
+        "description": "Close the focused tab, confirming first if it is busy or the last one",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "close",
+          "tab"
+        ]
+      },
+      {
+        "id": "workspace",
+        "title": "Close this space",
+        "description": "Close the focused space, confirming first if anything in it is busy",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "close",
+          "workspace"
+        ]
+      }
+    ],
+    "panes": [
+      {
+        "id": "confirm",
+        "title": "close",
+        "placement": "popup",
+        "width": 62,
+        "height": 11,
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "close",
+          "confirm"
+        ]
+      }
+    ],
+    "source": {
+      "kind": "local"
+    }
+  },
+  {
+    "plugin_id": "user.focus-watch",
+    "name": "Focus Watch",
+    "version": "0.1.0",
+    "min_herdr_version": "0.9.0",
+    "description": "Sample which pane has focus, and invoke the plugins that follow it",
+    "manifest_path": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/focus-watch/herdr-plugin.toml",
+    "plugin_root": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/focus-watch",
+    "enabled": true,
+    "platforms": [
+      "macos"
+    ],
+    "startup": [
+      {
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "focus",
+          "watch",
+          "--detach"
+        ]
+      }
+    ],
+    "source": {
+      "kind": "local"
+    }
+  },
+  {
+    "plugin_id": "user.lazygit",
+    "name": "Lazygit",
+    "version": "0.1.0",
+    "min_herdr_version": "0.8.0",
+    "description": "Open lazygit in a popup that says so",
+    "manifest_path": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/lazygit/herdr-plugin.toml",
+    "plugin_root": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/lazygit",
+    "enabled": true,
+    "platforms": [
+      "macos"
+    ],
+    "panes": [
+      {
+        "id": "lazygit",
+        "title": "lazygit",
+        "placement": "popup",
+        "width": "80%",
+        "height": "80%",
+        "command": [
+          "lazygit"
+        ]
+      }
+    ],
+    "source": {
+      "kind": "local"
+    }
+  },
+  {
+    "plugin_id": "user.pane-history",
+    "name": "Pane History",
+    "version": "0.3.0",
+    "min_herdr_version": "0.8.0",
+    "description": "Walk back and forward through the panes that had focus",
+    "manifest_path": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/pane-history/herdr-plugin.toml",
+    "plugin_root": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/pane-history",
+    "enabled": true,
+    "platforms": [
+      "macos"
+    ],
+    "actions": [
+      {
+        "id": "back",
+        "title": "Back to the previous pane",
+        "description": "Focus one step back towards the panes visited longer ago",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "focus",
+          "back"
+        ]
+      },
+      {
+        "id": "forward",
+        "title": "Forward to the next pane",
+        "description": "Focus one step forward towards the panes visited most recently",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "focus",
+          "forward"
+        ]
+      },
+      {
+        "id": "record",
+        "title": "Record the focused pane",
+        "description": "Fold the pane that now has focus into the order",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "focus",
+          "record"
+        ]
+      }
+    ],
+    "source": {
+      "kind": "local"
+    }
+  },
+  {
+    "plugin_id": "user.pane-label",
+    "name": "Pane Label",
+    "version": "0.2.0",
+    "min_herdr_version": "0.8.0",
+    "description": "Name panes and tabs after the agent session title in play",
+    "manifest_path": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/pane-label/herdr-plugin.toml",
+    "plugin_root": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/pane-label",
+    "enabled": true,
+    "platforms": [
+      "macos"
+    ],
+    "startup": [
+      {
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "label",
+          "pane"
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "sweep",
+        "title": "Rename panes and tabs",
+        "description": "Re-derive every pane and tab name from herdr's current state",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "label",
+          "pane"
+        ]
+      }
+    ],
+    "events": [
+      {
+        "on": "pane.agent_detected",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "label",
+          "pane"
+        ]
+      },
+      {
+        "on": "pane.agent_status_changed",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "label",
+          "pane"
+        ]
+      },
+      {
+        "on": "pane.closed",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "label",
+          "pane"
+        ]
+      },
+      {
+        "on": "pane.created",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "label",
+          "pane"
+        ]
+      }
+    ],
+    "source": {
+      "kind": "local"
+    }
+  },
+  {
+    "plugin_id": "user.space-label",
+    "name": "Space Label",
+    "version": "0.4.0",
+    "min_herdr_version": "0.8.0",
+    "description": "Report a space's org/repo and branch as sidebar tokens",
+    "manifest_path": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/space-label/herdr-plugin.toml",
+    "plugin_root": "/Users/josh/.dotfiles/host_M-J7KGT9QHDJ/.local/share/herdr-host/plugins/space-label",
+    "enabled": true,
+    "platforms": [
+      "macos"
+    ],
+    "startup": [
+      {
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "label",
+          "space",
+          "--sweep"
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "sweep",
+        "title": "Relabel spaces",
+        "description": "Re-derive every space's tokens from herdr's current state",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "label",
+          "space",
+          "--sweep"
+        ]
+      }
+    ],
+    "events": [
+      {
+        "on": "workspace.closed",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "label",
+          "space",
+          "--sweep"
+        ]
+      },
+      {
+        "on": "workspace.created",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "label",
+          "space"
+        ]
+      },
+      {
+        "on": "workspace.reordered",
+        "command": [
+          "/bin/sh",
+          "../../bin/herdr-tools",
+          "label",
+          "space",
+          "--sweep"
+        ]
+      }
+    ],
+    "source": {
+      "kind": "local"
+    }
+  }
+]

@@ -60,3 +60,5 @@ dot_config_linux/.gnupg/*
 !dot_config_linux/.gnupg/gpg-agent.conf
 dot_config_macos/.config/karabiner/automatic_backups/*
 dot_config_linux/.config/zen/
+dot_config_common/.config/herdr/sessions/*
+dot_config_common/.config/herdr/session-snapshots/*

@@ -1,0 +1,27 @@
+id                = "user.space-label"
+name              = "Space Label"
+version           = "0.4.0"
+min_herdr_version = "0.8.0"
+description       = "Report a space's org/repo and branch as sidebar tokens"
+platforms         = ["macos"]
+
+[[startup]]
+command = ["/bin/sh", "../../bin/herdr-tools", "label", "space", "--sweep"]
+
+[[events]]
+on      = "workspace.created"
+command = ["/bin/sh", "../../bin/herdr-tools", "label", "space"]
+
+[[events]]
+on      = "workspace.closed"
+command = ["/bin/sh", "../../bin/herdr-tools", "label", "space", "--sweep"]
+
+[[events]]
+on      = "workspace.reordered"
+command = ["/bin/sh", "../../bin/herdr-tools", "label", "space", "--sweep"]
+
+[[actions]]
+id          = "sweep"
+title       = "Relabel spaces"
+description = "Re-derive every space's tokens from herdr's current state"
+command     = ["/bin/sh", "../../bin/herdr-tools", "label", "space", "--sweep"]

@@ -1,0 +1,33 @@
+id                = "user.close-confirm"
+name              = "Close Confirm"
+version           = "0.1.0"
+min_herdr_version = "0.8.0"
+description       = "Confirm a close that would throw work away, and only then"
+platforms         = ["macos"]
+
+# Close actions run headless, so the action checks first and asks in the popup.
+[[actions]]
+id          = "pane"
+title       = "Close this pane"
+description = "Close the focused pane, confirming first if it is busy or the last one"
+command     = ["/bin/sh", "../../bin/herdr-tools", "close", "pane"]
+
+[[actions]]
+id          = "tab"
+title       = "Close this tab"
+description = "Close the focused tab, confirming first if it is busy or the last one"
+command     = ["/bin/sh", "../../bin/herdr-tools", "close", "tab"]
+
+[[actions]]
+id          = "workspace"
+title       = "Close this space"
+description = "Close the focused space, confirming first if anything in it is busy"
+command     = ["/bin/sh", "../../bin/herdr-tools", "close", "workspace"]
+
+[[panes]]
+id        = "confirm"
+title     = "close"
+placement = "popup"
+width     = 62
+height    = 11
+command   = ["/bin/sh", "../../bin/herdr-tools", "close", "confirm"]

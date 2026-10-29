@@ -1,0 +1,4 @@
+# Diff tabs are opened by Herdr tools, never by worktree hooks.
+auto_open = false
+default_scope = "branch"
+toggle_placement = "tab"

@@ -1,0 +1,31 @@
+id                = "user.pane-label"
+name              = "Pane Label"
+version           = "0.2.0"
+min_herdr_version = "0.8.0"
+description       = "Name panes and tabs after the agent session title in play"
+platforms         = ["macos"]
+
+[[startup]]
+command = ["/bin/sh", "../../bin/herdr-tools", "label", "pane"]
+
+[[events]]
+on      = "pane.agent_status_changed"
+command = ["/bin/sh", "../../bin/herdr-tools", "label", "pane"]
+
+[[events]]
+on      = "pane.agent_detected"
+command = ["/bin/sh", "../../bin/herdr-tools", "label", "pane"]
+
+[[events]]
+on      = "pane.created"
+command = ["/bin/sh", "../../bin/herdr-tools", "label", "pane"]
+
+[[events]]
+on      = "pane.closed"
+command = ["/bin/sh", "../../bin/herdr-tools", "label", "pane"]
+
+[[actions]]
+id          = "sweep"
+title       = "Rename panes and tabs"
+description = "Re-derive every pane and tab name from herdr's current state"
+command     = ["/bin/sh", "../../bin/herdr-tools", "label", "pane"]

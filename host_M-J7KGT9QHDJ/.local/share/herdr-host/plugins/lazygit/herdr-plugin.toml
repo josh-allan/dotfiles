@@ -1,0 +1,14 @@
+id                = "user.lazygit"
+name              = "Lazygit"
+version           = "0.1.0"
+min_herdr_version = "0.8.0"
+description       = "Open lazygit in a popup that says so"
+platforms         = ["macos"]
+
+[[panes]]
+id        = "lazygit"
+title     = "lazygit"
+placement = "popup"
+width     = "80%"
+height    = "80%"
+command   = ["lazygit"]

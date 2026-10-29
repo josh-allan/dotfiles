@@ -1,0 +1,24 @@
+id                = "user.pane-history"
+name              = "Pane History"
+version           = "0.3.0"
+min_herdr_version = "0.8.0"
+description       = "Walk back and forward through the panes that had focus"
+platforms         = ["macos"]
+
+[[actions]]
+id          = "record"
+title       = "Record the focused pane"
+description = "Fold the pane that now has focus into the order"
+command     = ["/bin/sh", "../../bin/herdr-tools", "focus", "record"]
+
+[[actions]]
+id          = "back"
+title       = "Back to the previous pane"
+description = "Focus one step back towards the panes visited longer ago"
+command     = ["/bin/sh", "../../bin/herdr-tools", "focus", "back"]
+
+[[actions]]
+id          = "forward"
+title       = "Forward to the next pane"
+description = "Focus one step forward towards the panes visited most recently"
+command     = ["/bin/sh", "../../bin/herdr-tools", "focus", "forward"]

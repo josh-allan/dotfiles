@@ -1,0 +1,9 @@
+id                = "user.focus-watch"
+name              = "Focus Watch"
+version           = "0.1.0"
+min_herdr_version = "0.9.0"
+description       = "Sample which pane has focus, and invoke the plugins that follow it"
+platforms         = ["macos"]
+
+[[startup]]
+command = ["/bin/sh", "../../bin/herdr-tools", "focus", "watch", "--detach"]
