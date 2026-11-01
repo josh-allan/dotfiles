@@ -5,17 +5,32 @@
   "apps": [
     {
       "name": "Desktop",
-      "image-path": "desktop.png"
+      "image-path": "desktop.png",
+      "prep-cmd": [
+        {
+          "do": "sh -c \"cage-set-mode ${SUNSHINE_CLIENT_WIDTH} ${SUNSHINE_CLIENT_HEIGHT} ${SUNSHINE_CLIENT_FPS}\"",
+          "undo": ""
+        }
+      ]
     },
     {
       "name": "Steam Big Picture",
-      "detached": ["setsid steam steam://open/bigpicture"],
-      "prep-cmd": [{"do": "", "undo": "setsid steam steam://close/bigpicture"}],
+      "detached": [
+        "setsid steam steam://open/bigpicture"
+      ],
+      "prep-cmd": [
+        {
+          "do": "sh -c \"cage-set-mode ${SUNSHINE_CLIENT_WIDTH} ${SUNSHINE_CLIENT_HEIGHT} ${SUNSHINE_CLIENT_FPS}\"",
+          "undo": "setsid steam steam://close/bigpicture"
+        }
+      ],
       "image-path": "steam.png"
     },
     {
       "name": "Shutdown PC",
-      "detached": ["sudo /usr/bin/systemctl poweroff"]
+      "detached": [
+        "sudo /usr/bin/systemctl poweroff"
+      ]
     }
   ]
 }

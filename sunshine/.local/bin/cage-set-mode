@@ -1,0 +1,11 @@
+#!/bin/bash
+# Resizes the headless cage output to the Moonlight client's requested mode so
+# Sunshine encodes at native resolution instead of scaling. Called from
+# apps.json prep-cmd with SUNSHINE_CLIENT_{WIDTH,HEIGHT,FPS}.
+set -euo pipefail
+
+width="${1:?width required}"
+height="${2:?height required}"
+fps="${3:-60}"
+
+WAYLAND_DISPLAY=wayland-cage wlr-randr --output HEADLESS-1 --custom-mode "${width}x${height}@${fps}"
