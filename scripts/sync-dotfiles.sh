@@ -3,22 +3,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-HOSTS_DIR="$REPO_ROOT/hosts"
 TEMPLATES_DIR="$REPO_ROOT/templates"
 PRIVATE_DIR="$REPO_ROOT/private"
 
-HOSTNAME="$(hostname | cut -d. -f1)"
-HOST_CONFIG="$HOSTS_DIR/$HOSTNAME.json"
-
-if [[ -n "${DOTFILES_HOST_CONFIG:-}" ]]; then
-	HOST_CONFIG="$DOTFILES_HOST_CONFIG"
-	echo "Using explicit host config: $HOST_CONFIG"
-fi
-
-if [[ ! -f "$HOST_CONFIG" ]]; then
-	HOST_CONFIG="$HOSTS_DIR/default.json"
-	echo "No host config found for '$HOSTNAME'. Using default."
-fi
+# shellcheck source=SCRIPTDIR/lib/host.sh
+source "$SCRIPT_DIR/lib/host.sh"
+resolve_host_config "$REPO_ROOT" || exit $?
 
 echo "Host config: $HOST_CONFIG"
 
@@ -196,7 +186,9 @@ fi
 # before stowing so fresh clones don't link empty directories.
 echo "Updating submodules..."
 git -C "$REPO_ROOT" submodule update --init --recursive || {
-	echo "WARNING: Failed to update submodules. Continuing." >&2
+	echo "ERROR: Failed to update submodules. Aborting before stow links empty dirs." >&2
+	echo "If a clone died partway, remove .git/modules/<path> and the submodule's .git file, then re-run." >&2
+	exit 1
 }
 
 # Bash 3.2 compat: use while-read instead of mapfile.

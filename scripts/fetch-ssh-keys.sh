@@ -14,17 +14,9 @@ for arg in "$@"; do
     [[ "$arg" == "--force" ]] && FORCE=true
 done
 
-HOST_CONFIG="${DOTFILES_HOST_CONFIG:-}"
-if [[ -z "$HOST_CONFIG" ]]; then
-    HOSTNAME="$(hostname | cut -d. -f1)"
-    HOST_CONFIG="$REPO_ROOT/hosts/$HOSTNAME.json"
-    [[ ! -f "$HOST_CONFIG" ]] && HOST_CONFIG="$REPO_ROOT/hosts/default.json"
-fi
-
-if [[ ! -f "$HOST_CONFIG" ]]; then
-    echo "fetch-ssh-keys: no host config found — skipping"
-    exit 0
-fi
+# shellcheck source=SCRIPTDIR/lib/host.sh
+source "$SCRIPT_DIR/lib/host.sh"
+resolve_host_config "$REPO_ROOT" || exit $?
 
 if ! jq -e '.ssh_keys' "$HOST_CONFIG" >/dev/null 2>&1; then
     echo "fetch-ssh-keys: no ssh_keys configured in $HOST_CONFIG — skipping"
