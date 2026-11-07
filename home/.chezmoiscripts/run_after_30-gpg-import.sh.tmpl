@@ -3,7 +3,7 @@
 # Runs every apply, not once: if the 1Password document doesn't exist yet, a later apply retries.
 set -euo pipefail
 
-key_id={{ onepasswordRead (printf "op://%s/Git Signing Key/public key" .opVault) | trim | quote }}
+key_id={{ .gitSigningKey | quote }}
 vault={{ .opVault | quote }}
 
 # --with-colons marks a stub (secret part absent) with "#" in field 15 of the sec record.

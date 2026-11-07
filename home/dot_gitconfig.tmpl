@@ -1,7 +1,7 @@
 [user]
-	name = {{ onepasswordRead (printf "op://%s/user/username" .opVault) }}
-	email = {{ onepasswordRead (printf "op://%s/Git Email/username" .opVault) }}
-	signingkey = {{ onepasswordRead (printf "op://%s/Git Signing Key/public key" .opVault) }}
+	name = {{ .gitName }}
+	email = {{ .gitEmail }}
+	signingkey = {{ .gitSigningKey }}
 [init]
 	defaultBranch = main
 [core]
