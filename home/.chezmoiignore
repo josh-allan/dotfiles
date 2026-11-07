@@ -38,6 +38,10 @@
 .local/bin/cage-set-mode
 {{- end }}
 
+{{ if not .server -}}
+.config/fish/conf.d/umask.fish
+{{- end }}
+
 {{ if not .asahi -}}
 .config/hypr/hosts/asahi.*
 {{- end }}

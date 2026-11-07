@@ -6,6 +6,7 @@
 {{- $work := eq $host "M-J7KGT9QHDJ" -}}
 {{- $asahi := eq $host "EverythingLaptop" -}}
 {{- $sunshine := eq $host "josh-desktop" -}}
+{{- $server := eq $host "everythingcomputer" -}}
 {{- $hyprHost := "" -}}
 {{- if $asahi }}{{ $hyprHost = "asahi" }}{{ end -}}
 {{- if $sunshine }}{{ $hyprHost = "sunshine" }}{{ end -}}
@@ -14,7 +15,7 @@
 {{- if eq $host "EverythingMacbook" }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "macos" "scripts" }}{{ end -}}
 {{- if $sunshine }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "systemd" "etc_josh_desktop" }}{{ end -}}
 {{- if $work }}{{ $privatePkgs = list "private_user" "private_work" "opencode" "please" "augment" }}{{ end -}}
-{{- if eq $host "everythingcomputer" }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "please" }}{{ end -}}
+{{- if $server }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "please" }}{{ end -}}
 
 {{- /* Read from 1Password once, at `chezmoi init`, so routine applies don't need it unlocked. */ -}}
 {{- $opVault := ternary "Work" "Personal" $work -}}
@@ -37,6 +38,7 @@ mode = "symlink"
     gitSigningKey = {{ $gitSigningKey | quote }}
     asahi = {{ $asahi }}
     sunshine = {{ $sunshine }}
+    server = {{ $server }}
     linger = {{ $sunshine }}
     hyprHost = {{ $hyprHost | quote }}
     fetchSshKey = {{ $asahi }}

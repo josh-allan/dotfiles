@@ -32,6 +32,7 @@ Templates check flags, never host names:
 |------|---------|
 | `work` / `opVault` | Work Mac; 1Password vault `Work` or `Personal` |
 | `asahi`, `sunshine`, `hyprHost` | Linux host variants (hypr `host.*` selection, system files) |
+| `server` | Arch server (`everythingcomputer`): group-writable umask |
 | `linger` | Enable `loginctl enable-linger` |
 | `fetchSshKey` | Write `~/.ssh/id_ed25519` from 1Password if missing |
 | `cloneGoGit` | Clone `~/src/go-git` |
