@@ -1,26 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# post-merge hook: regenerate agent configs after git pull/merge
-# This runs after `git pull` completes.
-
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# Run through the linked ~/.config/opencode: bootstrap writes agents/ and opencode.jsonc
-# next to its own location, which must be the real config dir, not the repo.
-BOOTSTRAP="$HOME/.config/opencode/scripts/bootstrap.sh"
-
-# Only run if the bootstrap script exists
-if [[ ! -f "$BOOTSTRAP" ]]; then
-    exit 0
-fi
-
-# Check if any template, host config, or sync script files changed
-CHANGED_FILES=$(git -C "$REPO_ROOT/private" diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD 2>/dev/null || true)
-
-if echo "$CHANGED_FILES" | grep -qE '^home/dot_config/opencode/(templates/|hosts/|scripts/)'; then
-    echo "[opencode] Agent templates changed. Regenerating configs..."
-    cd "$HOME/.config/opencode" && bash "$BOOTSTRAP"
-fi
+# post-merge hook: beads integration only. opencode configs regenerate during
+# chezmoi apply (private run_after_40-opencode-bootstrap).
 
 # --- BEGIN BEADS INTEGRATION v1.0.2 ---
 # This section is managed by beads. Do not remove these markers.
