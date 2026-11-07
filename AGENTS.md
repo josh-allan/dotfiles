@@ -17,7 +17,7 @@ Machine-specific dotfiles managed with GNU Stow, per-host JSON configs, template
 | `dot_home/` | Stow package for `~` (common home dir configs, scripts, services) |
 | `dot_config_common/` | Stow package for `~/.config` (cross-platform tools: fish, nvim, ghostty, wezterm, yazi, vesktop) |
 | `dot_config_linux/` | Stow package for `~/.config` (Linux-only: hypr, greetd, gtk, fuzzel, rofi, sddm, kanata, zen, nwg-displays, gnupg) |
-| `dot_config_macos/` | Stow package for `~/.config` (macOS-only configs: aerospace, karabiner, gnupg) |
+| `dot_config_macos/` | Stow package for `~/.config` (macOS-only configs: karabiner, gnupg) |
 | `etc_linux/` | Stow package for `/etc` (Linux system configs: greetd) |
 | `.githooks/` | Git hooks: pre-commit, pre-push, post-checkout, post-merge, prepare-commit-msg |
 | `docs/superpowers/specs/` | Design documents for planned features |
@@ -33,7 +33,7 @@ Machine-specific dotfiles managed with GNU Stow, per-host JSON configs, template
 | `dot_home` | `~` | `.gitignore`, `.ideavimrc`, `.zshrc`, `scripts/`, `services/`, `firefox/`, `wallpaper/` |
 | `dot_config_common` | `~/.config` | fish, nvim, ghostty, wezterm, yazi, vesktop |
 | `dot_config_linux` | `~/.config` | hypr, greetd, gtk-3.0, gtk-4.0, fuzzel, rofi, sddm, hyprpanel, kanata, wayle, zen, nwg-displays, gnupg |
-| `dot_config_macos` | `~/.config` | aerospace, karabiner, gnupg |
+| `dot_config_macos` | `~/.config` | karabiner, gnupg |
 | `etc_linux` | `/etc` | System-level configs (greetd) |
 | `asahi` | `~` | Asahi Linux-specific configs (speakersafetyd) |
 | `sunshine` | `~` | Sunshine game streaming config |
