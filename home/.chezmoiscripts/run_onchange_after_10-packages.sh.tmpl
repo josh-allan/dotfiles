@@ -6,5 +6,5 @@
 set -euo pipefail
 
 cd {{ .chezmoi.workingTree | quote }}
-mise exec -- python3 scripts/install-packages.py
 mise install
+mise exec -- python3 scripts/install-packages.py
