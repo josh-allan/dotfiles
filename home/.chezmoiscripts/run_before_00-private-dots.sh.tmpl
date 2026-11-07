@@ -5,8 +5,10 @@ set -euo pipefail
 private_dir={{ joinPath .chezmoi.workingTree "private" | quote }}
 
 if [[ -d "$private_dir/.git" ]]; then
-	git -C "$private_dir" pull --ff-only --quiet 2>/dev/null ||
-		echo "private-dots: pull failed; using the existing checkout" >&2
+	if ! out="$(git -C "$private_dir" pull --ff-only --quiet 2>&1)"; then
+		echo "private-dots: pull failed, applying the existing (stale) checkout:" >&2
+		printf '%s\n' "$out" >&2
+	fi
 else
 	git clone --quiet git@github.com:josh-allan/private-dots.git "$private_dir" ||
 		echo "private-dots: clone failed; private files will be skipped" >&2
