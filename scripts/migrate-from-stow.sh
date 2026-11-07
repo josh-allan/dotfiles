@@ -49,6 +49,10 @@ confirm() {
 points_into_repo() {
 	local target="$1"
 	[[ "$target" == */.dotfiles/* || "$target" == .dotfiles/* ]] || return 1
+	# chezmoi's own links point into the source dirs; leaving them makes reruns safe.
+	if [[ "$target" == *.dotfiles/home/* || "$target" == *.dotfiles/private/home/* ]]; then
+		return 1
+	fi
 	if $keep_private && [[ "$target" == *.dotfiles/private/* ]]; then
 		return 1
 	fi
