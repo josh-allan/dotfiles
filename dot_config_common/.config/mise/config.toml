@@ -5,6 +5,7 @@
 trusted_config_paths = ["~/.config/nvim", "~/.dotfiles"]
 
 [tools]
+python = "3.15"
 tree-sitter = "latest"
 
 # Editor formatters/linters, made available to Neovim (conform + nvim-lint) on the
