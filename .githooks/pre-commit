@@ -4,11 +4,11 @@
 
 ERRORS=0
 
-# Block files containing 1Password references (excluding hook files, docs, and host configs)
-# Host configs (hosts/*.json) intentionally contain op:// references as template definitions
-OP_MATCHES=$(git diff --cached --name-only | grep -v -- '^\.githooks/' | grep -v -- '\.md$' | grep -v -- '^hosts/' | grep -vE -- '^home/.*\.tmpl$' | xargs grep -l -- 'op://' 2>/dev/null || true)
+# Block files containing 1Password references (excluding hook files, docs, and chezmoi templates)
+# chezmoi templates (home/**/*.tmpl) read secrets with onepasswordRead "op://..."
+OP_MATCHES=$(git diff --cached --name-only | grep -v -- '^\.githooks/' | grep -v -- '\.md$' | grep -vE -- '^home/.*\.tmpl$' | xargs grep -l -- 'op://' 2>/dev/null || true)
 if [[ -n "$OP_MATCHES" ]]; then
-    echo "ERROR: Commit contains 1Password references (op://) in non-host-config files. Use templates instead."
+    echo "ERROR: Commit contains 1Password references (op://) outside chezmoi templates."
     ERRORS=$((ERRORS + 1))
 fi
 
@@ -26,31 +26,11 @@ if git diff --cached --name-only | grep -qE '^private/'; then
     ERRORS=$((ERRORS + 1))
 fi
 
-# Block rendered config files (should be generated, not tracked)
-if git diff --cached --name-only | grep -qE '^dot_home/\.gitconfig$'; then
-    echo "ERROR: Commit contains rendered dot_home/.gitconfig. Use templates/.gitconfig.tmpl instead."
+# Block private fish directories (they come from the private-dots source only)
+if git diff --cached --name-only | grep -qE -- '^home/dot_config/fish/(literal_)?private_(user|work)/'; then
+    echo "ERROR: Commit contains private fish functions under home/dot_config/fish/."
+    echo "       Add them to home/dot_config/fish/literal_private_user/ in the private-dots repo instead."
     ERRORS=$((ERRORS + 1))
-fi
-
-# Block private fish user directory (should come from private repo only)
-if git diff --cached --name-only | grep -qE -- '^dot_config_common/\.config/fish/private_user/'; then
-    echo "ERROR: Commit contains dot_config_common/.config/fish/private_user/. Private fish functions belong in the private repo."
-    echo "       Add them to private/user/ in the private-dots repo instead."
-    ERRORS=$((ERRORS + 1))
-fi
-
-# Compliance schema validation on staged host configs (non-blocking warning)
-STAGED_HOST_CONFIGS=$(git diff --cached --name-only | grep -E '^hosts/.*\.json$' || true)
-if [[ -n "$STAGED_HOST_CONFIGS" ]]; then
-    if [[ -x "scripts/validate-config.sh" ]]; then
-        for hc in $STAGED_HOST_CONFIGS; do
-            if [[ -f "$hc" ]]; then
-                scripts/validate-config.sh "$hc" 2>/dev/null || {
-                    echo "WARNING: Staged host config $hc failed validation. Run 'scripts/validate-config.sh $hc' for details."
-                }
-            fi
-        done
-    fi
 fi
 
 # Run shellcheck on staged shell scripts
