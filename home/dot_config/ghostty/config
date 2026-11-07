@@ -39,6 +39,3 @@ keybind = alt+arrow_left=esc:b
 keybind = alt+arrow_right=esc:f
 
 keybind = ctrl+,=unbind
-
-# Host-specific Herdr bindings are absent on other devices.
-config-file = ?../ghostty-herdr-M-J7KGT9QHDJ.conf
