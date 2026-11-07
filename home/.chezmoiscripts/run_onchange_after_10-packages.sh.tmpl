@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Reruns when any package list changes:
+# packages.json  {{ include (joinPath .chezmoi.workingTree "packages.json") | sha256sum }}
+# mise.toml      {{ include (joinPath .chezmoi.workingTree "mise.toml") | sha256sum }}
+# global mise    {{ include "dot_config/mise/config.toml" | sha256sum }}
+set -euo pipefail
+
+cd {{ .chezmoi.workingTree | quote }}
+mise exec -- python3 scripts/install-packages.py
+mise install

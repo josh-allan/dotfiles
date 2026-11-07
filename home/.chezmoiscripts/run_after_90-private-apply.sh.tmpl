@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Apply private-dots as a second chezmoi source, with its own config and state.
+set -euo pipefail
+
+private_dir={{ joinPath .chezmoi.workingTree "private" | quote }}
+state_dir="$HOME/.config/chezmoi-private"
+
+if [[ ! -f "$private_dir/.chezmoiroot" ]]; then
+	echo "private-dots: $private_dir is missing or not a chezmoi source; skipping" >&2
+	exit 0
+fi
+
+{{ .chezmoi.executable | quote }} apply \
+	--config "$state_dir/chezmoi.toml" \
+	--persistent-state "$state_dir/chezmoistate.boltdb"
