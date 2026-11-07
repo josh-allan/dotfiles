@@ -1,4 +1,4 @@
-# Global mise config (stow-managed via dot_config_common).
+# Global mise config (managed by chezmoi: home/dot_config/mise/config.toml).
 
 [settings]
 # Repo mise configs mise loads without an interactive `mise trust` prompt.

@@ -3,7 +3,7 @@ set -euo pipefail
 
 # zen-setup.sh
 # Symlinks ~/.config/zen/user.js into the active Zen profile directory.
-# Must run after stow has linked dot_config_linux so user.js exists at ~/.config/zen/user.js.
+# Must run after chezmoi has linked ~/.config/zen/user.js.
 
 ZEN_DIR="$HOME/.zen"
 PROFILES_INI="$ZEN_DIR/profiles.ini"
@@ -15,7 +15,7 @@ if [[ ! -f "$PROFILES_INI" ]]; then
 fi
 
 if [[ ! -f "$USER_JS_SRC" ]]; then
-    echo "zen-setup: user.js not found at $USER_JS_SRC — skipping (run stow first)"
+    echo "zen-setup: user.js not found at $USER_JS_SRC — skipping (run chezmoi apply first)"
     exit 1
 fi
 
