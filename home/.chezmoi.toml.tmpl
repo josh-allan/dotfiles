@@ -1,0 +1,33 @@
+{{- /* Host identity is asked once and stored in ~/.config/chezmoi/chezmoi.toml.
+       Templates gate on the derived flags below, never on the host name itself.
+       An unknown host gets the defaults: no host flags, Personal vault, base private packages. */ -}}
+{{- $host := promptStringOnce . "host" "Host profile" .chezmoi.hostname -}}
+
+{{- $work := eq $host "M-J7KGT9QHDJ" -}}
+{{- $asahi := eq $host "EverythingLaptop" -}}
+{{- $sunshine := eq $host "josh-desktop" -}}
+{{- $hyprHost := "" -}}
+{{- if $asahi }}{{ $hyprHost = "asahi" }}{{ end -}}
+{{- if $sunshine }}{{ $hyprHost = "sunshine" }}{{ end -}}
+
+{{- $privatePkgs := list "private_user" "opencode" "claude" "augment" -}}
+{{- if eq $host "EverythingMacbook" }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "macos" "scripts" }}{{ end -}}
+{{- if $sunshine }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "systemd" "etc_josh_desktop" }}{{ end -}}
+{{- if $work }}{{ $privatePkgs = list "private_user" "private_work" "opencode" "please" "augment" }}{{ end -}}
+
+mode = "symlink"
+
+[git]
+    autoCommit = false
+
+[data]
+    host = {{ $host | quote }}
+    work = {{ $work }}
+    opVault = {{ ternary "Work" "Personal" $work | quote }}
+    asahi = {{ $asahi }}
+    sunshine = {{ $sunshine }}
+    linger = {{ $sunshine }}
+    hyprHost = {{ $hyprHost | quote }}
+    fetchSshKey = {{ $asahi }}
+    cloneGoGit = {{ ne $host "EverythingMacbook" }}
+    privatePkgs = {{ $privatePkgs | toJson }}

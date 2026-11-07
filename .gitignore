@@ -62,3 +62,8 @@ dot_config_macos/.config/karabiner/automatic_backups/*
 dot_config_linux/.config/zen/
 dot_config_common/.config/herdr/sessions/*
 dot_config_common/.config/herdr/session-snapshots/*
+
+# chezmoi source (home/): runtime files written through directory links
+home/.linked/karabiner/automatic_backups/*
+home/scripts/mongodump.sh
+home/dot_config/zen/
