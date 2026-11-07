@@ -65,7 +65,8 @@ Executables in `home/` keep their git mode and are linked, so no `executable_` p
 
 | Command | Purpose |
 |---------|---------|
-| `mise run bootstrap` | install-tools → install-apps → `chezmoi init --source ~/.dotfiles --apply` |
+| `scripts/bootstrap.sh` | New machine via `curl \| bash`: git, HTTPS clone, mise, then `mise run bootstrap` |
+| `mise run bootstrap` | install-tools → install-apps → `ensure-access.sh` (op signed in, GitHub SSH) → `chezmoi init --apply` |
 | `mise run sync` / `diff` | `chezmoi apply` / `chezmoi diff` |
 | `mise run migrate` | `scripts/migrate-from-stow.sh`: one-time cutover from the old stow setup |
 | `mise run store-gpg-key` | Upload the signing key to 1Password (`Git Signing Key (private)`) |

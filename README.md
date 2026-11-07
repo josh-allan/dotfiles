@@ -6,19 +6,21 @@ Dotfiles managed by [chezmoi](https://www.chezmoi.io/) in symlink mode. Packages
 ## Quick start
 
 ```fish
-# 1. Clone
-git clone git@github.com:josh-allan/dotfiles.git ~/.dotfiles
-cd ~/.dotfiles
-
-# 2. Install mise and trust the repo config
-./scripts/setup-mise.sh
-mise trust
-
-# 3. Bootstrap: CLI tools, apps (including the 1Password CLI), then `chezmoi init --apply`.
-#    Keep the 1Password app unlocked with CLI integration on: init reads git identity
-#    and keys from it.
-mise run bootstrap
+curl -fsSL https://raw.githubusercontent.com/josh-allan/dotfiles/main/scripts/bootstrap.sh | bash
 ```
+
+`scripts/bootstrap.sh` installs git if needed, clones this repo over HTTPS to `~/.dotfiles`,
+installs mise, then runs `mise run bootstrap`:
+
+1. `install-tools`: CLI tools from `mise.toml`
+2. `install-apps`: Homebrew / yay / Fedora repos, the 1Password CLI, `packages.json`
+3. `scripts/ensure-access.sh`: waits until the 1Password CLI is signed in (unlock the app
+   and enable Settings > Developer > Integrate with 1Password CLI), and writes
+   `~/.ssh/id_ed25519` from 1Password if GitHub SSH doesn't work yet
+4. `chezmoi init --source ~/.dotfiles --apply`
+
+Already cloned? Run `mise run bootstrap` from `~/.dotfiles`. Set `DOTFILES_BRANCH` to
+bootstrap from another branch.
 
 `chezmoi init` asks for a **host profile** once and stores it in
 `~/.config/chezmoi/chezmoi.toml`. Use one of `EverythingMacbook`, `EverythingLaptop`,
