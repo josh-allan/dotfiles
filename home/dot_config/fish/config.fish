@@ -13,9 +13,16 @@ if status is-interactive
     end
 end
 
+export PATH="$HOME/.local/bin:$PATH"
+
+# mise-managed tools (chezmoi, zoxide, direnv, ...). Homebrew's mise activates itself via
+# vendor_conf.d; the curl-installed mise in ~/.local/bin does not.
+if command -v mise >/dev/null
+    mise activate fish | source
+end
+
 zoxide init fish --cmd cd | source
 direnv hook fish | source
-export PATH="$HOME/.local/bin:$PATH"
 
 # bun
 set --export BUN_INSTALL "$HOME/.bun"

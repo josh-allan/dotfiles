@@ -14,7 +14,6 @@
 .config/gtk-3.0
 .config/gtk-4.0
 .config/hypr
-.config/hyprpanel
 .config/kanata
 .config/nwg-displays
 .config/pipewire

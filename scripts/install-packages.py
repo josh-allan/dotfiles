@@ -163,10 +163,16 @@ def install_fedora(tools, apps, dry_run):
         dnf_pkgs.append(entry.get("dnf", entry["name"]))
 
     # Enable each COPR once before installing anything from it.
-    for slug in sorted(coprs):
-        run(["sudo", "dnf", "-y", "copr", "enable", slug], dry_run)
-
+    # A COPR that lacks a chroot for this release/arch fails to enable; warn and
+    # let its packages fail individually at install time instead of aborting.
     failed = []
+    for slug in sorted(coprs):
+        try:
+            run(["sudo", "dnf", "-y", "copr", "enable", slug], dry_run)
+        except subprocess.CalledProcessError:
+            failed.append(f"copr:{slug}")
+            print(f"[WARNING] copr: {slug} could not be enabled -- skipping", file=sys.stderr)
+
     for pkg in dnf_pkgs:
         print(f"\n[package] {pkg}")
         try:
