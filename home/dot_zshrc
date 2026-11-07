@@ -196,8 +196,6 @@ export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init - zsh)"
 
-eval "$(zoxide init zsh --cmd cd)"
-
 export GPG_TTY=$(tty)
 
 function nvm() {
@@ -221,3 +219,10 @@ alias brew='env PATH="${PATH//$(pyenv root)\/shims:/}" brew'
 
 
 alias claude-mem='bun "$HOME/.claude/plugins/cache/thedotmack/claude-mem/12.2.0/scripts/worker-service.cjs"'
+
+# Keep last: zoxide checks that nothing after its init replaces the cd hook or PATH.
+# Skipped in Claude Code shells: their snapshot copies zoxide's cd but not its chpwd hook,
+# so every command printed zoxide's doctor warning; agents also want a literal cd.
+if [[ -z "$CLAUDECODE" ]]; then
+    eval "$(zoxide init zsh --cmd cd)"
+fi
