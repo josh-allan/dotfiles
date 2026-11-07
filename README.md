@@ -1,85 +1,58 @@
-# Dotfiles
+# dotfiles
 
-Dotfiles managed by [chezmoi](https://www.chezmoi.io/) in symlink mode. Packages come from `packages.json`
-(brew / pacman / dnf) and `mise.toml` (portable CLI tools).
+My machines, managed by [chezmoi](https://www.chezmoi.io/) in symlink mode. Packages live in
+`packages.json` (brew / pacman / dnf) and `mise.toml` (CLI tools). Repo layout and
+conventions are in `AGENTS.md`.
 
-## Quick start
+## New machine
 
 ```fish
 curl -fsSL https://raw.githubusercontent.com/josh-allan/dotfiles/main/scripts/bootstrap.sh | bash
 ```
 
-`scripts/bootstrap.sh` installs git if needed, clones this repo over HTTPS to `~/.dotfiles`,
-installs mise, then runs `mise run bootstrap`:
+Clones to `~/.dotfiles`, installs mise, then `mise run bootstrap`: tools → apps and
+packages → 1Password and GitHub SSH check → `chezmoi init --apply`.
 
-1. `install-tools`: CLI tools from `mise.toml`
-2. `install-apps`: Homebrew / yay / Fedora repos, the 1Password CLI, `packages.json`
-3. `scripts/ensure-access.sh`: waits until the 1Password CLI is signed in (unlock the app
-   and enable Settings > Developer > Integrate with 1Password CLI), and writes
-   `~/.ssh/id_ed25519` from 1Password if GitHub SSH doesn't work yet
-4. `chezmoi init --source ~/.dotfiles --apply`
-
-Already cloned? Run `mise run bootstrap` from `~/.dotfiles`. Set `DOTFILES_BRANCH` to
-bootstrap from another branch.
-
-`chezmoi init` asks for a **host profile** once and stores it in
-`~/.config/chezmoi/chezmoi.toml`. Use one of `EverythingMacbook`, `EverythingLaptop`,
-`josh-desktop`, `M-J7KGT9QHDJ`, or any new name to get the defaults.
-
-**Migrating a machine still on the old stow setup:** `mise run migrate`. It removes the
-stow links, carries over `fish_variables`, then runs `chezmoi init` and `apply`.
+- 1Password CLI must be signed in: unlock the app, Settings > Developer > Integrate with
+  1Password CLI. Bootstrap waits for it.
+- `chezmoi init` asks for the host name once (stored in `~/.config/chezmoi/chezmoi.toml`).
+  An unlisted name gets the defaults.
+- Already cloned: `mise run bootstrap`. Other branch: `DOTFILES_BRANCH=<branch>`.
+- Still on stow: `mise run migrate`.
 
 ## Day to day
 
 ```fish
-chezmoi apply        # or: mise run sync
-chezmoi diff         # or: mise run diff
-chezmoi update       # pull this repo, then apply
-chezmoi managed      # list managed paths
+chezmoi apply        # mise run sync
+chezmoi diff         # mise run diff
+chezmoi update       # pull, then apply
+chezmoi managed
 ```
 
-Plain config files are **symlinks** into `home/`, so editing `~/.config/fish/config.fish`
-edits the repo. Templates (`*.tmpl`) and `private_` files are copies: change the source in
-`home/` and run `chezmoi apply`.
-
-## Layout
-
-| Path | Purpose |
-|------|---------|
-| `home/` | chezmoi source (`.chezmoiroot`). `dot_config/fish` → `~/.config/fish`, etc. |
-| `home/.chezmoi.toml.tmpl` | Host prompt and the per-host flags every template gates on |
-| `home/.chezmoiignore` | OS and host gating (Linux-only, macOS-only, per-host files) |
-| `home/.chezmoiexternal.toml.tmpl` | Repos cloned into `$HOME`: nvim config, go-git |
-| `home/.chezmoiscripts/` | Run scripts: packages, system files, gpg key |
-| `home/.linked/karabiner` | Linked as a whole directory (Karabiner needs the dir linked) |
-| `etc_linux/`, `asahi_system/` | System files copied into `/etc` and `/` with sudo on Linux |
-| `packages.json` | GUI apps and system packages per platform (`schemas/packages.schema.json` documents the fields) |
-| `mise.toml` | Portable CLI tools and the `mise run` tasks |
-| `scripts/` | `install-deps.sh`, `install-packages.py`, `deploy-system-files.sh`, `migrate-from-stow.sh`, `store-gpg-key.sh`, `zen-setup.sh`, `setup-mise.sh` |
+Plain files are symlinks into `home/`, so edits in `~/.config` land in the repo. Templates
+(`*.tmpl`) and `private_` files are copies: edit the source in `home/`, then apply.
 
 ## Hosts
 
 | Host | OS | Notes |
 |------|----|-------|
 | `EverythingMacbook` | macOS | |
-| `EverythingLaptop` | Linux | Asahi hypr host config and system files, ssh key from 1Password. Notes said Arch Linux ARM; now runs Fedora |
+| `EverythingLaptop` | Fedora Asahi | Asahi hypr config and system files, ssh key from 1Password |
 | `josh-desktop` | Linux | Sunshine streaming, linger |
-| `M-J7KGT9QHDJ` | macOS | Work: `Work` 1Password vault |
-| `everythingcomputer` | Linux | Arch server (x86_64) |
+| `M-J7KGT9QHDJ` | macOS | Work, `Work` 1Password vault |
+| `everythingcomputer` | Arch (x86_64) | Server |
 
-**User units enabled on apply:** `Sunshine.service` and `steam-bpm.service` on josh-desktop.
-
-**Services expected to be enabled, but not enabled automatically** (the old compliance
-checker only warned): `mpris-proxy.service`, `titdb.service` and `tzupdate.timer` on
-EverythingLaptop; `mpris-proxy.service` on josh-desktop.
+Apply enables `Sunshine.service` and `steam-bpm.service` on josh-desktop. Enable these by
+hand: `mpris-proxy.service`, `titdb.service`, `tzupdate.timer` on EverythingLaptop;
+`mpris-proxy.service` on josh-desktop.
 
 ## Secrets
 
-- Git name, email and signing key id are read from 1Password once, at `chezmoi init`.
-  Routine applies don't need 1Password.
-- The gpg signing key is imported from the 1Password document **Git Signing Key (private)**
-  when a machine has no full secret key. Upload it from a machine that has the key with
-  `mise run store-gpg-key` (optional vault argument, default `Personal`).
+- Git name, email and signing key id come from 1Password at `chezmoi init` only; applies
+  don't touch 1Password.
+- The gpg signing key imports from the 1Password document **Git Signing Key (private)** on
+  machines without it. Upload from a machine that has it: `mise run store-gpg-key [vault]`
+  (default `Personal`).
 
 ## Kudos
 
