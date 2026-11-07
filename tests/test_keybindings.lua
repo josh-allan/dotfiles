@@ -1,10 +1,17 @@
 local repo = arg[1] or "."
+-- Configs load each other via $HOME/.config/...; map that onto the chezmoi source
+-- (home/dot_config/) so the test reads the repo, not whatever is applied on this machine.
+local fake_home = "/fakehome"
 local getenv = os.getenv
 os.getenv = function(name)
 	if name == "HOME" then
-		return repo .. "/dot_config_common"
+		return fake_home
 	end
 	return getenv(name)
+end
+local real_dofile = dofile
+dofile = function(path)
+	return real_dofile((path:gsub("^" .. fake_home .. "/%.config/", repo .. "/home/dot_config/")))
 end
 
 local directions = {
@@ -21,8 +28,8 @@ rex = {
 		rex_bindings[key] = { action = action, args = args }
 	end,
 }
-package.path = repo .. "/rex/.config/rex/?.lua;" .. package.path
-dofile(repo .. "/rex/.config/rex/init.lua")
+package.path = repo .. "/home/dot_config/rex/?.lua;" .. package.path
+dofile(repo .. "/home/dot_config/rex/init.lua")
 
 for key, direction in pairs(directions) do
 	local binding = assert(rex_bindings["cmd+" .. key], "missing Rex focus: " .. key)
@@ -97,7 +104,7 @@ hl = {
 		},
 	},
 }
-dofile(repo .. "/dot_config_linux/.config/hypr/keybinds.lua")
+dofile(repo .. "/home/dot_config/hypr/keybinds.lua")
 
 local function assert_hypr(key, action, direction)
 	local matches = 0

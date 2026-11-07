@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Import the git signing key from 1Password when only a stub (or nothing) is in the keyring.
+# Runs every apply, not once: if the 1Password document doesn't exist yet, a later apply retries.
+set -euo pipefail
+
+key_id={{ .gitSigningKey | quote }}
+vault={{ .opVault | quote }}
+
+# --with-colons marks a stub (secret part absent) with "#" in field 15 of the sec record.
+if gpg --list-secret-keys --with-colons "$key_id" 2>/dev/null | awk -F: '$1 == "sec" && $15 != "#" { found = 1 } END { exit !found }'; then
+	exit 0
+fi
+
+if ! op document get "Git Signing Key (private)" --vault "$vault" 2>/dev/null | gpg --batch --quiet --import; then
+	echo "gpg-import: no usable 'Git Signing Key (private)' document in the $vault vault." >&2
+	echo "gpg-import: run scripts/store-gpg-key.sh on a machine that has the full key." >&2
+fi

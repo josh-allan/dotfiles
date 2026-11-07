@@ -1,0 +1,7 @@
+{{- if and .sunshine (eq .chezmoi.os "linux") -}}
+#!/usr/bin/env bash
+# Enable the Sunshine streaming units chezmoi links; chezmoi itself never enables units.
+set -euo pipefail
+systemctl --user daemon-reload
+systemctl --user enable Sunshine.service steam-bpm.service
+{{ end -}}

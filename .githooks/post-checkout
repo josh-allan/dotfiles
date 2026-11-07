@@ -5,7 +5,9 @@ set -euo pipefail
 # This runs after `git checkout` or `git switch`.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BOOTSTRAP="$REPO_ROOT/private/opencode/.config/opencode/scripts/bootstrap.sh"
+# Run through the linked ~/.config/opencode: bootstrap writes agents/ and opencode.jsonc
+# next to its own location, which must be the real config dir, not the repo.
+BOOTSTRAP="$HOME/.config/opencode/scripts/bootstrap.sh"
 
 # Only run if the bootstrap script exists
 if [[ ! -f "$BOOTSTRAP" ]]; then
@@ -23,9 +25,9 @@ fi
 
 # Check if templates, hosts, or sync scripts differ
 if ! git -C "$REPO_ROOT/private" diff --quiet "$PREV_HEAD" "$NEW_HEAD" -- \
-    '.config/opencode/templates/' '.config/opencode/hosts/' '.config/opencode/scripts/' 2>/dev/null; then
+    'home/dot_config/opencode/templates/' 'home/dot_config/opencode/hosts/' 'home/dot_config/opencode/scripts/' 2>/dev/null; then
     echo "[opencode] Agent templates changed. Regenerating configs..."
-    cd "$REPO_ROOT/private/opencode/.config/opencode" && bash "$BOOTSTRAP"
+    cd "$HOME/.config/opencode" && bash "$BOOTSTRAP"
 fi
 
 # --- BEGIN BEADS INTEGRATION v1.0.2 ---

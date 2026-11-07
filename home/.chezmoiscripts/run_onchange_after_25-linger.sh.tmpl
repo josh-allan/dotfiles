@@ -1,0 +1,6 @@
+{{- if and .linger (eq .chezmoi.os "linux") -}}
+#!/usr/bin/env bash
+# Keep the user systemd manager (timers, streaming daemons) running after logout.
+set -euo pipefail
+sudo loginctl enable-linger "$(id -un)"
+{{ end -}}

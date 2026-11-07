@@ -1,0 +1,46 @@
+{{- /* Host identity is asked once and stored in ~/.config/chezmoi/chezmoi.toml.
+       Templates gate on the derived flags below, never on the host name itself.
+       An unknown host gets the defaults: no host flags, Personal vault, base private packages. */ -}}
+{{- $host := promptStringOnce . "host" "Host profile" .chezmoi.hostname -}}
+
+{{- $work := eq $host "M-J7KGT9QHDJ" -}}
+{{- $asahi := eq $host "EverythingLaptop" -}}
+{{- $sunshine := eq $host "josh-desktop" -}}
+{{- $server := eq $host "everythingcomputer" -}}
+{{- $hyprHost := "" -}}
+{{- if $asahi }}{{ $hyprHost = "asahi" }}{{ end -}}
+{{- if $sunshine }}{{ $hyprHost = "sunshine" }}{{ end -}}
+
+{{- $privatePkgs := list "private_user" "opencode" "claude" "augment" -}}
+{{- if eq $host "EverythingMacbook" }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "macos" "scripts" }}{{ end -}}
+{{- if $sunshine }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "systemd" "etc_josh_desktop" }}{{ end -}}
+{{- if $work }}{{ $privatePkgs = list "private_user" "private_work" "opencode" "please" "augment" }}{{ end -}}
+{{- if $server }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "please" }}{{ end -}}
+
+{{- /* Read from 1Password once, at `chezmoi init`, so routine applies don't need it unlocked. */ -}}
+{{- $opVault := ternary "Work" "Personal" $work -}}
+{{- $gitName := onepasswordRead (printf "op://%s/user/username" $opVault) | trim -}}
+{{- $gitEmail := onepasswordRead (printf "op://%s/Git Email/username" $opVault) | trim -}}
+{{- $gitSigningKey := onepasswordRead (printf "op://%s/Git Signing Key/public key" $opVault) | trim }}
+
+sourceDir = {{ .chezmoi.workingTree | quote }}
+mode = "symlink"
+
+[git]
+    autoCommit = false
+
+[data]
+    host = {{ $host | quote }}
+    work = {{ $work }}
+    opVault = {{ $opVault | quote }}
+    gitName = {{ $gitName | quote }}
+    gitEmail = {{ $gitEmail | quote }}
+    gitSigningKey = {{ $gitSigningKey | quote }}
+    asahi = {{ $asahi }}
+    sunshine = {{ $sunshine }}
+    server = {{ $server }}
+    linger = {{ $sunshine }}
+    hyprHost = {{ $hyprHost | quote }}
+    fetchSshKey = {{ $asahi }}
+    cloneGoGit = {{ ne $host "EverythingMacbook" }}
+    privatePkgs = {{ $privatePkgs | toJson }}

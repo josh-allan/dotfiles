@@ -1,50 +1,58 @@
-# Dotfiles
+# dotfiles
 
-Machine-specific dotfiles managed with GNU Stow, templates, and per-host configs.
+My machines, managed by [chezmoi](https://www.chezmoi.io/) in symlink mode. Packages live in
+`packages.json` (brew / pacman / dnf) and `mise.toml` (CLI tools). Repo layout and
+conventions are in `AGENTS.md`.
 
-## Quick Start
+## New machine
 
-```bash
-# 1. Clone this repo
-git clone git@github.com:josh-allan/dotfiles.git ~/.dotfiles
-cd ~/.dotfiles
-
-# 2. Install mise (the installer's only prerequisite) and trust the config
-./scripts/setup-mise.sh
-mise trust
-
-# 2b. Recommended: a GitHub token, or tool downloads hit the 60/hr
-#     unauthenticated API limit. In fish:
-#     set -gx MISE_GITHUB_TOKEN (gh auth token)
-
-# 3. Bootstrap: CLI tools (mise), apps/system packages (brew/yay/dnf),
-#    templates from 1Password (needs op unlocked), stow, private overlay
-mise run bootstrap
-
-# 4. Pray.
+```fish
+curl -fsSL https://raw.githubusercontent.com/josh-allan/dotfiles/main/scripts/bootstrap.sh | bash
 ```
 
-Day-to-day tasks:
+Clones to `~/.dotfiles`, installs mise, then `mise run bootstrap`: tools → apps and
+packages → 1Password and GitHub SSH check → `chezmoi init --apply`.
 
-```bash
-mise run sync         # stow only (no 1Password needed)
-mise run compliance   # sync + drift checks
-mise run check        # drift check, no sync
-mise install          # install/update portable CLI tools
+- 1Password CLI must be signed in: unlock the app, Settings > Developer > Integrate with
+  1Password CLI. Bootstrap waits for it.
+- `chezmoi init` asks for the host name once (stored in `~/.config/chezmoi/chezmoi.toml`).
+  An unlisted name gets the defaults.
+- Already cloned: `mise run bootstrap`. Other branch: `DOTFILES_BRANCH=<branch>`.
+- Still on stow: `mise run migrate`.
+
+## Day to day
+
+```fish
+chezmoi apply        # mise run sync
+chezmoi diff         # mise run diff
+chezmoi update       # pull, then apply
+chezmoi managed
 ```
 
-A missing rendered file is always rendered regardless of flags, and rendering is atomic: if 1Password is locked, the existing file is kept untouched.
+Plain files are symlinks into `home/`, so edits in `~/.config` land in the repo. Templates
+(`*.tmpl`) and `private_` files are copies: edit the source in `home/`, then apply.
 
-## Architecture
+## Hosts
 
-| Component | Purpose |
-|-----------|---------|
-| `mise.toml` | Portable CLI tools + task entry points (`mise run bootstrap`) |
-| `hosts/<hostname>.json` | Per-machine config: packages, templates, private repo, compliance |
-| `templates/` | Base files with `{{placeholder}}` values rendered at sync |
-| `scripts/sync-dotfiles.sh` | Orchestrator: detect → render → pull → stow → compliance |
-| `scripts/check-compliance.sh` | Drift detection: packages, services, files with `--accept` for intentional drift |
-| `private/` | gitignored staging area for cloned private overlay repo |
+| Host | OS | Notes |
+|------|----|-------|
+| `EverythingMacbook` | macOS | |
+| `EverythingLaptop` | Fedora Asahi | Asahi hypr config and system files, ssh key from 1Password |
+| `josh-desktop` | Linux | Sunshine streaming, linger |
+| `M-J7KGT9QHDJ` | macOS | Work, `Work` 1Password vault |
+| `everythingcomputer` | Arch (x86_64) | Server |
+
+Apply enables `Sunshine.service` and `steam-bpm.service` on josh-desktop. Enable these by
+hand: `mpris-proxy.service`, `titdb.service`, `tzupdate.timer` on EverythingLaptop;
+`mpris-proxy.service` on josh-desktop.
+
+## Secrets
+
+- Git name, email and signing key id come from 1Password at `chezmoi init` only; applies
+  don't touch 1Password.
+- The gpg signing key imports from the 1Password document **Git Signing Key (private)** on
+  machines without it. Upload from a machine that has it: `mise run store-gpg-key [vault]`
+  (default `Personal`).
 
 ## Kudos
 

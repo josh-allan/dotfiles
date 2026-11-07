@@ -1,0 +1,20 @@
+{{- /* Config for the private source, applied by run_after_90-private-apply.
+       Mirrors the public [data] so both sources gate on the same flags. */ -}}
+sourceDir = {{ joinPath .chezmoi.workingTree "private" | quote }}
+mode = "symlink"
+
+[git]
+    autoCommit = false
+
+[data]
+    host = {{ .host | quote }}
+    work = {{ .work }}
+    opVault = {{ .opVault | quote }}
+    asahi = {{ .asahi }}
+    sunshine = {{ .sunshine }}
+    server = {{ .server }}
+    linger = {{ .linger }}
+    hyprHost = {{ .hyprHost | quote }}
+    fetchSshKey = {{ .fetchSshKey }}
+    cloneGoGit = {{ .cloneGoGit }}
+    privatePkgs = {{ .privatePkgs | toJson }}

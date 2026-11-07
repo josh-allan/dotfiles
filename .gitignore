@@ -26,39 +26,21 @@ venv/
 **/zsh/.zsh_history
 **/zsh/.zsh_sessions
 
-# Sync-generated files
+# private-dots checkout (a separate repo and chezmoi source)
 private/
-*.rendered
-
-# Host-specific rendered configs (template outputs)
-dot_home/.gitconfig
-dot_home/.zshrc
-
-# Private overlay directory - never track (private repo stows here)
-dot_config_common/.config/fish/private_user/
-
-# Symlinks created by private repo stow into public repo directories
-# These point to private/ (gitignored) so they're safe but untracked
-dot_config_common/.config/fish/private_user
-dot_home/scripts/mongodump.sh
 
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db
 .beads-credential-key
 
-# Compliance report artifacts (should live in ~/.config/dotfiles/ and ~/.cache/dotfiles/)
-*.compliance-report.json
-drift-state
 ._*
 .DS_Store
 
-# gnupg — only track gpg-agent.conf, everything else is machine-local secrets
-dot_config_macos/.gnupg/*
-!dot_config_macos/.gnupg/gpg-agent.conf
-dot_config_linux/.gnupg/*
-!dot_config_linux/.gnupg/gpg-agent.conf
-dot_config_macos/.config/karabiner/automatic_backups/*
-dot_config_linux/.config/zen/
-dot_config_common/.config/herdr/sessions/*
-dot_config_common/.config/herdr/session-snapshots/*
+# Machine-local gnupg files left in the old stow package dir (secrets; never track)
+dot_config_linux/.gnupg/
+
+# chezmoi source (home/): runtime files written through directory links
+home/.linked/karabiner/automatic_backups/*
+home/scripts/mongodump.sh
+home/dot_config/zen/

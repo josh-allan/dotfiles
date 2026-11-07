@@ -1,0 +1,15 @@
+[".config/nvim"]
+    type = "git-repo"
+    url = "git@github.com:josh-allan/nvim.git"
+    refreshPeriod = "168h"
+    [".config/nvim".pull]
+        args = ["--ff-only"]
+
+{{ if .cloneGoGit -}}
+["src/go-git"]
+    type = "git-repo"
+    url = "git@github.com:josh-allan/go-git"
+    refreshPeriod = "168h"
+    ["src/go-git".pull]
+        args = ["--ff-only"]
+{{- end }}

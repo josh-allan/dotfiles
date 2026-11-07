@@ -1,0 +1,29 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env bash
+# Reruns when any deployed system file changes:
+{{- range (glob (joinPath .chezmoi.workingTree "etc_linux/**")) }}
+{{-   if not (stat .).isDir }}
+# {{ . }} {{ include . | sha256sum }}
+{{-   end }}
+{{- end }}
+{{- if .asahi }}
+{{-   range (glob (joinPath .chezmoi.workingTree "asahi_system/**")) }}
+{{-     if not (stat .).isDir }}
+# {{ . }} {{ include . | sha256sum }}
+{{-     end }}
+{{-   end }}
+{{- end }}
+set -euo pipefail
+
+repo={{ .chezmoi.workingTree | quote }}
+"$repo/scripts/deploy-system-files.sh" "$repo/etc_linux" /etc
+{{- if .asahi }}
+
+"$repo/scripts/deploy-system-files.sh" "$repo/asahi_system" /
+if command -v pacman >/dev/null 2>&1; then
+	sudo pacman -S --needed --noconfirm \
+		archlinuxarm-keyring asahi-alarm-keyring asahi-audio asahi-fwextract asahi-meta \
+		asahi-scripts linux-asahi m1n1 pipewire-libcamera speakersafetyd uboot-asahi
+fi
+{{- end }}
+{{ end -}}

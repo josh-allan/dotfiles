@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Clone or update private-dots, which run_after_90-private-apply applies as a second source.
+set -euo pipefail
+
+private_dir={{ joinPath .chezmoi.workingTree "private" | quote }}
+
+if [[ -d "$private_dir/.git" ]]; then
+	git -C "$private_dir" pull --ff-only --quiet 2>/dev/null ||
+		echo "private-dots: pull failed; using the existing checkout" >&2
+else
+	git clone --quiet git@github.com:josh-allan/private-dots.git "$private_dir" ||
+		echo "private-dots: clone failed; private files will be skipped" >&2
+fi

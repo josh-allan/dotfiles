@@ -38,21 +38,28 @@ description = "Install GUI apps and system packages via brew/yay (packages.json)
 run = "./scripts/install-deps.sh"
 
 [tasks.bootstrap]
-description = "Full new-machine setup: tools, apps, templates, stow, private overlay"
+description = "Full new-machine setup: tools, apps, then chezmoi init + apply (needs op signed in)"
 depends = ["install-tools", "install-apps"]
+# ensure-access: op signed in + GitHub SSH, both needed by init. chezmoi is pinned in the
+# global mise config, which isn't linked until this apply runs.
 run = [
-    "./scripts/sync-dotfiles.sh --bootstrap",
+    "./scripts/ensure-access.sh",
+    "mise exec chezmoi@latest -- chezmoi init --source ~/.dotfiles --apply",
     "echo 'Bootstrap complete. Open a new shell so fish picks up mise activation.'",
 ]
 
 [tasks.sync]
-description = "Stow dotfiles (no template re-render)"
-run = "./scripts/sync-dotfiles.sh"
+description = "Apply dotfiles (chezmoi apply)"
+run = "chezmoi apply"
 
-[tasks.compliance]
-description = "Sync plus drift checks"
-run = "./scripts/sync-dotfiles.sh --compliance"
+[tasks.diff]
+description = "Show what chezmoi apply would change"
+run = "chezmoi diff"
 
-[tasks.check]
-description = "Drift check only, no sync"
-run = "./scripts/sync-dotfiles.sh --check-only"
+[tasks.migrate]
+description = "One-time cutover of a stow-managed machine to chezmoi"
+run = "mise exec chezmoi@latest -- ./scripts/migrate-from-stow.sh"
+
+[tasks.store-gpg-key]
+description = "Upload the git signing key to 1Password for other machines"
+run = "./scripts/store-gpg-key.sh"

@@ -1,0 +1,55 @@
+{{- /* Target paths chezmoi must not manage on this machine. */ -}}
+
+# Runtime files apps write next to their config.
+.config/fish/fish_variables
+
+# Delivered by the private source (~/.dotfiles/private).
+.config/fish/private_user
+.config/fish/private_work
+
+{{ if ne .chezmoi.os "linux" -}}
+.config/environment.d
+.config/fuzzel
+.config/greetd
+.config/gtk-3.0
+.config/gtk-4.0
+.config/hypr
+.config/kanata
+.config/nwg-displays
+.config/pipewire
+.config/rofi
+.config/sddm
+.config/systemd
+.config/wayle
+.config/zen
+{{- end }}
+
+{{ if ne .chezmoi.os "darwin" -}}
+.config/karabiner
+{{- end }}
+
+{{ if not .sunshine -}}
+.config/sunshine
+.config/systemd/user/Sunshine.service
+.config/systemd/user/steam-bpm.service
+.config/hypr/hosts/sunshine.*
+.local/bin/cage-bpm
+.local/bin/cage-set-mode
+{{- end }}
+
+{{ if not .server -}}
+.config/fish/conf.d/umask.fish
+{{- end }}
+
+{{ if not .asahi -}}
+.config/hypr/hosts/asahi.*
+{{- end }}
+
+{{ if eq .hyprHost "" -}}
+.config/hypr/host.conf
+.config/hypr/host.lua
+{{- end }}
+
+{{ if not .fetchSshKey -}}
+.ssh
+{{- end }}

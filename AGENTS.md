@@ -1,366 +1,108 @@
 # AGENTS.md - Dotfiles Repository Guide
 
-Machine-specific dotfiles managed with GNU Stow, per-host JSON configs, template rendering, and cross-platform package management.
+Dotfiles managed by chezmoi in symlink mode. A gitignored `private/` checkout is a second
+chezmoi source, applied after this one; its conventions live in `private/AGENTS.md`.
 
 ---
 
-## Directory Layout
+## Layout
 
 | Path | Purpose |
 |------|---------|
-| `hosts/<hostname>.json` | Per-machine manifests defining packages, templates, and OS |
-| `templates/` | Files with `{{placeholder}}` values rendered at sync via 1Password CLI |
-| `packages.json` | Single source of truth for cross-platform dev tools and apps |
-| `scripts/` | Sync orchestrator, package installers, validators, setup helpers |
-| `schemas/` | JSON Schema files for host-config and packages.json validation |
-| `tests/` | Python tests for the compliance system and scripts |
-| `dot_home/` | Stow package for `~` (common home dir configs, scripts, services) |
-| `dot_config_common/` | Stow package for `~/.config` (cross-platform tools: fish, nvim, ghostty, wezterm, yazi, vesktop) |
-| `dot_config_linux/` | Stow package for `~/.config` (Linux-only: hypr, greetd, gtk, fuzzel, rofi, sddm, kanata, zen, nwg-displays, gnupg) |
-| `dot_config_macos/` | Stow package for `~/.config` (macOS-only configs: aerospace, karabiner, gnupg) |
-| `etc_linux/` | Stow package for `/etc` (Linux system configs: greetd) |
-| `.githooks/` | Git hooks: pre-commit, pre-push, post-checkout, post-merge, prepare-commit-msg |
-| `docs/superpowers/specs/` | Design documents for planned features |
-| `docs/superpowers/plans/` | Implementation plans with step-by-step tasks |
-| `README.md` | Quick start and architecture overview |
+| `.chezmoiroot` | Points chezmoi at `home/`; everything else in the repo is not managed |
+| `home/` | chezmoi source state: `dot_config/<tool>` → `~/.config/<tool>` |
+| `home/.chezmoi.toml.tmpl` | Host prompt (asked once) and derived per-host data flags |
+| `home/.chezmoiignore` | Gating by `.chezmoi.os` and host flags |
+| `home/.chezmoiexternal.toml.tmpl` | git-repo externals (nvim config, go-git) |
+| `home/.chezmoiscripts/` | `run_` scripts: packages, system files, gpg import, `private/` pull and apply |
+| `home/.linked/` | Directories linked whole via `symlink_` templates (chezmoi ignores dot-dirs in the source) |
+| `etc_linux/`, `asahi_system/` | System files, deployed with `scripts/deploy-system-files.sh` |
+| `packages.json` + `schemas/packages.schema.json` | Platform packages and their field reference |
+| `mise.toml` | Portable CLI tools and `mise run` tasks |
+| `private/` | Second chezmoi source (gitignored); see `private/AGENTS.md` |
 
 ---
 
-## Stow Package Map
+## Host Data
 
-| Package | Stow Target | Contents |
-|---------|-------------|----------|
-| `dot_home` | `~` | `.gitignore`, `.ideavimrc`, `.zshrc`, `scripts/`, `services/`, `firefox/`, `wallpaper/` |
-| `dot_config_common` | `~/.config` | fish, nvim, ghostty, wezterm, yazi, vesktop |
-| `dot_config_linux` | `~/.config` | hypr, greetd, gtk-3.0, gtk-4.0, fuzzel, rofi, sddm, hyprpanel, kanata, wayle, zen, nwg-displays, gnupg |
-| `dot_config_macos` | `~/.config` | aerospace, karabiner, gnupg |
-| `etc_linux` | `/etc` | System-level configs (greetd) |
-| `asahi` | `~` | Asahi Linux-specific configs (speakersafetyd) |
-| `sunshine` | `~` | Sunshine game streaming config |
-| `etc_josh_desktop` | `/etc` | josh-desktop-specific system configs |
+`home/.chezmoi.toml.tmpl` prompts for `host` once (`promptStringOnce`) and derives flags.
+Templates check flags, never host names:
 
-**Naming convention:** Directories prefixed `dot_` map to `~` (via Stow's `-t ~`). `etc_linux` maps to `/etc` (uses `sudo stow -t /etc`).
+| Flag | Meaning |
+|------|---------|
+| `work` / `opVault` | Work Mac; 1Password vault `Work` or `Personal` |
+| `asahi`, `sunshine`, `hyprHost` | Linux host variants (hypr `host.*` selection, system files) |
+| `server` | Arch server (`everythingcomputer`): group-writable umask |
+| `linger` | Enable `loginctl enable-linger` |
+| `fetchSshKey` | Write `~/.ssh/id_ed25519` from 1Password if missing |
+| `cloneGoGit` | Clone `~/src/go-git` |
+| `privatePkgs` | Packages the `private/` source applies on this host |
+| `gitName`, `gitEmail`, `gitSigningKey` | Read from 1Password at init only |
 
-**Path mapping within packages:** A file at `dot_config_linux/.config/hypr/hyprland.conf` becomes `~/.config/hypr/hyprland.conf` after stowing. Stow creates symlinks; the actual file lives only in the repo. Remove the stow package to remove the links cleanly.
-
-**Per-package stow-local-ignore:** Place a `.stow-local-ignore` file inside any stow package directory to list glob patterns stow should skip for that package (one pattern per line, `^` prefix for regex anchors). Used in `dot_home/` to exclude directories from stowing.
-
----
-
-## Adding New Files Under Management
-
-1. **Choose the right stow package:**
-   - Cross-platform `~/.config` tool → `dot_config_common/.config/<tool>/`
-   - Linux-only `~/.config` tool → `dot_config_linux/.config/<tool>/`
-   - macOS-only `~/.config` tool → `dot_config_macos/.config/<tool>/`
-   - Home directory file (`.gitignore`, `.ideavimrc`, etc.) → `dot_home/`
-   - Home directory scripts → `dot_home/scripts/`
-   - System config under `/etc` → `etc_linux/` (and add a `system` entry in the host config)
-   - Service units or systemd files → `dot_home/services/` (for user services) or `etc_linux/` (for system services)
-
-2. **If the file contains values that differ per machine** (gitconfig user info, email, signing key, etc.), create a template:
-   - Add a `.tmpl` file in `templates/` mirroring the target path (e.g. `templates/dot_home/.gitconfig.tmpl`)
-   - Use `{{placeholder}}` for variable values (e.g. `{{user.email}}`)
-   - Add the target path and 1Password references to the host config's `templates` section
-   - Add the rendered output path to `.gitignore` (at repo root, not inside the template)
-   - If the template has no placeholders (like `.zshrc`), it still goes through rendering -- the empty `{}` in the host config tells the sync script to copy it as-is
-
-3. **If the file is machine-specific** and shouldn't exist on all machines:
-   - Add it to the appropriate platform-specific stow package (e.g. `dot_config_linux` for Linux-only)
-   - Only enable that package in relevant host configs (`dot_config_linux` only in Linux host configs)
-
-4. **Register new tools/apps** in `packages.json` (see Package Management section)
-
-5. **Run validation:** `./scripts/validate-config.sh hosts/<hostname>.json`
+An unknown host gets the defaults: all flags false, `Personal` vault, default `privatePkgs`.
+The OS always comes from `.chezmoi.os`. To add a machine-specific behaviour, add the host
+name to the flag expressions in `.chezmoi.toml.tmpl`.
 
 ---
 
-## Host Configs
+## Adding Files
 
-Host configs live in `hosts/<hostname>.json`. Hostname detection uses `hostname | cut -d. -f1`, falling back to `hosts/default.json` if no exact match exists. Override with `DOTFILES_HOST_CONFIG` env var.
+1. Put the file under `home/` with chezmoi naming: `.foo` → `dot_foo`, a name starting
+   with a chezmoi prefix (`private_`, `run_`, ...) → `literal_<name>`, a real `.tmpl` file →
+   `<name>.tmpl.literal`. Or run `chezmoi add --follow <path>` and move it if needed.
+2. OS- or host-specific? Add its target path to `home/.chezmoiignore` under the right gate.
+3. Per-machine values? Make it a `.tmpl` and use host data. Secrets: `onepasswordRead`
+   (pre-commit only allows `op://` in `home/**/*.tmpl`). Templates are copied, not linked.
+4. App rewrites its config by replacing the file (breaks a symlink)? Put the directory in
+   `home/.linked/<name>` and add `home/dot_config/symlink_<name>.tmpl`.
+5. Belongs in `private/`? Follow `private/AGENTS.md`.
+6. Check: `chezmoi diff`, then `chezmoi apply`.
 
-**Schema:**
-
-| Field | Description |
-|-------|-------------|
-| `os` | `macos` or `linux`. Used for validation and conditional setup steps (e.g. zen-setup runs only on Linux). |
-| `packages.public` | Array of stow package names from this repo to enable (e.g. `dot_home`, `dot_config_common`). These must match directory names in the repo root. |
-| `packages.system` | Array of `{"pkg": "etc_linux", "target": "/etc"}` objects for stow packages that need `sudo`. Not all host configs use this. |
-| `templates` | Map of target paths (relative to repo root, e.g. `dot_home/.gitconfig`) to objects mapping `{{placeholder}}` names to `op://` 1Password references. |
-| `skip_paths` | Array of glob patterns to exclude when stowing. Useful when a stow package contains files that don't apply to a specific machine. |
-| `compliance` | Optional. Compliance checker configuration (see Compliance section below). Controls drift detection across packages, services, and files. |
-
-**Example (`hosts/default.json`):**
-```json
-{
-  "os": "linux",
-  "packages": {
-    "public": ["dot_home", "dot_config_common", "dot_config_linux"],
-    "system": [{"pkg": "etc_linux", "target": "/etc"}]
-  },
-  "templates": {
-    "dot_home/.gitconfig": {
-      "user.email": "op://Personal/Git Email/username",
-      "user.name": "op://Personal/user/username",
-      "user.signingkey": "op://Personal/Git Signing Key/public key"
-    }
-  },
-  "skip_paths": [],
-  "compliance": {
-    "schemaVersion": 1,
-    "packages": { "mode": "expected", "expected": [], "absent": [] },
-    "services": { "mode": "off" },
-    "files": { "mode": "expected", "expected": [] }
-  }
-}
-```
-
-**Adding a new machine:**
-
-1. Run `hostname | cut -d. -f1` on the target machine to get the config name
-2. Copy `hosts/default.json` to `hosts/<hostname>.json`
-3. Set `"os"` to `"macos"` or `"linux"` as appropriate
-4. Adjust `packages.public` for the platform:
-   - Linux: `["dot_home", "dot_config_common", "dot_config_linux"]`
-   - macOS: `["dot_home", "dot_config_common", "dot_config_macos"]`
-5. Add `system` entry only on Linux: `[{"pkg": "etc_linux", "target": "/etc"}]`
-6. Add template entries for machine-specific values (gitconfig user info, signing keys)
-7. Run `./scripts/validate-config.sh hosts/<hostname>.json` to validate
-8. Run `./scripts/sync-dotfiles.sh` to apply (requires `op` authenticated)
+Executables in `home/` keep their git mode and are linked, so no `executable_` prefix.
 
 ---
 
-## Scripts Reference
+## Scripts and Tasks
 
-| Script | Purpose |
-|--------|---------|
-| `sync-dotfiles.sh` | Main orchestrator: validate config → render templates from 1Password → stow public packages → stow system packages (with sudo) → post-sync validation → compliance check → zen-setup. Idempotent. Supports `--check-only`. |
-| `install-deps.sh` | Full bootstrap: install Homebrew (macOS) or yay (Arch), then git, stow, jq, 1Password CLI. Fetches SSH keys from 1Password. Optionally installs all packages from `packages.json`. Supports `--compliance` flag. |
-| `install-packages.py` | Reads `packages.json` and installs per-platform packages. Auto-detects platform or accepts `--platform macos\|arch`. Supports `--dry-run` for preview. |
-| `audit-packages.py` | **Deprecated.** Thin wrapper around `check-compliance.sh --packages-only`. Compares installed packages against `packages.json`. Will be removed in a future release. |
-| `check-compliance.sh` | Compliance checker: detects drift across packages, systemd services, and config files. Generates JSON+Markdown reports to `~/.config/dotfiles/`. Supports `--accept pkg:extra:<name>` to declare intentional drift (writes back to host config). `--json` for machine output, `--quick` to skip content hashing. |
-| `validate-config.sh` | Pre-sync validation: checks prerequisites (stow, jq, git, `op` if templates exist), validates JSON syntax, checks required fields, validates `os` value. Also runs JSON Schema validation if `jsonschema` module is available. |
-| `fetch-ssh-keys.sh` | Reads `ssh_keys` from host config, fetches each key from 1Password, writes to `~/.ssh/`. Safe to re-run; skips existing keys unless `--force` passed. |
-| `zen-setup.sh` | Reads `profiles.ini` in `~/.config/zen/`, finds the default profile, symlinks `user.js` into it. Runs automatically at end of sync on Linux. |
+| Command | Purpose |
+|---------|---------|
+| `scripts/bootstrap.sh` | New machine via `curl \| bash`: git, HTTPS clone, mise, then `mise run bootstrap` |
+| `mise run bootstrap` | install-tools → install-apps → `ensure-access.sh` (op signed in, GitHub SSH) → `chezmoi init --apply` |
+| `mise run sync` / `diff` | `chezmoi apply` / `chezmoi diff` |
+| `mise run migrate` | `scripts/migrate-from-stow.sh`: one-time cutover from the old stow setup |
+| `mise run store-gpg-key` | Upload the signing key to 1Password (`Git Signing Key (private)`) |
+| `scripts/install-deps.sh` | Package-manager bootstrap (brew / yay / Fedora repos), git, jq, op, packages.json |
+| `scripts/deploy-system-files.sh SRC TARGET` | sudo-copies git-tracked files only (never untracked snapshots like fstab) |
 
-**Common usage patterns:**
-```bash
-# Full setup from scratch
-./scripts/install-deps.sh && ./scripts/sync-dotfiles.sh
-
-# Just validate before committing config changes
-./scripts/validate-config.sh hosts/$(hostname | cut -d. -f1).json
-
-# See what packages would install without running
-./scripts/install-deps.sh --dry-run
-
-# Audit installed vs tracked packages (deprecated — use check-compliance.sh)
-python3 scripts/audit-packages.py
-
-# Run compliance check (detect drift)
-./scripts/check-compliance.sh --pre
-
-# Accept intentional drift (writes back to host config)
-./scripts/check-compliance.sh --accept pkg:extra:cowsay
-./scripts/check-compliance.sh --accept pkg:missing:old-tool
-./scripts/check-compliance.sh --accept file:modified:~/.config/foo/bar.conf
-./scripts/check-compliance.sh --accept file:orphan:~/.config/abandoned/config
-
-# Force re-fetch SSH keys
-./scripts/fetch-ssh-keys.sh --force
-```
+Run scripts use `bash`; anything handed to the user to type must be fish-compatible.
+Python runs on mise's pinned interpreter (`mise exec -- python3`), never the system one.
 
 ---
 
-## Package Management
+## Packages
 
-`packages.json` is the single source of truth for cross-platform dev tools and apps. It has two top-level arrays:
-
-- **`tools`**: CLI tools and language runtimes (ripgrep, git, fish, neovim, etc.)
-- **`apps`**: GUI applications and full desktop software (Discord, Ghostty, VSCode, etc.)
-
-**Entry fields:**
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `name` | required | Canonical package name |
-| `platforms` | `["macos","arch"]` | Which platforms this package applies to |
-| `pacman` | `name` | Package name on Arch Linux (pacman/yay) |
-| `brew` | `name` | Package name on macOS (Homebrew) |
-| `aur` | `false` | Install via yay (AUR) on Arch instead of pacman |
-| `cask` | `false` | Use `brew install --cask` on macOS |
-| `tap` | none | Homebrew tap to enable before installing (macOS only) |
-
-**Platform defaults:** If `platforms` is omitted, the package installs on both macOS and Arch. Use `["macos"]` or `["arch"]` to restrict.
-
-**Adding a new package:**
-```bash
-# 1. Find the right name for each platform
-#    macOS: brew search <name>
-#    Arch:  pacman -Ss <name> or yay -Ss <name>
-
-# 2. Add to packages.json
-#    Simple case (same name on both platforms):
-    {"name": "bat"}
-#    Different names:
-    {"name": "awscli", "pacman": "aws-cli"}
-#    AUR-only:
-    {"name": "ast-grep", "aur": true}
-#    Platform-specific:
-    {"name": "blueutil", "platforms": ["macos"]}
-
-# 3. Install to verify:
-    python3 scripts/install-packages.py --dry-run
-```
-
-**Audit workflow:**
-```bash
-# Deprecated — use check-compliance.sh instead
-python3 scripts/audit-packages.py
-# Review untracked packages and add relevant ones to packages.json
-# Run after any significant package install session
-```
-
----
-
-## Compliance
-
-The compliance system detects configuration drift across three domains:
-**package membership**, **systemd service state**, and **config file integrity**.
-It runs automatically during `sync-dotfiles.sh` (pre-sync and post-sync) and can
-be invoked standalone via `scripts/check-compliance.sh`.
-
-**Severity tiers:**
-- `required` — fail on drift (exit code 1)
-- `expected` — warn on drift (exit code 0)
-- `info` — informational only
-
-**Acceptance workflow:**
-```bash
-# Run the checker to see drift
-./scripts/check-compliance.sh --pre
-
-# Accept intentional deviations (writes back to host config JSON)
-./scripts/check-compliance.sh --accept pkg:extra:cowsay
-./scripts/check-compliance.sh --accept pkg:missing:old-tool
-./scripts/check-compliance.sh --accept file:modified:~/.config/foo/bar.conf
-./scripts/check-compliance.sh --accept file:orphan:~/.config/abandoned/config
-
-# After acceptance, re-run — accepted items now pass
-./scripts/check-compliance.sh --pre
-```
-
-**Notification layers:**
-1. `notify-send` at sync time (if graphical session is available)
-2. JSON report at `~/.config/dotfiles/drift-report.json`
-
-**Compliance schema (in host config):**
-```json
-{
-  "compliance": {
-    "schemaVersion": 1,
-    "packages": {
-      "mode": "expected",
-      "expected": ["<packages intentionally extra>"],
-      "absent": ["<packages intentionally missing>"]
-    },
-    "services": {
-      "mode": "expected",
-      "units": [
-        {"unit": "<name>", "expectedEnabled": true, "expectedActive": null, "severity": "expected"}
-      ]
-    },
-    "files": {
-      "mode": "expected",
-      "expected": ["<paths intentionally modified or orphaned>"]
-    }
-  }
-}
-```
-`mode` values: `"required"`, `"expected"`, or `"off"` (skip domain).
-
-**Flags:**
-- `--pre` — full checks before stow (default)
-- `--post` — symlink-only verification after stow
-- `--packages-only` / `--services-only` / `--files-only` — domain filters
-- `--json` — machine-parseable output only
-- `--quick` — skip content hashing and template freshness
-- `--accept <type>:<domain>:<id>` — declare intentional drift (repeatable)
-
----
-
-## Templates
-
-Files in `templates/` use `{{placeholder}}` values rendered at sync time via `op read` from 1Password.
-
-**Process (in `sync-dotfiles.sh`):**
-1. For each entry in the host config's `templates` object, find the matching `.tmpl` file in `templates/`
-2. Copy the template to the target output path in the repo root
-3. For each placeholder in the template, read the `op://` reference from the host config and replace `{{placeholder}}` with the fetched value
-4. The rendered file is now ready for stowing
-
-**Rules:**
-- Template files use a `.tmpl` extension mirroring the target path (e.g. `templates/dot_home/.gitconfig.tmpl`)
-- Output goes to the corresponding path in the repo root (e.g. `dot_home/.gitconfig`)
-- Rendered files are listed in `.gitignore` and MUST NOT be committed
-- If a template has no variable placeholders (empty `{}` in host config), the file is still copied through -- useful for files that should exist on disk but don't need to contain secrets
-- `op` CLI must be authenticated before sync. Run `op signin` if needed.
-
-**Template example (`templates/dot_home/.gitconfig.tmpl`):**
-```ini
-[user]
-    name = {{user.name}}
-    email = {{user.email}}
-    signingkey = {{user.signingkey}}
-[init]
-    defaultBranch = main
-[push]
-    autoSetupRemote = true
-[pull]
-    rebase = true
-[core]
-    editor = nvim
-    pager = delta
-[delta]
-    navigate = true
-    side-by-side = true
-```
-
-**Corresponding host config entry:**
-```json
-{
-  "templates": {
-    "dot_home/.gitconfig": {
-      "user.email": "op://Personal/Git Email/username",
-      "user.name": "op://Personal/user/username",
-      "user.signingkey": "op://Personal/Git Signing Key/public key"
-    }
-  }
-}
-```
+`packages.json` holds `tools` and `apps`. Fields are documented in
+`schemas/packages.schema.json` (`platforms`, `brew`, `pacman`, `dnf`, `aur`, `copr`,
+`flatpak`, `cask`, `tap`, `arch`). A tool lives in `mise.toml` **or** `packages.json`,
+never both (`tests/test_mise.py`). Edits rerun the packages script on the next apply.
 
 ---
 
 ## Githooks
 
-Hooks are active via `git config core.hooksPath .githooks` (set automatically in the repo). Each hook integrates beads (the task tracker) via managed code blocks at the end of each script.
+`core.hooksPath = .githooks`. Each hook ends with a managed beads block; leave it intact.
 
 | Hook | Behavior |
 |------|----------|
-| **pre-commit** | Scans staged files. Blocks commits with: `op://` refs outside host configs/docs/hooks, hardcoded API keys/tokens/passwords/connection strings, any files in `private/`, rendered `dot_home/.gitconfig`, or files under `dot_config_common/.config/fish/private_user/`. Also runs shellcheck on staged shell scripts and validates staged host configs. Runs beads pre-commit hooks after scan. |
-| **pre-push** | Ensures out-of-repo overlays are pushed before the public push. Runs beads pre-push hooks. |
-| **post-checkout** | On branch changes, checks if templates/hosts/scripts changed and regenerates opencode agent configs if so. Runs beads post-checkout hooks. |
-| **post-merge** | After `git pull`, checks if opencode templates/hosts/scripts changed and regenerates agent configs. Runs beads post-merge hooks. |
-| **prepare-commit-msg** | Runs beads hooks for commit message templates. |
+| pre-commit | Blocks `op://` outside `home/**/*.tmpl`, likely secrets, anything under `private/`; shellchecks staged `.sh` |
+| pre-push | Pushes the `private/` repo first if it has unpushed commits |
+| post-checkout / post-merge | Regenerate opencode agents via `~/.config/opencode/scripts/bootstrap.sh` when their templates change |
 
 ---
 
-## Tooling & Validation
+## Tests
 
-- **File search:** prefer `fd` over `find`
-- **Content search:** prefer `rg` (ripgrep) over `grep`
-- **JSON validation:** `jq empty <file>` to check syntax
-- **Config validation:** `./scripts/validate-config.sh <host_config>`
-- **Shell scripts:** ensure they pass `shellcheck`
-
-For available skills and agents, invoke the `skills-catalog` or `agents-catalog` skills.
+- `tests/test_mise.py`: `uvx pytest tests/test_mise.py` (needs Python 3.11+ for `tomllib`)
+- `tests/test_keybindings.lua`: `lua tests/test_keybindings.lua .` (reads rex/hypr configs from `home/`)
+- Shell: `shellcheck` every script; render `run_` templates with
+  `chezmoi execute-template < file | shellcheck -s bash -`
