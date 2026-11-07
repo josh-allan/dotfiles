@@ -37,7 +37,7 @@ Templates check flags, never host names:
 | `fetchSshKey` | Write `~/.ssh/id_ed25519` from 1Password if missing |
 | `cloneGoGit` | Clone `~/src/go-git` |
 | `privatePkgs` | Packages the `private/` source applies on this host |
-| `gitName`, `gitEmail`, `gitSigningKey` | Read from 1Password at init only |
+| `gitName`, `gitEmail`, `gitSigningKey` | Read from 1Password at init; kept or empty when op is not signed in (signing turns off with no key). Rerun `chezmoi init` to fill |
 
 An unknown host gets the defaults: all flags false, `Personal` vault, default `privatePkgs`.
 The OS always comes from `.chezmoi.os`. To add a machine-specific behaviour, add the host
@@ -67,9 +67,9 @@ Executables in `home/` keep their git mode and are linked, so no `executable_` p
 | Command | Purpose |
 |---------|---------|
 | `scripts/bootstrap.sh` | New machine via `curl \| bash`: git, HTTPS clone, mise, then `mise run bootstrap` |
-| `mise run bootstrap` | install-tools → install-apps → `ensure-access.sh` (op signed in, GitHub SSH) → `chezmoi init --apply` |
+| `mise run bootstrap` | install-tools → install-apps → `ensure-access.sh` (GitHub SSH required; warns if op is not signed in) → `chezmoi init --apply` |
 | `mise run sync` / `diff` | `chezmoi apply` / `chezmoi diff` |
-| `mise run migrate` | `scripts/migrate-from-stow.sh`: one-time cutover from the old stow setup |
+| `mise run migrate` | `scripts/migrate-from-stow.sh`: one-time cutover from the old stow setup (runs `ensure-access.sh` first) |
 | `mise run store-gpg-key` | Upload the signing key to 1Password (`Git Signing Key (private)`) |
 | `scripts/install-deps.sh` | Package-manager bootstrap (brew / yay / Fedora repos), git, jq, op, packages.json |
 | `scripts/deploy-system-files.sh SRC TARGET` | sudo-copies git-tracked files only (never untracked snapshots like fstab) |

@@ -1,7 +1,13 @@
 [user]
+{{- if .gitName }}
 	name = {{ .gitName }}
+{{- end }}
+{{- if .gitEmail }}
 	email = {{ .gitEmail }}
+{{- end }}
+{{- if .gitSigningKey }}
 	signingkey = {{ .gitSigningKey }}
+{{- end }}
 [init]
 	defaultBranch = main
 [core]
@@ -9,7 +15,7 @@
     editor = nvim
     pager = delta
 [commit]
-	gpgsign = true
+	gpgsign = {{ ne .gitSigningKey "" }}
 [url "ssh://git@github.com"]
 	insteadOf = https://github.com
 [push]
@@ -22,7 +28,7 @@
 [pull]
   ff = only
 [tag]
-	gpgSign = true
+	gpgSign = {{ ne .gitSigningKey "" }}
 [submodule]
 	recurse = true
 [delta]

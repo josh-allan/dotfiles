@@ -16,19 +16,24 @@ die() {
 	exit 1
 }
 
-wait_for_op() {
-	command -v op >/dev/null 2>&1 || die "1Password CLI (op) not installed; run: mise run install-apps"
+op_ready=false
+
+# Warns rather than blocks: headless hosts have no 1Password app to unlock.
+check_op() {
+	if ! command -v op >/dev/null 2>&1; then
+		log "1Password CLI (op) not installed; continuing without 1Password"
+		return
+	fi
 	# Not `op whoami`: with the desktop-app integration it reports "not signed in" until a
 	# real request triggers authorization. Listing vaults is such a request.
-	until op vault list >/dev/null 2>&1; do
-		log "1Password CLI is not signed in."
-		log "Open the 1Password app, unlock it, and enable Settings > Developer > Integrate with 1Password CLI."
-		log "Or run 'op signin' in another terminal."
-		{ : </dev/tty; } 2>/dev/null || die "no terminal to wait on; sign in to op and rerun"
-		log "Press Enter to check again."
-		read -r </dev/tty
-	done
-	log "1Password CLI signed in"
+	if op vault list >/dev/null 2>&1; then
+		op_ready=true
+		log "1Password CLI signed in"
+		return
+	fi
+	log "1Password CLI is not signed in; continuing without 1Password (git identity stays empty)."
+	log "To fill it later: unlock the 1Password app with CLI integration, or on a headless host"
+	log "'set -x OP_BIOMETRIC_UNLOCK_ENABLED false; op signin | source', then rerun 'chezmoi init'."
 }
 
 # `ssh -T` exits 1 even on success, so match GitHub's greeting instead. Captured rather
@@ -47,6 +52,7 @@ ensure_github_ssh() {
 	if [[ -e "$ssh_key" ]]; then
 		die "GitHub SSH fails but $ssh_key exists; add it to GitHub or ssh-agent, then rerun"
 	fi
+	$op_ready || die "GitHub SSH fails and 1Password is unavailable to fetch $ssh_key; add a key to GitHub, then rerun"
 	log "Writing $ssh_key from 1Password"
 	mkdir -p "$HOME/.ssh"
 	chmod 700 "$HOME/.ssh"
@@ -61,5 +67,5 @@ ensure_github_ssh() {
 	log "GitHub SSH access works"
 }
 
-wait_for_op
+check_op
 ensure_github_ssh

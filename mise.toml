@@ -38,9 +38,9 @@ description = "Install GUI apps and system packages via brew/yay (packages.json)
 run = "./scripts/install-deps.sh"
 
 [tasks.bootstrap]
-description = "Full new-machine setup: tools, apps, then chezmoi init + apply (needs op signed in)"
+description = "Full new-machine setup: tools, apps, then chezmoi init + apply"
 depends = ["install-tools", "install-apps"]
-# ensure-access: op signed in + GitHub SSH, both needed by init. chezmoi is pinned in the
+# ensure-access: GitHub SSH (needed by init); 1Password optional, warns if not signed in. chezmoi is pinned in the
 # global mise config, which isn't linked until this apply runs.
 run = [
     "./scripts/ensure-access.sh",

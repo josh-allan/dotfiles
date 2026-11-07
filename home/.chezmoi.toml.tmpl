@@ -17,11 +17,25 @@
 {{- if $work }}{{ $privatePkgs = list "private_user" "private_work" "opencode" "please" "augment" }}{{ end -}}
 {{- if $server }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "please" }}{{ end -}}
 
-{{- /* Read from 1Password once, at `chezmoi init`, so routine applies don't need it unlocked. */ -}}
+{{- /* Read from 1Password once, at `chezmoi init`, so routine applies don't need it unlocked.
+       Without a signed-in op (headless host, app closed), keep the previous values or leave
+       them empty; rerun `chezmoi init` once op works. Probed via `output` so chezmoi never
+       runs its own `op signin`. */ -}}
 {{- $opVault := ternary "Work" "Personal" $work -}}
-{{- $gitName := onepasswordRead (printf "op://%s/user/username" $opVault) | trim -}}
-{{- $gitEmail := onepasswordRead (printf "op://%s/Git Email/username" $opVault) | trim -}}
-{{- $gitSigningKey := onepasswordRead (printf "op://%s/Git Signing Key/public key" $opVault) | trim }}
+{{- $opReady := false -}}
+{{- if lookPath "op" -}}
+{{-   $opReady = eq (output "sh" "-c" "op vault list >/dev/null 2>&1 && echo ok || true" | trim) "ok" -}}
+{{- end -}}
+{{- $gitName := get . "gitName" | toString -}}
+{{- $gitEmail := get . "gitEmail" | toString -}}
+{{- $gitSigningKey := get . "gitSigningKey" | toString -}}
+{{- if $opReady -}}
+{{-   $gitName = onepasswordRead (printf "op://%s/user/username" $opVault) | trim -}}
+{{-   $gitEmail = onepasswordRead (printf "op://%s/Git Email/username" $opVault) | trim -}}
+{{-   $gitSigningKey = onepasswordRead (printf "op://%s/Git Signing Key/public key" $opVault) | trim -}}
+{{- else -}}
+{{-   warnf "1Password CLI not signed in; git identity kept or left empty. Rerun `chezmoi init` once op works." -}}
+{{- end }}
 
 sourceDir = {{ .chezmoi.workingTree | quote }}
 mode = "symlink"

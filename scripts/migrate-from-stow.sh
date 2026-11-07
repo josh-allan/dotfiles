@@ -77,6 +77,9 @@ for link in ${stow_links[@]+"${stow_links[@]}"}; do
 done
 $dry_run && exit 0
 
+# Before removing anything: without GitHub SSH the apply below fails on the externals.
+"$repo/scripts/ensure-access.sh"
+
 if ((${#stow_links[@]} > 0)); then
 	confirm "Remove these links?" || exit 1
 	rm -- "${stow_links[@]}"
