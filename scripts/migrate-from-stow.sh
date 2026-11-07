@@ -2,7 +2,7 @@
 # One-time cutover from the old stow setup to chezmoi.
 #
 # Usage: migrate-from-stow.sh [--dry-run] [--yes] [--keep-private] [--host NAME]
-#   --dry-run       list the stow links that would be removed, change nothing
+#   --dry-run       list the stow links (depth 5 under ~) that would be removed, change nothing
 #   --yes           skip both confirmation prompts
 #   --keep-private  leave links into ~/.dotfiles/private (private-dots not converted yet)
 #   --host NAME     host profile for `chezmoi init` (default: prompt, suggesting the hostname)
@@ -59,11 +59,17 @@ points_into_repo() {
 }
 
 stow_links=()
+# Enablement links (e.g. timers.target.wants/backup.timer) pointing into the repo get
+# removed too; re-enable their units after apply, once the unit files are linked again.
+reenable_units=()
 while IFS= read -r -d '' link; do
 	if points_into_repo "$(readlink "$link")"; then
 		stow_links+=("$link")
+		if [[ "$link" == */systemd/user/*.wants/* ]]; then
+			reenable_units+=("$(basename "$link")")
+		fi
 	fi
-done < <(fd --type symlink --hidden --no-ignore --max-depth 4 --exclude .dotfiles --print0 . "$HOME")
+done < <(fd --type symlink --hidden --no-ignore --max-depth 5 --exclude .dotfiles --print0 . "$HOME")
 
 echo "Stow links to remove: ${#stow_links[@]}"
 for link in ${stow_links[@]+"${stow_links[@]}"}; do
@@ -94,3 +100,10 @@ fi
 "$chezmoi_bin" diff || true
 confirm "Apply?" || exit 1
 "$chezmoi_bin" apply --verbose
+
+if ((${#reenable_units[@]} > 0)) && command -v systemctl >/dev/null 2>&1; then
+	systemctl --user daemon-reload
+	for unit in "${reenable_units[@]}"; do
+		systemctl --user enable "$unit" && echo "Re-enabled $unit"
+	done
+fi

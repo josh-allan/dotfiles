@@ -31,6 +31,8 @@
 
 {{ if not .sunshine -}}
 .config/sunshine
+.config/systemd/user/Sunshine.service
+.config/systemd/user/steam-bpm.service
 .config/hypr/hosts/sunshine.*
 .local/bin/cage-bpm
 .local/bin/cage-set-mode

@@ -65,8 +65,11 @@ edits the repo. Templates (`*.tmpl`) and `private_` files are copies: change the
 | `EverythingLaptop` | Linux | Asahi hypr host config and system files, ssh key from 1Password. Notes said Arch Linux ARM; now runs Fedora |
 | `josh-desktop` | Linux | Sunshine streaming, linger |
 | `M-J7KGT9QHDJ` | macOS | Work: `Work` 1Password vault |
+| `everythingcomputer` | Linux | Arch server (x86_64) |
 
-**Services expected to be enabled** (not enabled automatically; the old compliance
+**User units enabled on apply:** `Sunshine.service` and `steam-bpm.service` on josh-desktop.
+
+**Services expected to be enabled, but not enabled automatically** (the old compliance
 checker only warned): `mpris-proxy.service`, `titdb.service` and `tzupdate.timer` on
 EverythingLaptop; `mpris-proxy.service` on josh-desktop.
 
