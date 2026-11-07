@@ -38,16 +38,15 @@ hl.bind("SUPER + SHIFT + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind("SUPER + P", hl.dsp.window.pseudo()) -- dwindle
 
 -- Move windows with CTRL + ALT + arrows
-hl.bind("CTRL + ALT + left", hl.dsp.window.move({ direction = "left" }))
-hl.bind("CTRL + ALT + right", hl.dsp.window.move({ direction = "right" }))
-hl.bind("CTRL + ALT + up", hl.dsp.window.move({ direction = "up" }))
-hl.bind("CTRL + ALT + down", hl.dsp.window.move({ direction = "down" }))
+local navigation = dofile(os.getenv("HOME") .. "/.config/keymaps/navigation.lua")
+for _, binding in ipairs(navigation) do
+	hl.bind("CTRL + ALT + " .. binding.direction, hl.dsp.window.move({ direction = binding.direction }))
+end
 
 -- Move focus with SUPER + hjkl
-hl.bind("SUPER + h", hl.dsp.focus({ direction = "left" }))
-hl.bind("SUPER + l", hl.dsp.focus({ direction = "right" }))
-hl.bind("SUPER + k", hl.dsp.focus({ direction = "up" }))
-hl.bind("SUPER + j", hl.dsp.focus({ direction = "down" }))
+for _, binding in ipairs(navigation) do
+	hl.bind("SUPER + " .. binding.key, hl.dsp.focus({ direction = binding.direction }))
+end
 
 -- Workspaces: SUPER + [0-9] to switch, SUPER + SHIFT + [0-9] to move window
 for i = 1, 10 do

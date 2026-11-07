@@ -253,7 +253,6 @@ be invoked standalone via `scripts/check-compliance.sh`.
 **Notification layers:**
 1. `notify-send` at sync time (if graphical session is available)
 2. JSON report at `~/.config/dotfiles/drift-report.json`
-3. Fish prompt indicator (coloured, from `~/.cache/dotfiles/drift-state`)
 
 **Compliance schema (in host config):**
 ```json

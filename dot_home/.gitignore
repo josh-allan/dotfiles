@@ -258,3 +258,6 @@ scratch/
 
 **/herdr/session.json
 metrics_fromatlas.txt
+
+.beads.gate.lock
+.opencode/

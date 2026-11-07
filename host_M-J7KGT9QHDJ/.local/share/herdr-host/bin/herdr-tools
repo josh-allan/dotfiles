@@ -1,1 +1,0 @@
-exec "$HOME/.local/bin/herdr-tools" "$@"
