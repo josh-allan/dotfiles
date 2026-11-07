@@ -1,0 +1,4 @@
+# Targets whose source files were deleted; chezmoi removes these on apply.
+# Directories are removed recursively, including files written outside the repo.
+.config/onvim
+.config/fish/functions/onvim.fish
