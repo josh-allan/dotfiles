@@ -35,10 +35,14 @@ run = "mise install"
 
 [tasks.install-apps]
 description = "Install GUI apps and system packages via brew/yay (packages.json)"
+# sudo and brew prompt for passwords; parallel tasks get no terminal unless interactive.
+interactive = true
 run = "./scripts/install-deps.sh"
 
 [tasks.bootstrap]
 description = "Full new-machine setup: tools, apps, then chezmoi init + apply"
+# chezmoi init prompts for the host profile on /dev/tty.
+interactive = true
 depends = ["install-tools", "install-apps"]
 # ensure-access: GitHub SSH (needed by init); 1Password optional, warns if not signed in. chezmoi is pinned in the
 # global mise config, which isn't linked until this apply runs.
