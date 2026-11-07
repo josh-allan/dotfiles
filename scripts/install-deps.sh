@@ -9,18 +9,15 @@ set -euo pipefail
 #   ./scripts/install-deps.sh              # bootstrap + all packages
 #   ./scripts/install-deps.sh --system     # also install the legacy Arch base package set (Arch only)
 #   ./scripts/install-deps.sh --dry-run    # preview package installs without running them
-#   ./scripts/install-deps.sh --compliance # run compliance check after package install
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_SYSTEM=false
 DRY_RUN=false
-RUN_COMPLIANCE=false
 
 for arg in "$@"; do
     case "$arg" in
         --system)      INSTALL_SYSTEM=true ;;
         --dry-run)     DRY_RUN=true ;;
-        --compliance)  RUN_COMPLIANCE=true ;;
     esac
 done
 
@@ -123,14 +120,6 @@ ensure_git() {
     fi
 }
 
-ensure_stow() {
-    if has_command stow; then
-        log_success "stow: $(stow --version | awk '{print $4}')"
-    else
-        install_pkg stow && log_success "stow installed"
-    fi
-}
-
 ensure_jq() {
     if has_command jq; then
         log_success "jq: $(jq --version)"
@@ -175,10 +164,12 @@ install_packages() {
     $DRY_RUN && dry_run_flag="--dry-run"
     # install-packages.py takes macos|arch|fedora, not the generic linux OS_TYPE;
     # omit --platform so its own detection picks arch vs archarm vs fedora correctly.
+    # Pinned explicitly: during bootstrap the global mise config (which pins python)
+    # isn't linked yet, and bare python3 would be the OS's interpreter.
     if [[ "$OS_TYPE" == "macos" ]]; then
-        python3 "$SCRIPT_DIR/install-packages.py" --platform macos $dry_run_flag
+        mise exec python@3.15 -- python3 "$SCRIPT_DIR/install-packages.py" --platform macos $dry_run_flag
     else
-        python3 "$SCRIPT_DIR/install-packages.py" $dry_run_flag
+        mise exec python@3.15 -- python3 "$SCRIPT_DIR/install-packages.py" $dry_run_flag
     fi
     log_success "Packages installed"
 }
@@ -235,12 +226,8 @@ case "$PKG_MGR" in
 esac
 
 ensure_git
-ensure_stow
 ensure_jq
 ensure_op
-
-log_info "Fetching SSH keys from 1Password..."
-"$SCRIPT_DIR/fetch-ssh-keys.sh" || log_warn "SSH key fetch failed — you may need to run scripts/fetch-ssh-keys.sh manually after signing in to op"
 
 install_packages
 
@@ -252,13 +239,4 @@ if $INSTALL_SYSTEM; then
     fi
 fi
 
-if $RUN_COMPLIANCE; then
-    log_info "Running compliance check..."
-    if [[ -x "$SCRIPT_DIR/check-compliance.sh" ]]; then
-        "$SCRIPT_DIR/check-compliance.sh" --pre || log_warn "Compliance check found drift. See ~/.config/dotfiles/drift-report.json"
-    else
-        log_warn "check-compliance.sh not found — sync dotfiles first"
-    fi
-fi
-
-log_success "Done. Run 'mise run bootstrap' (or ./scripts/sync-dotfiles.sh) to apply dotfiles."
+log_success "Done. Run 'mise run bootstrap' (or chezmoi init --source ~/.dotfiles --apply) to apply dotfiles."

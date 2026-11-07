@@ -8,7 +8,7 @@ import pytest
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
-REQUIRED_TASKS = {"bootstrap", "install-tools", "install-apps", "sync", "compliance", "check"}
+REQUIRED_TASKS = {"bootstrap", "install-tools", "install-apps", "sync", "diff", "migrate", "store-gpg-key"}
 
 
 @pytest.fixture(scope="module")
