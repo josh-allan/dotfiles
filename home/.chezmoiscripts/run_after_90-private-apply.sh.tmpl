@@ -11,5 +11,5 @@ if [[ ! -f "$private_dir/.chezmoiroot" ]]; then
 fi
 
 {{ .chezmoi.executable | quote }} apply \
-	--config "$state_dir/chezmoi.toml" \
+	--config "$state_dir/config.toml" \
 	--persistent-state "$state_dir/chezmoistate.boltdb"

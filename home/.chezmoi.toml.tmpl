@@ -15,6 +15,7 @@
 {{- if $sunshine }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "systemd" "etc_josh_desktop" }}{{ end -}}
 {{- if $work }}{{ $privatePkgs = list "private_user" "private_work" "opencode" "please" "augment" }}{{ end -}}
 
+sourceDir = {{ .chezmoi.workingTree | quote }}
 mode = "symlink"
 
 [git]
