@@ -130,10 +130,11 @@ def install_arch(tools, apps, dry_run):
             failed.append(pkg)
             print(f"[WARNING] pacman: {pkg} not found -- skipping", file=sys.stderr)
 
-    if yay_pkgs:
-        if not has_yay:
-            print("[ERROR] yay not found -- run install-deps.sh to install yay first")
-            sys.exit(1)
+    if yay_pkgs and not has_yay:
+        # Not an error: some Arch hosts deliberately run without an AUR helper.
+        print(f"[WARNING] yay not found -- skipping AUR packages: {', '.join(yay_pkgs)}", file=sys.stderr)
+        failed.extend(yay_pkgs)
+    elif yay_pkgs:
         for pkg in yay_pkgs:
             print(f"\n[package] {pkg} (aur)")
             try:
