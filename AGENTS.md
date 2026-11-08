@@ -56,7 +56,7 @@ name to the flag expressions in `.chezmoi.toml.tmpl`.
 4. App rewrites its config by replacing the file (breaks a symlink)? Put the directory in
    `home/.linked/<name>` and add `home/dot_config/symlink_<name>.tmpl`.
 5. Belongs in `private/`? Follow `private/AGENTS.md`.
-6. Check: `chezmoi diff`, then `chezmoi apply`.
+6. Check with `chezmoi diff` (agents: read-only commands only, subcommand first). The user runs `chezmoi apply`.
 
 Executables in `home/` keep their git mode and are linked, so no `executable_` prefix.
 
@@ -68,7 +68,7 @@ Executables in `home/` keep their git mode and are linked, so no `executable_` p
 |---------|---------|
 | `scripts/bootstrap.sh` | New machine via `curl \| bash`: git, HTTPS clone, mise, then `mise run bootstrap` |
 | `mise run bootstrap` | install-tools → install-apps → `ensure-access.sh` (GitHub SSH required; warns if op is not signed in) → `chezmoi init --apply` |
-| `mise run sync` / `diff` | `chezmoi apply` / `chezmoi diff` |
+| `mise run sync` / `diff` | `chezmoi apply` (user only) / `chezmoi diff` |
 | `mise run migrate` | `scripts/migrate-from-stow.sh`: one-time cutover from the old stow setup (runs `ensure-access.sh` first) |
 | `mise run store-gpg-key` | Upload the signing key to 1Password (`Git Signing Key (private)`) |
 | `scripts/install-deps.sh` | Package-manager bootstrap (brew / yay / Fedora repos), git, jq, op, packages.json |
