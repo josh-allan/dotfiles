@@ -14,7 +14,7 @@ chezmoi source, applied after this one; its conventions live in `private/AGENTS.
 | `home/.chezmoi.toml.tmpl` | Host prompt (asked once) and derived per-host data flags |
 | `home/.chezmoiignore` | Gating by `.chezmoi.os` and host flags |
 | `home/.chezmoiexternal.toml.tmpl` | git-repo externals (nvim config, go-git) |
-| `home/.chezmoiscripts/` | `run_` scripts: packages, system files, gpg import, `private/` pull and apply; 60–63: Rex settings, config reload, terminfo, skill setup (see `.chezmoitemplates/rex-bin.sh`); 64: loads the Rex done-chime launch agent |
+| `home/.chezmoiscripts/` | `run_` scripts: git hooks path, packages, system files, gpg import, `private/` pull and apply; 60–63: Rex settings, config reload, terminfo, skill setup (see `.chezmoitemplates/rex-bin.sh`); 64: loads the Rex done-chime launch agent |
 | `home/.linked/` | Directories linked whole via `symlink_` templates (chezmoi ignores dot-dirs in the source) |
 | `etc_linux/`, `asahi_system/` | System files, deployed with `scripts/deploy-system-files.sh` |
 | `packages.json` + `schemas/packages.schema.json` | Platform packages and their field reference |
@@ -90,7 +90,7 @@ never both (`tests/test_mise.py`). Edits rerun the packages script on the next a
 
 ## Githooks
 
-`core.hooksPath = .githooks`. Each hook ends with a managed beads block; leave it intact.
+`core.hooksPath = .githooks`, set on every apply by `run_after_05-git-hooks`. Each hook ends with a managed beads block; leave it intact.
 
 | Hook | Behavior |
 |------|----------|

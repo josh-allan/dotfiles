@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Point the dotfiles repo at its tracked hooks; git ignores .githooks/ without this.
+set -euo pipefail
+
+git -C {{ .chezmoi.workingTree | quote }} config core.hooksPath .githooks
