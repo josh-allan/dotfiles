@@ -22,10 +22,16 @@ local directions = {
 }
 
 local rex_bindings = {}
+local rex_actions = {}
 rex = {
 	bind = function(key, action, args)
 		assert(not rex_bindings[key], "duplicate Rex binding: " .. key)
 		rex_bindings[key] = { action = action, args = args }
+	end,
+	action = function(spec)
+		assert(not rex_actions[spec.name], "duplicate Rex action: " .. spec.name)
+		assert(type(spec.run) == "function", "action without run: " .. spec.name)
+		rex_actions[spec.name] = spec
 	end,
 }
 package.path = repo .. "/home/dot_config/rex/?.lua;" .. package.path
@@ -76,7 +82,20 @@ local count = 0
 for _ in pairs(rex_bindings) do
 	count = count + 1
 end
-assert(count == 35, "unexpected Rex binding count: " .. count)
+assert(count == 40, "unexpected Rex binding count: " .. count)
+
+-- Custom actions: each key names an action init.lua's modules registered.
+local custom = {
+	["ctrl+b>'"] = "scratch_shell",
+	["ctrl+b>g"] = "lazygit_float",
+	["ctrl+b>["] = "scrollback_float",
+	["ctrl+b>u"] = "attention_next",
+	["ctrl+b>shift+u"] = "attention_previous",
+}
+for key, action in pairs(custom) do
+	assert(rex_bindings[key] and rex_bindings[key].action == action, "missing custom binding: " .. key)
+	assert(rex_actions[action], "binding to an unregistered action: " .. action)
+end
 
 local function dispatcher(name)
 	return function(args)

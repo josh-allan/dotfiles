@@ -1,0 +1,32 @@
+{{- /* Rendered only where the Rex app is installed; an empty render deploys nothing. */ -}}
+{{- $rex := "" -}}
+{{- range glob "/Applications/Rex*.app/Contents/Helpers/Rex Server.rex/Contents/MacOS/rex" -}}
+{{-   $rex = . -}}
+{{- end -}}
+{{- if $rex -}}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.josh.rex-done-chime</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>{{ $rex }}</string>
+		<string>--autostart=false</string>
+		<string>do</string>
+		<string>{{ .chezmoi.homeDir }}/.config/rex/done-chime.lua</string>
+		<string>--all</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<!-- rex do exits when the server goes away; launchd restarts it, at most every 30 s. -->
+	<key>KeepAlive</key>
+	<true/>
+	<key>ThrottleInterval</key>
+	<integer>30</integer>
+	<key>StandardErrorPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/rex-done-chime.log</string>
+</dict>
+</plist>
+{{- end }}
