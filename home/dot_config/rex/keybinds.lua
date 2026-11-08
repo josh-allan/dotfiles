@@ -28,6 +28,11 @@ local bindings = {
 	{ "alt+shift+\\", "pane.split", { direction = "right" } },
 	{ "alt+-", "pane.split", { direction = "down" } },
 	{ "ctrl+k", "session.switch" },
+	{ "ctrl+b>'", "scratch_shell" },
+	{ "ctrl+b>g", "lazygit_float" },
+	{ "ctrl+b>[", "scrollback_float" },
+	{ "ctrl+b>u", "attention_next" },
+	{ "ctrl+b>shift+u", "attention_previous" },
 }
 
 for _, binding in ipairs(navigation) do
