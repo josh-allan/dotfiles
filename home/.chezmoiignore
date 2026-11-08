@@ -26,6 +26,7 @@
 
 {{ if ne .chezmoi.os "darwin" -}}
 .config/karabiner
+Library/LaunchAgents/com.josh.rex-done-chime.plist
 {{- end }}
 
 {{ if not .sunshine -}}
