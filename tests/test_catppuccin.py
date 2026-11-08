@@ -19,7 +19,6 @@ server = false
 linger = false
 hyprHost = ""
 fetchSshKey = false
-cloneGoGit = false
 privatePkgs = []
 gitName = ""
 gitEmail = ""

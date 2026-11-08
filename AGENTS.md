@@ -35,7 +35,6 @@ Templates check flags, never host names:
 | `server` | Arch server (`everythingcomputer`): group-writable umask |
 | `linger` | Enable `loginctl enable-linger` |
 | `fetchSshKey` | Write `~/.ssh/id_ed25519` from 1Password if missing |
-| `cloneGoGit` | Clone `~/src/go-git` |
 | `privatePkgs` | Packages the `private/` source applies on this host |
 | `gitName`, `gitEmail`, `gitSigningKey` | Read from 1Password at init; kept or empty when op is not signed in (signing turns off with no key). Rerun `chezmoi init` to fill |
 

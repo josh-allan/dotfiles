@@ -5,14 +5,12 @@
     [".config/nvim".pull]
         args = ["--ff-only"]
 
-{{ if .cloneGoGit -}}
 ["src/go-git"]
     type = "git-repo"
     url = "git@github.com:josh-allan/go-git"
     refreshPeriod = "168h"
     ["src/go-git".pull]
         args = ["--ff-only"]
-{{- end }}
 
 # Catppuccin Mocha ports, pinned to a commit so an apply never changes them silently.
 [".config/bat/themes/Catppuccin Mocha.tmTheme"]

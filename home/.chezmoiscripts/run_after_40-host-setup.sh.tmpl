@@ -1,5 +1,4 @@
 {{- $repo := .chezmoi.workingTree -}}
-{{- if or (eq .chezmoi.os "linux") .cloneGoGit -}}
 #!/usr/bin/env bash
 # Host-specific setup steps that need the linked config files in place.
 set -euo pipefail
@@ -7,10 +6,12 @@ set -euo pipefail
 
 {{ joinPath $repo "scripts/zen-setup.sh" | quote }}
 {{- end }}
-{{- if .cloneGoGit }}
 
 if [[ -f "$HOME/src/go-git/mise.toml" ]]; then
-	mise install -C "$HOME/src/go-git"
+	# ~/.local/bin, not the repo's `mise run install` target: that Go bin is only on PATH inside the repo.
+	(
+		cd "$HOME/src/go-git"
+		mise install
+		GOBIN="$HOME/.local/bin" mise exec -- go install ./cmd/...
+	)
 fi
-{{- end }}
-{{ end -}}
