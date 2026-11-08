@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Installs Rex's xterm-rex terminfo entry, rerunning once Rex is installed. Rex present: {{ if or (lookPath "rex") (glob "/Applications/Rex*.app") }}yes{{ end }}
+set -euo pipefail
+
+{{ template "rex-bin.sh" . }}
+
+if ! rex=$(rex_bin); then
+	echo "rex: not installed; skipping terminfo setup" >&2
+	exit 0
+fi
+# setup also adds an Include line to the user's ssh client config. Where chezmoi links
+# that file into the repo, the line would land in the source, so install the entry alone.
+ssh_dir="$HOME/.ssh"
+if [[ -L "$ssh_dir"/config ]]; then
+	"$rex" terminfo setup --entry-only
+	echo "rex: ssh config is managed; add the guard Include to its source by hand" >&2
+else
+	"$rex" terminfo setup
+fi

@@ -14,7 +14,7 @@ chezmoi source, applied after this one; its conventions live in `private/AGENTS.
 | `home/.chezmoi.toml.tmpl` | Host prompt (asked once) and derived per-host data flags |
 | `home/.chezmoiignore` | Gating by `.chezmoi.os` and host flags |
 | `home/.chezmoiexternal.toml.tmpl` | git-repo externals (nvim config, go-git) |
-| `home/.chezmoiscripts/` | `run_` scripts: packages, system files, gpg import, `private/` pull and apply |
+| `home/.chezmoiscripts/` | `run_` scripts: packages, system files, gpg import, `private/` pull and apply; 60–63: Rex settings, config reload, terminfo, skill setup (see `.chezmoitemplates/rex-bin.sh`) |
 | `home/.linked/` | Directories linked whole via `symlink_` templates (chezmoi ignores dot-dirs in the source) |
 | `etc_linux/`, `asahi_system/` | System files, deployed with `scripts/deploy-system-files.sh` |
 | `packages.json` + `schemas/packages.schema.json` | Platform packages and their field reference |
@@ -104,5 +104,6 @@ never both (`tests/test_mise.py`). Edits rerun the packages script on the next a
 
 - `tests/test_mise.py`: `uvx pytest tests/test_mise.py` (needs Python 3.11+ for `tomllib`)
 - `tests/test_keybindings.lua`: `lua tests/test_keybindings.lua .` (reads rex/hypr configs from `home/`)
+- `tests/test_rex_scripts.py`: `uvx pytest tests/test_rex_scripts.py` (renders the Rex run scripts, runs them against fake `rex`/`defaults`/`pgrep`)
 - Shell: `shellcheck` every script; render `run_` templates with
   `chezmoi execute-template < file | shellcheck -s bash -`
