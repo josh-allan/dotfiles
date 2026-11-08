@@ -2,7 +2,8 @@
 
 set fzf_preview_dir_cmd eza --all --color=always
 set fzf_diff_highlighter delta --paging=never --width=20
-set fzf_preview_file_cmd bat --style=plain
+# fzf reads previews through a pipe, where bat drops colour unless forced.
+set fzf_preview_file_cmd bat --style=plain --color=always
 
 fzf_configure_bindings \
     --directory=\cf \
