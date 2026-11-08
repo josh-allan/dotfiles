@@ -12,6 +12,7 @@
     {"name": "flatpak",         "platforms": ["arch", "fedora"]},
     {"name": "fuzzel",          "platforms": ["arch", "fedora"]},
     {"name": "gcc",             "platforms": ["arch", "fedora"]},
+    {"name": "gcr",             "platforms": ["arch"]},
     {"name": "git"},
     {"name": "git-delta"},
     {"name": "gnupg",           "dnf": "gnupg2"},
