@@ -95,7 +95,8 @@ never both (`tests/test_mise.py`). Edits rerun the packages script on the next a
 |------|----------|
 | pre-commit | Blocks `op://` outside `home/**/*.tmpl`, likely secrets, anything under `private/`; shellchecks staged `.sh` |
 | pre-push | Pushes the `private/` repo first if it has unpushed commits |
-| post-checkout / post-merge | Beads integration only; opencode regenerates in the private `run_after_40-opencode-bootstrap` |
+| post-merge / post-rewrite | After `git pull` (merge or rebase), `pull-private` fast-forwards `private/`; a failure warns and never blocks the pull |
+| post-checkout | Beads integration only; opencode regenerates in the private `run_after_40-opencode-bootstrap` |
 
 ---
 

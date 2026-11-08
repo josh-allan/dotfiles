@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# post-rewrite hook: `git pull --rebase` with local commits runs this instead of
+# post-merge, so pull private/ here too.
+
+[[ ${1:-} == rebase ]] && "$(dirname "$0")/pull-private"
+exit 0

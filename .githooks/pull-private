@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Shared by post-merge and post-rewrite: after a `git pull` in the dotfiles repo,
+# fast-forward the private/ repo too. Never fails the calling hook.
+
+# git pull exports GIT_REFLOG_ACTION="pull ..."; a local merge or rebase does not.
+[[ ${GIT_REFLOG_ACTION:-} == pull* ]] || exit 0
+
+private_dir="$(git rev-parse --show-toplevel)/private"
+[[ -d $private_dir/.git ]] || exit 0
+
+# Hooks inherit GIT_DIR and friends pointing at the dotfiles repo; clear them so
+# git acts on private/.
+# shellcheck disable=SC2046
+unset $(git rev-parse --local-env-vars) GIT_REFLOG_ACTION
+
+cd "$private_dir" || exit 0
+git rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1 || {
+    echo >&2 "private: no upstream for $(git branch --show-current), skipping pull"
+    exit 0
+}
+
+echo "Pulling private repo ($(git branch --show-current))..."
+git pull --ff-only || echo >&2 "WARNING: private repo pull failed; resolve it in $private_dir"
+exit 0

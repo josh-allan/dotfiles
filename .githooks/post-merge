@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# post-merge hook: beads integration only. opencode configs regenerate during
-# chezmoi apply (private run_after_40-opencode-bootstrap).
+# post-merge hook: pull private/ after `git pull`, then beads. opencode configs
+# regenerate during chezmoi apply (private run_after_40-opencode-bootstrap).
+
+"$(dirname "$0")/pull-private"
 
 # --- BEGIN BEADS INTEGRATION v1.0.2 ---
 # This section is managed by beads. Do not remove these markers.
