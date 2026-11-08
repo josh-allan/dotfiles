@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Rex does not watch init.lua, so reload it when any config file changes. Hashes:
+{{- range (glob (joinPath .chezmoi.sourceDir "dot_config/rex/*.lua")) }}
+# {{ base . }} {{ include . | sha256sum }}
+{{- end }}
+set -euo pipefail
+
+{{ template "rex-bin.sh" . }}
+
+if ! rex=$(rex_bin); then
+	echo "rex: not installed; skipping config reload" >&2
+	exit 0
+fi
+# A server that is not running reads the config when it starts.
+if ! "$rex" --autostart=false server status >/dev/null 2>&1; then
+	exit 0
+fi
+if ! "$rex" --autostart=false config reload; then
+	echo "rex: config reload failed; run 'rex config check' to see why" >&2
+fi

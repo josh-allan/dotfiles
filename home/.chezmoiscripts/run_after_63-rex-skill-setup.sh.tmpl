@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Keeps Rex's agent skill and session hook current. It runs on every apply because what
+# changes is the self-updating Rex app, which no template hash can see.
+set -euo pipefail
+
+{{ template "rex-bin.sh" . }}
+
+if ! rex=$(rex_bin); then
+	exit 0
+fi
+# Only a dry run that succeeds and reports every step unchanged or skipped means no work.
+if plan=$("$rex" --autostart=false skill setup --dry-run --json 2>/dev/null) &&
+	jq -e '[.steps[].change] | all(. == "unchanged" or . == "skipped")' <<<"$plan" >/dev/null; then
+	exit 0
+fi
+"$rex" --autostart=false skill setup || echo "rex: skill setup failed; see its report above" >&2

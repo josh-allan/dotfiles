@@ -1,0 +1,36 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Pins Rex's app settings in its defaults domain. This script is the only writer of
+# com.superlogical.rex; keys it does not name are left to Rex. Editing a value here
+# reruns it on the next apply.
+set -euo pipefail
+
+domain=com.superlogical.rex
+
+# Usage: pin KEY TYPE VALUE, TYPE being a defaults type flag without its dash.
+pin() {
+	defaults write "$domain" "$1" "-$2" "$3"
+}
+
+pin RexAppUpdateChannel string snapshot
+pin SUAutomaticallyUpdate bool true
+pin SUEnableAutomaticChecks bool true
+pin Workspace.appearance string system
+pin Workspace.cursorShadersEnabled bool false
+pin Workspace.experiments.usesNewQuickSwitcher bool true
+pin Workspace.inactivePaneFadeMode string both
+pin Workspace.sidebarPosition string left
+pin Workspace.tabIconTintMode string off
+pin Workspace.tabStyle string vertical
+pin Workspace.usesStandardInactiveWindowPaneStyles bool true
+pin rex.agents.names-sessions bool false
+pin rex.developer-mode-enabled bool true
+pin rex.server.automatic-restart-enabled bool true
+pin rex.server.block-plugin-reload-enabled bool false
+pin rex.server.run-mode string bundled
+
+# Rex reads its settings at launch and does not watch for outside writes.
+if pgrep -x Rex >/dev/null 2>&1; then
+	echo "rex: settings written; quit and reopen Rex to load them" >&2
+fi
+{{- end }}
