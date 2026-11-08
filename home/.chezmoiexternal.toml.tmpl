@@ -13,3 +13,20 @@
     ["src/go-git".pull]
         args = ["--ff-only"]
 {{- end }}
+
+# Catppuccin Mocha ports, pinned to a commit so an apply never changes them silently.
+[".config/bat/themes/Catppuccin Mocha.tmTheme"]
+    type = "file"
+    url = "https://raw.githubusercontent.com/catppuccin/bat/6810349b28055dce54076712fc05fc68da4b8ec0/themes/Catppuccin%20Mocha.tmTheme"
+
+[".config/btop/themes/catppuccin_mocha.theme"]
+    type = "file"
+    url = "https://raw.githubusercontent.com/catppuccin/btop/f437574b600f1c6d932627050b15ff5153b58fa3/themes/catppuccin_mocha.theme"
+
+[".config/lazygit/catppuccin-mocha-blue.yml"]
+    type = "file"
+    url = "https://raw.githubusercontent.com/catppuccin/lazygit/1a4b26cbc2b5be05cc5494d0d7f764120a2cf86d/themes-mergable/mocha/blue.yml"
+
+[".config/eza/theme.yml"]
+    type = "file"
+    url = "https://raw.githubusercontent.com/eza-community/eza-themes/21184b55bfe34e8473c8160f9de0c03e4f76857f/themes/catppuccin-mocha.yml"
