@@ -2,3 +2,6 @@
 # Directories are removed recursively, including files written outside the repo.
 .config/onvim
 .config/fish/functions/onvim.fish
+
+# fish_frozen_theme.fish pinned Tokyo Night; the theme now comes from public_user/theme.fish.
+.config/fish/conf.d/fish_frozen_theme.fish

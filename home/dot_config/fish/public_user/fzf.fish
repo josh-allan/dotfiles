@@ -18,7 +18,11 @@ set -gx FZF_DEFAULT_OPTS "\
     --height=60%
     --info=inline
     --layout=reverse
-    --color=dark
+    --color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8
+    --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC
+    --color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8
+    --color=selected-bg:#45475A
+    --color=border:#6C7086,label:#CDD6F4
     --cycle
     --ansi
     "
@@ -35,7 +39,11 @@ set -gx _ZO_FZF_OPTS "\
     --bind=ctrl-z:ignore
     --preview='eza {2..} --icons -a --group-directories-first --git -F'
     --preview-window='right:60%,<100(down,30%)'
-    --color=dark
+    --color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8
+    --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC
+    --color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8
+    --color=selected-bg:#45475A
+    --color=border:#6C7086,label:#CDD6F4
     --bind=tab:down,btab:up
     --bind='alt-k:preview-up,alt-p:preview-up'
     --bind='alt-j:preview-down,alt-n:preview-down'
