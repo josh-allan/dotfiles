@@ -87,3 +87,14 @@ def test_fails_when_a_source_is_missing(tmp_path: Path) -> None:
     env, config, _ = setup_tree(tmp_path, INSTALL_INI, "Profiles/abc.Default (release)")
     (config / "zen-themes.json").unlink()
     assert run(env).returncode == 1
+
+
+def test_finds_profile_root_under_xdg_config(tmp_path: Path) -> None:
+    # Zen 1.21 on Fedora keeps profiles.ini in ~/.config/zen, next to the managed files.
+    env, config, _ = setup_tree(tmp_path, INSTALL_INI, "Profiles/abc.Default (release)")
+    del env["ZEN_DIR"]
+    profile = config / "abc.Default (release)"
+    profile.mkdir()
+    (config / "profiles.ini").write_text(INSTALL_INI.replace("Profiles/", ""))
+    assert run(env).returncode == 0
+    assert (profile / "chrome").readlink() == config / "chrome"

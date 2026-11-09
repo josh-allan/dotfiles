@@ -3,12 +3,17 @@
 # whose directory name is random per machine. ZEN_DIR overrides the profile root (tests).
 set -euo pipefail
 
+# Profile roots: macOS, Linux XDG (Zen 1.21+, shared with ~/.config/zen), legacy Linux.
+# The first with a profiles.ini wins.
 if [[ -z "${ZEN_DIR:-}" ]]; then
-    case "$(uname -s)" in
-        Darwin) ZEN_DIR="$HOME/Library/Application Support/zen" ;;
-        *) ZEN_DIR="$HOME/.zen" ;;
-    esac
+    for root in "$HOME/Library/Application Support/zen" "${XDG_CONFIG_HOME:-$HOME/.config}/zen" "$HOME/.zen"; do
+        if [[ -f "$root/profiles.ini" ]]; then
+            ZEN_DIR="$root"
+            break
+        fi
+    done
 fi
+ZEN_DIR="${ZEN_DIR:-$HOME/.zen}"
 PROFILES_INI="$ZEN_DIR/profiles.ini"
 SRC_DIR="$HOME/.config/zen"
 ENTRIES=(user.js chrome zen-themes.json)
