@@ -42,5 +42,5 @@ dot_config_linux/.gnupg/
 
 # chezmoi source (home/): runtime files written through directory links
 home/.linked/karabiner/automatic_backups/*
+home/.linked/zen/chrome/zen-themes.css
 home/scripts/mongodump.sh
-home/dot_config/zen/
