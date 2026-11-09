@@ -37,9 +37,6 @@ private/
 ._*
 .DS_Store
 
-# Machine-local gnupg files left in the old stow package dir (secrets; never track)
-dot_config_linux/.gnupg/
-
 # chezmoi source (home/): runtime files written through directory links
 home/.linked/karabiner/automatic_backups/*
 home/.linked/zen/chrome/zen-themes.css
