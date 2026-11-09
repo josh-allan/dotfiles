@@ -7,19 +7,19 @@
                         "description": "Command+Enter opens Rex Beta unless Rex is focused",
                         "manipulators": [
                             {
-                                "from": {
-                                    "key_code": "return_or_enter",
-                                    "modifiers": {
-                                        "mandatory": ["command"]
-                                    }
-                                },
-                                "to": [{ "shell_command": "open -a \"Rex Beta\"" }],
                                 "conditions": [
                                     {
-                                        "type": "frontmost_application_unless",
-                                        "bundle_identifiers": ["^com\\.superlogical\\.rex$"]
+                                        "bundle_identifiers": [
+                                            "^com\\.superlogical\\.rex$"
+                                        ],
+                                        "type": "frontmost_application_unless"
                                     }
                                 ],
+                                "from": {
+                                    "key_code": "return_or_enter",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [{ "shell_command": "open -a \"Rex Beta\"" }],
                                 "type": "basic"
                             }
                         ]
@@ -28,17 +28,19 @@
                         "description": "Disable Cmd+H Hide (rev 2)",
                         "manipulators": [
                             {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "^com\\.superlogical\\.rex$"
+                                        ],
+                                        "type": "frontmost_application_unless"
+                                    }
+                                ],
                                 "description": "",
                                 "from": {
                                     "key_code": "h",
                                     "modifiers": { "mandatory": ["command"] }
                                 },
-                                "conditions": [
-                                    {
-                                        "type": "frontmost_application_unless",
-                                        "bundle_identifiers": ["^com\\.superlogical\\.rex$"]
-                                    }
-                                ],
                                 "type": "basic"
                             }
                         ]
