@@ -8,6 +8,7 @@ set -g _prompt_mauve cba6f7
 set -g _prompt_green a6e3a1
 set -g _prompt_red f38ba8
 set -g _prompt_yellow f9e2af
+set -g _prompt_peach fab387
 
 status is-interactive || return
 

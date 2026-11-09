@@ -24,9 +24,7 @@ function fish_prompt
     end
     printf '%s%s%s%s\n' "$left" (string repeat -n $pad ' ') "$right" (set_color normal)
 
-    set -l caret $_prompt_lavender
-    test $last_status -ne 0; and set caret $_prompt_red
-    printf '%s› %s' (set_color -o $caret) (set_color normal)
+    _prompt_caret $last_status
 end
 
 function _prompt_fits --argument-names left right

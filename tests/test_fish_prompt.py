@@ -44,8 +44,8 @@ def repo(home: Path) -> Path:
     return root
 
 
-def fish(home: Path, script: str, cwd: Path | None = None) -> str:
-    """Load the prompt files non-interactively, run script, return output without colours."""
+def fish_raw(home: Path, script: str, cwd: Path | None = None) -> str:
+    """Load the prompt files non-interactively, run script, return output with colours."""
     setup = f"set fish_function_path {FISH}/functions $fish_function_path; source {FISH}/conf.d/prompt.fish; true; "
     result = subprocess.run(
         ["fish", "--no-config", "-c", setup + script],
@@ -55,7 +55,11 @@ def fish(home: Path, script: str, cwd: Path | None = None) -> str:
         text=True,
     )
     assert result.stderr == ""
-    return ANSI.sub("", result.stdout)
+    return result.stdout
+
+
+def fish(home: Path, script: str, cwd: Path | None = None) -> str:
+    return ANSI.sub("", fish_raw(home, script, cwd))
 
 
 def prompt(home: Path, cwd: Path, columns: int = 100, before: str = "") -> list[str]:
@@ -194,3 +198,94 @@ def test_async_diffstat_repaints_prompt(home: Path, repo: Path) -> None:
     out = ANSI.sub("", log.decode(errors="replace"))
     assert "⎇ main +3 −2" in out
     assert "PROMPTS=1" in out  # the repaint did not start another prompt cycle
+
+
+
+# Vi mode caret
+
+
+def rgb(hex_color: str) -> str:
+    """Truecolor SGR parameters; fish may merge bold into the same escape."""
+    r, g, b = (int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
+    return f"38;2;{r};{g};{b}"
+
+
+def caret(home: Path, mode: str, bindings: str = "fish_hybrid_key_bindings", failed: bool = False) -> str:
+    """Line 2 of the prompt, colours kept, for a bind mode."""
+    fail = "false; " if failed else ""
+    return fish_raw(home, f"set -g fish_key_bindings {bindings}; set -g fish_bind_mode {mode}; {fail}_prompt_caret $status")
+
+
+@pytest.mark.parametrize(
+    ("mode", "glyph", "color"),
+    [
+        ("insert", "›", "b4befe"),
+        ("default", "‹", "a6e3a1"),
+        ("visual", "‹", "cba6f7"),
+        ("replace_one", "›", "fab387"),
+        ("replace", "›", "fab387"),
+    ],
+)
+def test_caret_per_vi_mode(home: Path, mode: str, glyph: str, color: str) -> None:
+    out = caret(home, mode)
+    assert ANSI.sub("", out) == f"{glyph} "
+    assert rgb(color) in out
+
+
+def test_caret_red_after_failure_keeps_mode_glyph(home: Path) -> None:
+    out = caret(home, "default", failed=True)
+    assert ANSI.sub("", out) == "‹ "
+    assert rgb("f38ba8") in out
+
+
+def test_caret_ignores_bind_mode_with_default_bindings(home: Path) -> None:
+    out = caret(home, "default", bindings="fish_default_key_bindings")
+    assert ANSI.sub("", out) == "› "
+    assert rgb("b4befe") in out
+
+
+def test_key_bindings_conf_sets_hybrid_and_cursors(home: Path) -> None:
+    out = fish(home, f"source {FISH}/conf.d/key_bindings.fish; echo $fish_key_bindings $fish_cursor_insert $fish_cursor_default $fish_cursor_external")
+    assert out == "fish_hybrid_key_bindings line block block\n"
+
+
+def test_escape_switches_live_caret_to_normal_mode(home: Path) -> None:
+    init = (
+        f"set fish_function_path {FISH}/functions $fish_function_path; "
+        f"source {FISH}/conf.d/prompt.fish; source {FISH}/conf.d/key_bindings.fish; "
+        # --no-config skips fish's interactive setup, which is what loads $fish_key_bindings.
+        "$fish_key_bindings"
+    )
+    env = {**os.environ, "HOME": str(home), "XDG_CONFIG_HOME": str(home / "cfg"), "TERM": "xterm-256color"}
+    pid, fd = pty.fork()
+    if pid == 0:
+        os.chdir(home)
+        os.execvpe("fish", ["fish", "--no-config", "-i", "-C", init], env)
+    log = b""
+
+    def read_until(needle: bytes, seconds: float) -> bytes:
+        """Output from now until needle appears or time runs out."""
+        nonlocal log
+        start = len(log)
+        deadline = time.time() + seconds
+        while time.time() < deadline and needle not in log[start:]:
+            if select.select([fd], [], [], 0.05)[0]:
+                chunk = os.read(fd, 65536)
+                log += chunk
+                if b"\x1b[0c" in chunk:  # fish waits for the terminal's device-attributes reply
+                    os.write(fd, b"\x1b[?62;22c")
+        return log[start:]
+
+    try:
+        read_until("› ".encode(), 5)
+        os.write(fd, b"\x1b")
+        normal = read_until("‹ ".encode(), 3)
+        os.write(fd, b"i")
+        insert = read_until("› ".encode(), 3)
+    finally:
+        os.kill(pid, 9)
+        os.waitpid(pid, 0)
+    assert "‹ ".encode() in normal
+    assert b"\x1b[2 q" in normal  # block cursor
+    assert "› ".encode() in insert
+    assert b"\x1b[6 q" in insert  # line cursor
