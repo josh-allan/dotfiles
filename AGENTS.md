@@ -108,5 +108,6 @@ never both (`tests/test_mise.py`). Edits rerun the packages script on the next a
 - `tests/test_rex_attention.lua`: `lua tests/test_rex_attention.lua .` (attention queue ordering in `home/dot_config/rex/attention.lua`)
 - `tests/test_zen_profile.py`: `uvx pytest tests/test_zen_profile.py` (runs the Zen profile-link script against a fake profile tree)
 - `tests/test_vesktop_links.py`: `uvx pytest tests/test_vesktop_links.py` (runs the Vesktop link script against a fake HOME)
+- `tests/test_fish_prompt.py`: `uvx pytest tests/test_fish_prompt.py` (runs the fish prompt functions with `fish --no-config` against a fake HOME and throwaway repos, plus one pty test of the async diffstat)
 - Shell: `shellcheck` every script; render `run_` templates with
   `chezmoi execute-template < file | shellcheck -s bash -`
