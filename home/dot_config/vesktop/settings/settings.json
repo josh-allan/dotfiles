@@ -165,10 +165,7 @@
             "enabled": false
         },
         "Experiments": {
-            "enabled": false
-        },
-        "ExpressionCloner": {
-            "enabled": false
+            "enabled": true
         },
         "F8Break": {
             "enabled": false
@@ -582,6 +579,18 @@
         },
         "MusicRichPresence": {
             "enabled": false
+        },
+        "ContextMenuAPI": {
+            "enabled": true
+        },
+        "NoticesAPI": {
+            "enabled": true
+        },
+        "GifProviderSwitcher": {
+            "enabled": false
+        },
+        "ExpressionManager": {
+            "enabled": false
         }
     },
     "uiElements": {
@@ -598,6 +607,7 @@
         "authenticated": false,
         "url": "https://api.vencord.dev/",
         "settingsSync": false,
-        "settingsSyncVersion": 1785630474876
-    }
+        "settingsSyncVersion": 1793491972410
+    },
+    "nativeTitleBar": false
 }

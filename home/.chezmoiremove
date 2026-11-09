@@ -5,3 +5,6 @@
 
 # fish_frozen_theme.fish pinned Tokyo Night; the theme now comes from public_user/theme.fish.
 .config/fish/conf.d/fish_frozen_theme.fish
+
+# Vencord settings export, superseded by the live settings.json.
+.config/vesktop/settings/vencord-settings-backup-2026-06-27.json

@@ -14,7 +14,7 @@ chezmoi source, applied after this one; its conventions live in `private/AGENTS.
 | `home/.chezmoi.toml.tmpl` | Host prompt (asked once) and derived per-host data flags |
 | `home/.chezmoiignore` | Gating by `.chezmoi.os` and host flags |
 | `home/.chezmoiexternal.toml.tmpl` | git-repo externals (nvim config, go-git) |
-| `home/.chezmoiscripts/` | `run_` scripts: git hooks path, packages, system files, gpg import, 45: Zen profile links, `private/` pull and apply; 60–63: Rex settings, config reload, terminfo, skill setup (see `.chezmoitemplates/rex-bin.sh`); 64: loads the Rex done-chime launch agent |
+| `home/.chezmoiscripts/` | `run_` scripts: git hooks path, packages, system files, gpg import, 45: Zen profile links, 46: Vesktop links, `private/` pull and apply; 60–63: Rex settings, config reload, terminfo, skill setup (see `.chezmoitemplates/rex-bin.sh`); 64: loads the Rex done-chime launch agent |
 | `home/.linked/` | Directories linked whole via `symlink_` templates (chezmoi ignores dot-dirs in the source) (karabiner, zen) |
 | `etc_linux/`, `asahi_system/` | System files, deployed with `scripts/deploy-system-files.sh` |
 | `packages.json` + `schemas/packages.schema.json` | Platform packages and their field reference |
@@ -107,5 +107,6 @@ never both (`tests/test_mise.py`). Edits rerun the packages script on the next a
 - `tests/test_rex_scripts.py`: `uvx pytest tests/test_rex_scripts.py` (renders the Rex run scripts, runs them against fake `rex`/`defaults`/`pgrep`)
 - `tests/test_rex_attention.lua`: `lua tests/test_rex_attention.lua .` (attention queue ordering in `home/dot_config/rex/attention.lua`)
 - `tests/test_zen_profile.py`: `uvx pytest tests/test_zen_profile.py` (runs the Zen profile-link script against a fake profile tree)
+- `tests/test_vesktop_links.py`: `uvx pytest tests/test_vesktop_links.py` (runs the Vesktop link script against a fake HOME)
 - Shell: `shellcheck` every script; render `run_` templates with
   `chezmoi execute-template < file | shellcheck -s bash -`
