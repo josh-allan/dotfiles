@@ -91,20 +91,110 @@ def test_breadcrumb_outside_home(home: Path) -> None:
     assert fish(home, "_prompt_breadcrumb full", Path("/")) == "/"
 
 
-def run_worker(home: Path, repo: Path, seq: int = 1) -> list[str]:
-    out = home / "diff"
-    fish(home, f"function h --on-signal SIGUSR1; end; _prompt_diff_worker {seq} {repo} {out} $fish_pid", repo)
-    return out.read_text().split()
+FIELDS = ("seq", "root", "ins", "del", "files", "op", "unmerged", "ahead", "behind", "target", "conflict")
+
+
+def run_worker(home: Path, repo: Path, seq: int = 1) -> dict[str, str]:
+    out = home / "state"
+    fish(home, f"function h --on-signal SIGUSR1; end; _prompt_git_worker {seq} {repo} {out} $fish_pid", repo)
+    return dict(zip(FIELDS, out.read_text().splitlines(), strict=True))
+
+
+@pytest.fixture
+def remote(home: Path, repo: Path) -> Path:
+    """Bare origin for repo; main pushed and tracked, origin/HEAD set."""
+    bare = home / "remote.git"
+    subprocess.run(["git", "init", "-q", "--bare", "-b", "main", str(bare)], check=True)
+    git(repo, "remote", "add", "origin", str(bare))
+    git(repo, "push", "-q", "-u", "origin", "main")
+    git(repo, "remote", "set-head", "origin", "main")
+    return bare
+
+
+def push_from_elsewhere(home: Path, remote: Path, name: str, content: str) -> None:
+    """Commit to origin/main from a second clone, as a teammate would."""
+    other = home / "other"
+    if not other.exists():
+        subprocess.run(["git", "clone", "-q", str(remote), str(other)], check=True)
+    (other / name).write_text(content)
+    git(other, "add", name)
+    git(other, "commit", "-qm", f"edit {name}")
+    git(other, "push", "-q")
+
+
+def commit(repo: Path, name: str, content: str) -> None:
+    (repo / name).write_text(content)
+    git(repo, "add", name)
+    git(repo, "commit", "-qm", f"edit {name}")
 
 
 @pytest.mark.parametrize(
     ("content", "counts"),
-    [("a\nb\nc\n", ["1", "0"]), ("a\n", ["0", "1"]), ("c\nd\ne\n", ["3", "2"]), ("a\nb\n", ["0", "0"])],
+    [("a\nb\nc\n", ("1", "0", "1")), ("a\n", ("0", "1", "1")), ("c\nd\ne\n", ("3", "2", "1")), ("a\nb\n", ("0", "0", "0"))],
 )
-def test_worker_counts(home: Path, repo: Path, content: str, counts: list[str]) -> None:
+def test_worker_diffstat(home: Path, repo: Path, content: str, counts: tuple[str, str, str]) -> None:
     (repo / "x").write_text(content)
-    seq, root, *rest = run_worker(home, repo)
-    assert (seq, Path(root).resolve(), rest) == ("1", repo.resolve(), counts)
+    state = run_worker(home, repo)
+    assert (state["seq"], Path(state["root"]).resolve()) == ("1", repo.resolve())
+    assert (state["ins"], state["del"], state["files"]) == counts
+
+
+def test_worker_no_remote_has_no_drift(home: Path, repo: Path) -> None:
+    state = run_worker(home, repo)
+    assert (state["op"], state["ahead"], state["behind"], state["target"], state["conflict"]) == ("-", "0", "0", "-", "0")
+
+
+def drift(state: dict[str, str]) -> tuple[str, str, str, str]:
+    return state["ahead"], state["behind"], state["target"], state["conflict"]
+
+
+def test_worker_drift_against_upstream(home: Path, repo: Path, remote: Path) -> None:
+    assert drift(run_worker(home, repo)) == ("0", "0", "-", "0")
+    commit(repo, "y", "local\n")
+    assert drift(run_worker(home, repo)) == ("1", "0", "-", "0")
+    push_from_elsewhere(home, remote, "z", "theirs\n")
+    git(repo, "fetch", "-q")
+    assert drift(run_worker(home, repo)) == ("1", "1", "-", "0")
+
+
+def test_worker_predicts_conflict(home: Path, repo: Path, remote: Path) -> None:
+    commit(repo, "x", "mine\n")
+    push_from_elsewhere(home, remote, "x", "theirs\n")
+    git(repo, "fetch", "-q")
+    assert drift(run_worker(home, repo)) == ("1", "1", "-", "1")
+
+
+def test_worker_without_upstream_compares_to_default_branch(home: Path, repo: Path, remote: Path) -> None:
+    git(repo, "switch", "-q", "-c", "feat")
+    commit(repo, "y", "feature\n")
+    assert drift(run_worker(home, repo)) == ("1", "0", "main", "0")
+    git(repo, "switch", "-q", "main")
+    git(repo, "branch", "--unset-upstream")
+    assert drift(run_worker(home, repo)) == ("0", "0", "-", "0")
+
+
+def test_worker_reports_stopped_merge(home: Path, repo: Path) -> None:
+    git(repo, "switch", "-q", "-c", "other")
+    commit(repo, "x", "theirs\n")
+    git(repo, "switch", "-q", "main")
+    commit(repo, "x", "mine\n")
+    subprocess.run(["git", "-C", str(repo), "merge", "-q", "other"], capture_output=True, check=False)  # stops on the conflict
+    state = run_worker(home, repo)
+    assert (state["op"], state["unmerged"]) == ("MERGE", "1")
+
+
+def test_worker_reports_stopped_rebase(home: Path, repo: Path) -> None:
+    git(repo, "switch", "-q", "-c", "other")
+    commit(repo, "x", "theirs\n")
+    git(repo, "switch", "-q", "main")
+    commit(repo, "x", "mine\n")
+    subprocess.run(["git", "-C", str(repo), "rebase", "-q", "other"], capture_output=True, check=False)  # stops on the conflict
+    state = run_worker(home, repo)
+    assert (state["op"], state["unmerged"]) == ("REBASE", "1")
+    (repo / "x").write_text("resolved\n")
+    git(repo, "add", "x")
+    state = run_worker(home, repo)
+    assert (state["op"], state["unmerged"]) == ("REBASE", "0")
 
 
 def test_status_parts(home: Path, repo: Path) -> None:
@@ -155,12 +245,35 @@ def test_width_fallback(home: Path, repo: Path, columns: int, pattern: str) -> N
     assert re.fullmatch(pattern, line1)
 
 
-def test_diffstat_drawn_for_matching_repo_only(home: Path, repo: Path) -> None:
-    root = subprocess.run(["git", "-C", str(repo), "rev-parse", "--show-toplevel"], capture_output=True, text=True).stdout.strip()
-    line1, _ = prompt(home, repo, before=f"set _prompt_diff {root} 14 3;")
-    assert re.search(rf"⎇ main \+14 −3 · {TIME}$", line1)
-    line1, _ = prompt(home, repo, before="set _prompt_diff /elsewhere 14 3;")
-    assert re.search(rf"⎇ main · {TIME}$", line1)
+def git_line(home: Path, repo: Path, **fields: str) -> str:
+    """Line 1's git part drawn from a _prompt_git_state with these fields (others default)."""
+    root = fields.pop("root", None) or subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True
+    ).stdout.strip()
+    state = {"ins": "0", "del": "0", "files": "0", "op": "-", "unmerged": "0", "ahead": "0", "behind": "0", "target": "-", "conflict": "0"}
+    state.update(fields)
+    return fish(home, f"set _prompt_git_state {root} {' '.join(state.values())}; _prompt_git", repo)
+
+
+@pytest.mark.parametrize(
+    ("fields", "text"),
+    [
+        ({}, "⎇ main"),
+        ({"ins": "14", "del": "3", "files": "2"}, "⎇ main +14 −3"),
+        ({"files": "1"}, "⎇ main"),
+        ({"ahead": "2", "behind": "1"}, "⎇ main ↑2 ↓1"),
+        ({"ahead": "2", "ins": "14", "del": "3", "files": "2"}, "⎇ main● ↑2"),
+        ({"ahead": "3", "behind": "5", "target": "main", "conflict": "1"}, "⎇ main ↑3 ↓5 main ⚠"),
+        ({"op": "REBASE", "unmerged": "3", "ahead": "1"}, "⎇ main REBASE ✗ 3"),
+        ({"op": "REBASE", "files": "1"}, "⎇ main● REBASE"),
+    ],
+)
+def test_git_slot_priority(home: Path, repo: Path, fields: dict[str, str], text: str) -> None:
+    assert git_line(home, repo, **fields) == text
+
+
+def test_git_state_for_another_repo_is_ignored(home: Path, repo: Path) -> None:
+    assert git_line(home, repo, root="/elsewhere", ins="14", ahead="2") == "⎇ main"
 
 
 def test_final_rendering(home: Path, repo: Path) -> None:

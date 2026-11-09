@@ -16,3 +16,6 @@
 .config/fish/conf.d/_tide_init.fish
 .config/fish/conf.d/tide.fish
 .config/fish/completions/tide.fish
+
+# Async diffstat worker, renamed to functions/_prompt_git_worker.fish.
+.config/fish/functions/_prompt_diff_worker.fish
