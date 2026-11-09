@@ -21,7 +21,6 @@
 .config/sddm
 .config/systemd
 .config/wayle
-.config/zen
 {{- end }}
 
 {{ if ne .chezmoi.os "darwin" -}}
