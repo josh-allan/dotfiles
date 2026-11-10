@@ -6,7 +6,7 @@ if [[ -f "$HOME/src/go-git/mise.toml" ]]; then
 	# ~/.local/bin, not the repo's `mise run install` target: that Go bin is only on PATH inside the repo.
 	(
 		cd "$HOME/src/go-git"
-		mise install
+		mise install --quiet
 		GOBIN="$HOME/.local/bin" mise exec -- go install ./cmd/...
 	)
 fi
