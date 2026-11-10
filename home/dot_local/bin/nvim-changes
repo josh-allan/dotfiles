@@ -1,0 +1,5 @@
+#!/bin/sh
+# Neovim with the changeset.nvim sidebar focused. Deferred to VimEnter so a session plugin's
+# VimEnter :edit runs first: the sidebar's winfixbuf would refuse it. open() leaves the
+# sidebar unfocused, so the :Changeset toggle focuses it.
+exec nvim -c 'autocmd VimEnter * ++once ++nested lua require("changeset").open() vim.cmd.Changeset()' "$@"

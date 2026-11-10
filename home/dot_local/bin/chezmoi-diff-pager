@@ -1,0 +1,120 @@
+#!/bin/sh
+# chezmoi's diff pager: the diff opens in changeset.nvim in a Rex block split off chezmoi's,
+# replacing any block an earlier diff left in that window. `chezmoi diff` focuses the block.
+# A prompt's diff, such as apply's, leaves chezmoi focused so the prompt can still be
+# answered, and closes once it is. Outside Rex, or when nothing in the diff can be opened,
+# it pages through delta.
+page() { delta; }
+
+if [ -z "$REX_BLOCK" ]; then
+	page
+	exit
+fi
+
+# A git hook's GIT_DIR would point the scratch repository's commands at its own.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
+work=$(mktemp -d)
+repo="$work/repo"
+sed "s/$(printf '\033')\[[0-9;]*m//g" >"$work/chezmoi.diff"
+# One part per entry, so an entry git can't apply is left out on its own.
+mkdir "$work/parts"
+awk -v dir="$work/parts" '
+	/^diff --git / { if (out) close(out); out = dir "/" ++n }
+	out { print > out }
+' "$work/chezmoi.diff"
+
+in_repo() {
+	git -C "$repo" -c core.quotePath=false -c user.name=chezmoi -c user.email=chezmoi@localhost \
+		-c commit.gpgsign=false "$@"
+}
+
+# The path a part's `diff --git a/<path> b/<path>` line names twice.
+part_path() {
+	awk 'NR == 1 { s = substr($0, 14); print substr(s, 1, (length(s) - 3) / 2) }' "$1"
+}
+
+# git applies a directory's entry as an empty file, which then blocks the files inside it.
+applies() {
+	! grep -Eq '^(new file |deleted file |old |new )mode 0*40' "$1" &&
+		in_repo apply "$1" 2>/dev/null
+}
+
+# changeset.nvim reviews a branch, so main holds the files as they are and a branch off
+# it holds them as chezmoi would write them.
+stage() {
+	git init -q -b main "$repo" || return
+	for part in "$work"/parts/*; do
+		[ -e "$part" ] || continue
+		path=$(part_path "$part")
+		if [ -L "$CHEZMOI_DEST_DIR/$path" ] || [ -f "$CHEZMOI_DEST_DIR/$path" ]; then
+			mkdir -p "$repo/$(dirname "$path")" &&
+				cp -P "$CHEZMOI_DEST_DIR/$path" "$repo/$path" || return
+		fi
+	done
+	in_repo add -A && in_repo commit -q --allow-empty -m "As it is" &&
+		in_repo switch -q -c chezmoi || return
+	for part in "$work"/parts/*; do
+		[ -e "$part" ] || continue
+		applies "$part" || printf '• Not in the review: %s\n' "$(part_path "$part")" >&2
+	done
+	in_repo add -A && in_repo commit -q --allow-empty -m "As chezmoi would write it" &&
+		! in_repo diff --quiet main
+}
+
+earlier_diffs() {
+	rex block ls -s "$REX_SESSION" --json | jq -r --arg self "$REX_BLOCK" --arg label "$label" '
+		.blocks as $blocks | ($blocks[] | select(.block_id == $self) | .window_id) as $window |
+		$blocks[] | select(.window_id == $window and .label == $label) | .block_id'
+}
+
+# Matches the one-line JSON of `rex block call modes`; jq costs more than a poll can spare.
+mode_on() { printf '%s' "$modes" | grep -Eq "\"name\":\"$1\"[^}]*\"set\":true"; }
+
+# chezmoi asks again once this pager exits, through bubbletea, which hides the cursor and
+# turns bracketed paste on as each prompt starts. Turning bracketed paste off marks that
+# prompt as this diff's: once the cursor shows, a later prompt turns it back on, or chezmoi
+# exits, it was answered. A diff no prompt follows, such as `chezmoi diff`'s, stays.
+# chezmoi runs this pager directly, so $PPID is chezmoi.
+close_once_answered() {
+	asked=false
+	while sleep 0.25 && kill -0 "$PPID" 2>/dev/null; do
+		modes=$(rex block call -b "$REX_BLOCK" modes) || continue
+		if mode_on cursor_visible; then
+			$asked && break
+		elif mode_on bracketed_paste; then
+			$asked && break
+			printf '\033[?2004l'
+			asked=true
+		fi
+	done
+	$asked && rex block close "$1"
+}
+
+# Rex kills a closed block's command outright, so the scratch repo, which can hold rendered
+# secrets, goes from here once the block is gone, even if chezmoi's terminal hangs up first.
+follow() {
+	trap '' HUP
+	close_once_answered "$1"
+	rex wait "$1" >/dev/null
+	rm -rf "$work"
+}
+
+review() {
+	for earlier in $(earlier_diffs); do
+		rex block close "$earlier" 2>/dev/null
+	done
+	first=$(in_repo diff --name-only --diff-filter=d main | head -n 1)
+	block=$(rex split -b "$REX_BLOCK" --focus="$focus" --label "$label" --cwd "$repo" -- \
+		nvim-changes ${first:+"$first"}) || return
+	follow "$block" </dev/null 2>/dev/null &
+}
+
+label="chezmoi diff"
+focus=false
+[ "$CHEZMOI_COMMAND" = diff ] && focus=true
+
+if stage && review; then
+	exit
+fi
+page <"$work/chezmoi.diff"
+rm -rf "$work"
