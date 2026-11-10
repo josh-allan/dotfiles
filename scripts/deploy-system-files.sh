@@ -41,7 +41,9 @@ while IFS= read -r -d '' rel; do
 	dest="$target_dir/$rel"
 	remove_links_into_src "$rel"
 	sudo mkdir -p "$(dirname "$dest")"
-	if ! sudo cp --remove-destination "$src_dir/$rel" "$dest"; then
+	# rm then cp, not cp --remove-destination: BSD cp (macOS) lacks it. Removing first
+	# replaces a symlink at dest instead of writing through it.
+	if ! { sudo rm -f "$dest" && sudo cp "$src_dir/$rel" "$dest"; }; then
 		echo "deploy-system-files: failed to copy $dest" >&2
 		num_failed=$((num_failed + 1))
 	fi
