@@ -5,6 +5,7 @@ import pty
 import re
 import select
 import shutil
+import socket
 import subprocess
 import time
 from pathlib import Path
@@ -15,6 +16,10 @@ REPO = Path(__file__).resolve().parents[1]
 FISH = REPO / "home/dot_config/fish"
 ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]|\x1b\][^\x1b]*\x1b\\|\x1b[()=>][0-9A-Za-z]?")
 TIME = r"\d\d:\d\d:\d\d"
+SSH = "set -gx SSH_CONNECTION '10.0.0.2 51000 10.0.0.1 22';"
+HOST = re.escape(socket.gethostname().split(".")[0])
+# Strip SSH variables so the suite renders the local prompt even when run over SSH.
+LOCAL_ENV = {k: v for k, v in os.environ.items() if k not in ("SSH_CONNECTION", "SSH_TTY", "SSH_CLIENT")}
 
 pytestmark = pytest.mark.skipif(shutil.which("fish") is None, reason="fish not installed")
 
@@ -50,7 +55,7 @@ def fish_raw(home: Path, script: str, cwd: Path | None = None) -> str:
     result = subprocess.run(
         ["fish", "--no-config", "-c", setup + script],
         cwd=cwd or home,
-        env={**os.environ, "HOME": str(home), "XDG_CONFIG_HOME": str(home / "cfg")},
+        env={**LOCAL_ENV, "HOME": str(home), "XDG_CONFIG_HOME": str(home / "cfg")},
         capture_output=True,
         text=True,
     )
@@ -280,13 +285,37 @@ def test_final_rendering(home: Path, repo: Path) -> None:
     assert re.fullmatch(rf"{TIME} › ", fish(home, "fish_prompt --final-rendering", repo))
 
 
+def test_ssh_prefixes_host(home: Path, repo: Path) -> None:
+    line1, _ = prompt(home, repo, before=SSH)
+    assert re.fullmatch(rf"{HOST}  ~ / \.dotfiles +⎇ main · {TIME}", line1)
+
+
+def test_ssh_tty_alone_prefixes_host(home: Path) -> None:
+    line1, _ = prompt(home, home, before="set -gx SSH_TTY /dev/pts/0;")
+    assert re.fullmatch(rf"{HOST}  ~ +{TIME}", line1)
+
+
+def test_ssh_host_is_peach(home: Path) -> None:
+    assert rgb("fab387") + "m" + socket.gethostname().split(".")[0] in fish_raw(home, SSH + " fish_prompt")
+
+
+def test_ssh_host_kept_at_narrowest_width(home: Path, repo: Path) -> None:
+    columns = len(socket.gethostname().split(".")[0]) + 8
+    line1, _ = prompt(home, repo / "home/dot_config/fish", columns, before=SSH)
+    assert re.fullmatch(rf"{HOST}  fish ", line1)
+
+
+def test_ssh_final_rendering(home: Path, repo: Path) -> None:
+    assert re.fullmatch(rf"{HOST} {TIME} › ", fish(home, SSH + " fish_prompt --final-rendering", repo))
+
+
 def test_async_diffstat_repaints_prompt(home: Path, repo: Path) -> None:
     (repo / "x").write_text("c\nd\ne\n")
     init = (
         f"set fish_function_path {FISH}/functions $fish_function_path; source {FISH}/conf.d/prompt.fish; "
         "set -g prompts 0; function _count --on-event fish_prompt; set -g prompts (math $prompts + 1); end"
     )
-    env = {**os.environ, "HOME": str(home), "XDG_CONFIG_HOME": str(home / "cfg"), "TERM": "xterm-256color"}
+    env = {**LOCAL_ENV, "HOME": str(home), "XDG_CONFIG_HOME": str(home / "cfg"), "TERM": "xterm-256color"}
     pid, fd = pty.fork()
     if pid == 0:
         os.chdir(repo)
@@ -369,7 +398,7 @@ def test_escape_switches_live_caret_to_normal_mode(home: Path) -> None:
         # --no-config skips fish's interactive setup, which is what loads $fish_key_bindings.
         "$fish_key_bindings"
     )
-    env = {**os.environ, "HOME": str(home), "XDG_CONFIG_HOME": str(home / "cfg"), "TERM": "xterm-256color"}
+    env = {**LOCAL_ENV, "HOME": str(home), "XDG_CONFIG_HOME": str(home / "cfg"), "TERM": "xterm-256color"}
     pid, fd = pty.fork()
     if pid == 0:
         os.chdir(home)

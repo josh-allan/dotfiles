@@ -1,7 +1,7 @@
 function fish_prompt
     set -l last_status $status
     if contains -- --final-rendering $argv
-        printf '%s%s %s› %s' (set_color $_prompt_overlay0) (date +%H:%M:%S) (set_color -o $_prompt_lavender) (set_color normal)
+        printf '%s%s%s %s› %s' (_prompt_host ' ') (set_color $_prompt_overlay0) (date +%H:%M:%S) (set_color -o $_prompt_lavender) (set_color normal)
         return
     end
 
@@ -9,11 +9,13 @@ function fish_prompt
     set -q CMD_DURATION[1]; and set duration_ms $CMD_DURATION
 
     # Fit line 1 to the terminal: shorten the path, then drop the time, then show only the leaf.
+    # The host stays at every width: which machine matters more than the path.
+    set -l host (_prompt_host '  ')
     set -l right (_prompt_status $last_status $duration_ms yes)
-    set -l left (_prompt_breadcrumb full)
-    _prompt_fits "$left" "$right"; or set left (_prompt_breadcrumb short)
+    set -l left "$host"(_prompt_breadcrumb full)
+    _prompt_fits "$left" "$right"; or set left "$host"(_prompt_breadcrumb short)
     _prompt_fits "$left" "$right"; or set right (_prompt_status $last_status $duration_ms no)
-    _prompt_fits "$left" "$right"; or set left (_prompt_breadcrumb leaf)
+    _prompt_fits "$left" "$right"; or set left "$host"(_prompt_breadcrumb leaf)
 
     set -q _prompt_blank_line; and echo
     # Pad to COLUMNS - 1 so the line never fills the last column and wraps.
