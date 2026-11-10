@@ -40,6 +40,9 @@
 sourceDir = {{ .chezmoi.workingTree | quote }}
 mode = "symlink"
 
+[diff]
+    pager = "chezmoi-diff-pager"
+
 [git]
     autoCommit = false
 

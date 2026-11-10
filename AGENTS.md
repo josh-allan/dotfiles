@@ -109,5 +109,6 @@ never both (`tests/test_mise.py`). Edits rerun the packages script on the next a
 - `tests/test_zen_profile.py`: `uvx pytest tests/test_zen_profile.py` (runs the Zen profile-link script against a fake profile tree)
 - `tests/test_vesktop_links.py`: `uvx pytest tests/test_vesktop_links.py` (runs the Vesktop link script against a fake HOME)
 - `tests/test_fish_prompt.py`: `uvx pytest tests/test_fish_prompt.py` (runs the fish prompt functions with `fish --no-config` against a fake HOME and throwaway repos, plus pty tests of the async diffstat and the vi mode caret)
+- `tests/test_chezmoi_diff_pager.py`: `uvx pytest tests/test_chezmoi_diff_pager.py` (runs chezmoi's diff pager against fake `rex`/`delta`, with a stand-in chezmoi holding a prompt open)
 - Shell: `shellcheck` every script; render `run_` templates with
   `chezmoi execute-template < file | shellcheck -s bash -`
