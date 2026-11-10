@@ -3,6 +3,9 @@
 sourceDir = {{ joinPath .chezmoi.workingTree "private" | quote }}
 mode = "symlink"
 
+[diff]
+    pager = "chezmoi-diff-pager"
+
 [git]
     autoCommit = false
 
