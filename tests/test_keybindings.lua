@@ -100,6 +100,20 @@ local existing = {
 	["ctrl+alt+shift+d"] = { "pane.split", "down" },
 	["ctrl+b>z"] = { "pane.zoom" },
 	["ctrl+alt+z"] = { "pane.zoom" },
+	["ctrl+b>f"] = { "pane.float" },
+	["ctrl+b>a"] = { "pane.split", "auto" },
+	["ctrl+b>s"] = { "session.switch" },
+	["ctrl+b>shift+n"] = { "session.next" },
+	["ctrl+b>shift+p"] = { "session.previous" },
+	["ctrl+b>shift+h"] = { "pane.move.left" },
+	["ctrl+b>shift+j"] = { "pane.move.down" },
+	["ctrl+b>shift+k"] = { "pane.move.up" },
+	["ctrl+b>shift+l"] = { "pane.move.right" },
+	["ctrl+;"] = { "pane.zoom" },
+	["cmd+;"] = { "pane.zoom" },
+	["cmd+'"] = { "pane.float" },
+	["ctrl+tab"] = { "client.tab.next" },
+	["ctrl+shift+tab"] = { "client.tab.previous" },
 	["ctrl+b>n"] = { "client.tab.next" },
 	["ctrl+alt+n"] = { "client.tab.next" },
 	["ctrl+b>p"] = { "client.tab.previous" },
@@ -119,13 +133,15 @@ assert(rex_bindings["ctrl+k"].action == "session.switch")
 assert(rex_bindings["ctrl+b>ctrl+b"].action == "pane.send_key")
 assert(rex_bindings["ctrl+b>ctrl+b"].args.key == "ctrl+b")
 assert(rex_bindings["shift+cmd+enter"].args.direction == "auto")
-assert(rex_bindings["alt+shift+\\"].args.direction == "right")
+assert(rex_bindings["alt+\\"].action == "pane.split")
+assert(rex_bindings["alt+\\"].args.direction == "right")
+assert(rex_bindings["alt+-"].action == "pane.split")
 assert(rex_bindings["alt+-"].args.direction == "down")
 local count = 0
 for _ in pairs(rex_bindings) do
 	count = count + 1
 end
-assert(count == 40, "unexpected Rex binding count: " .. count)
+assert(count == 54, "unexpected Rex binding count: " .. count)
 
 -- Custom actions: each key names an action init.lua's modules registered.
 local custom = {

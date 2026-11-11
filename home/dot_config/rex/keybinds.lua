@@ -42,17 +42,27 @@ local bindings = {
 	{ "ctrl+alt+d", "pane.split", { direction = "right" } },
 	{ "ctrl+b>-", "pane.split", { direction = "down" } },
 	{ "ctrl+alt+shift+d", "pane.split", { direction = "down" } },
+	{ "ctrl+b>f", "pane.float" },
+	{ "ctrl+b>a", "pane.split", { direction = "auto" } },
 	{ "ctrl+b>z", "pane.zoom" },
 	{ "ctrl+alt+z", "pane.zoom" },
+	{ "ctrl+;", "pane.zoom" },
+	{ "cmd+;", "pane.zoom" },
+	{ "cmd+'", "pane.float" },
 	{ "ctrl+b>n", "client.tab.next" },
 	{ "ctrl+alt+n", "client.tab.next" },
+	{ "ctrl+tab", "client.tab.next" },
 	{ "ctrl+b>p", "client.tab.previous" },
 	{ "ctrl+alt+b", "client.tab.previous" },
+	{ "ctrl+shift+tab", "client.tab.previous" },
+	{ "ctrl+b>shift+n", "session.next" },
+	{ "ctrl+b>shift+p", "session.previous" },
+	{ "ctrl+b>s", "session.switch" },
 	{ "ctrl+alt+[", "session.previous" },
 	{ "ctrl+alt+]", "session.next" },
 	{ "ctrl+b>ctrl+b", "pane.send_key", { key = "ctrl+b" } },
 	{ "shift+cmd+enter", "pane.split", { direction = "auto" } },
-	{ "alt+shift+\\", "pane.split", { direction = "right" } },
+	{ "alt+\\", "pane.split", { direction = "right" } },
 	{ "alt+-", "pane.split", { direction = "down" } },
 	{ "ctrl+k", "session.switch" },
 	{ "ctrl+b>'", "scratch_shell" },
@@ -65,6 +75,7 @@ local bindings = {
 for _, binding in ipairs(navigation) do
 	table.insert(bindings, { "cmd+" .. binding.key, focus_or_pass(binding.direction) })
 	table.insert(bindings, { "ctrl+alt+" .. binding.direction, "pane.move", { direction = binding.direction } })
+	table.insert(bindings, { "ctrl+b>shift+" .. binding.key, "pane.move." .. binding.direction })
 end
 
 return bindings

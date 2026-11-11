@@ -47,7 +47,11 @@ def render(tmp: Path, name: str) -> Path:
 def fakes(tmp: Path) -> dict[str, str]:
     bindir = tmp / "bin"
     bindir.mkdir()
-    for name, body in {"rex": FAKE_REX, "defaults": FAKE_DEFAULTS, "pgrep": FAKE_PGREP}.items():
+    for name, body in {
+        "rex": FAKE_REX,
+        "defaults": FAKE_DEFAULTS,
+        "pgrep": FAKE_PGREP,
+    }.items():
         path = bindir / name
         path.write_text(body)
         path.chmod(0o755)
@@ -62,13 +66,17 @@ def fakes(tmp: Path) -> dict[str, str]:
 
 
 def run(script: Path, env: dict[str, str]) -> tuple[list[str], str]:
-    result = subprocess.run(["bash", str(script)], env=env, capture_output=True, text=True, check=True)
+    result = subprocess.run(
+        ["bash", str(script)], env=env, capture_output=True, text=True, check=True
+    )
     log = Path(env["FAKE_LOG"])
     calls = log.read_text().splitlines() if log.exists() else []
     return calls, result.stderr
 
 
-darwin_only = pytest.mark.skipif(platform.system() != "Darwin", reason="settings script is darwin-only")
+darwin_only = pytest.mark.skipif(
+    platform.system() != "Darwin", reason="settings script is darwin-only"
+)
 
 
 @darwin_only
@@ -76,8 +84,15 @@ def test_settings_pins_every_key(tmp_path: Path) -> None:
     script = render(tmp_path, "run_onchange_after_60-rex-settings.sh.tmpl")
     calls, stderr = run(script, fakes(tmp_path))
     writes = [c for c in calls if c.startswith("defaults write com.superlogical.rex ")]
-    assert len(writes) == 16
-    assert "defaults write com.superlogical.rex Workspace.tabStyle -string vertical" in writes
+    assert len(writes) == 17
+    assert (
+        "defaults write com.superlogical.rex Workspace.showsKeySequenceHints -bool true"
+        in writes
+    )
+    assert (
+        "defaults write com.superlogical.rex Workspace.tabStyle -string vertical"
+        in writes
+    )
     assert "quit and reopen Rex" not in stderr
 
 
@@ -90,7 +105,9 @@ def test_settings_warns_when_rex_runs(tmp_path: Path) -> None:
 
 
 def test_config_reload_hashes_each_lua_file(tmp_path: Path) -> None:
-    text = render(tmp_path, "run_onchange_after_61-rex-config-reload.sh.tmpl").read_text()
+    text = render(
+        tmp_path, "run_onchange_after_61-rex-config-reload.sh.tmpl"
+    ).read_text()
     lua = sorted((REPO / "home/dot_config/rex").glob("*.lua"))
     assert lua
     for path in lua:
