@@ -24,10 +24,9 @@ hl.bind("F4", hl.dsp.exec_cmd("brightnessctl -d 'kbd_backlight' set +10%"), { lo
 
 hl.bind("ALT + Tab", hl.dsp.exec_cmd("hyprswitch gui --mod-key alt --key Tab"))
 hl.bind("SUPER + Tab", hl.dsp.exec_cmd("hyprswitch gui --mod-key super --key Tab"))
-hl.bind("SUPER + L", hl.dsp.exec_cmd("hyprlock"))
+hl.bind("CTRL + SUPER + Q", hl.dsp.exec_cmd("hyprlock"))
 hl.bind("SUPER + Return", hl.dsp.exec_cmd("ghostty"))
 hl.bind("SUPER + D", hl.dsp.exec_cmd("fuzzel"))
-hl.bind("CTRL + ALT + L", hl.dsp.exec_cmd("$HOME/.dotfiles/scripts/scripts/lock.sh"))
 hl.bind("CTRL + SHIFT + W", hl.dsp.exec_cmd("rofi-wifi-menu"))
 hl.bind("CTRL + SHIFT + B", hl.dsp.exec_cmd("rofi-bluetooth"))
 

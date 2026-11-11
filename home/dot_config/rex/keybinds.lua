@@ -1,5 +1,32 @@
 local navigation = dofile(os.getenv("HOME") .. "/.config/keymaps/navigation.lua")
 
+local function is_neovim(process)
+	return process.name == "nvim"
+		or process.argv0 == "nvim"
+		or (process.path and process.path:match("/nvim$") ~= nil)
+end
+
+local function focus_or_pass(direction)
+	return function(ctx)
+		local process, process_error = rex.block.call("com.superlogical.terminal", "process", {
+			block_id = ctx.block_id,
+		})
+		if process_error or not process or not process.foreground then
+			return false
+		end
+		if is_neovim(process.foreground) then
+			return false
+		end
+
+		local _, focus_error = rex.session.focus_direction({
+			session_id = ctx.session_id,
+			direction = direction,
+			wrap = false,
+		})
+		return focus_error == nil
+	end
+end
+
 local bindings = {
 	{ "ctrl+b>h", "pane.focus", { direction = "left" } },
 	{ "ctrl+alt+h", "pane.focus", { direction = "left" } },
@@ -36,7 +63,7 @@ local bindings = {
 }
 
 for _, binding in ipairs(navigation) do
-	table.insert(bindings, { "cmd+" .. binding.key, "pane.focus", { direction = binding.direction } })
+	table.insert(bindings, { "cmd+" .. binding.key, focus_or_pass(binding.direction) })
 	table.insert(bindings, { "ctrl+alt+" .. binding.direction, "pane.move", { direction = binding.direction } })
 end
 
