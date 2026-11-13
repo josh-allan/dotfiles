@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://dotfiles.local/schemas/packages.schema.json",
+  "$id": "https://dotfiles.local/packages/schema.json",
   "title": "Dotfiles Packages Manifest",
   "description": "Validates packages.json, the single source of truth for cross-platform dev tools and apps.",
   "type": "object",

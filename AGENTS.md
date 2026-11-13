@@ -16,8 +16,8 @@ chezmoi source, applied after this one; its conventions live in `private/AGENTS.
 | `home/.chezmoiexternal.toml.tmpl` | git-repo externals (nvim config, go-git) |
 | `home/.chezmoiscripts/` | `run_` scripts: git hooks path, packages, system files, gpg import, 45: Zen profile links, 46: Vesktop links, `private/` pull and apply; 60–63: Rex settings, config reload, terminfo, skill setup (see `.chezmoitemplates/rex-bin.sh`); 64: loads the Rex done-chime launch agent |
 | `home/.linked/` | Directories linked whole via `symlink_` templates (chezmoi ignores dot-dirs in the source) (karabiner, zen) |
-| `etc_linux/`, `asahi_system/` | System files, deployed with `scripts/deploy-system-files.sh` |
-| `packages.json` + `schemas/packages.schema.json` | Platform packages and their field reference |
+| `system/linux/`, `system/asahi/` | System files, deployed with `scripts/deploy-system-files.sh` |
+| `packages/packages.json` + `packages/schema.json` | Platform packages and their field reference |
 | `mise.toml` | Portable CLI tools and `mise run` tasks |
 | `private/` | Second chezmoi source (gitignored); see `private/AGENTS.md` |
 
@@ -68,7 +68,6 @@ Executables in `home/` keep their git mode and are linked, so no `executable_` p
 | `scripts/bootstrap.sh` | New machine via `curl \| bash`: git, HTTPS clone, mise, then `mise run bootstrap` |
 | `mise run bootstrap` | install-tools → install-apps → `ensure-access.sh` (GitHub SSH required; warns if op is not signed in) → `chezmoi init --apply` |
 | `mise run sync` / `diff` | `chezmoi apply` (user only) / `chezmoi diff` |
-| `mise run migrate` | `scripts/migrate-from-stow.sh`: one-time cutover from the old stow setup (runs `ensure-access.sh` first) |
 | `mise run store-gpg-key` | Upload the signing key to 1Password (`Git Signing Key (private)`) |
 | `scripts/install-deps.sh` | Package-manager bootstrap (brew / yay / Fedora repos), git, jq, op, packages.json |
 | `scripts/deploy-system-files.sh SRC TARGET` | sudo-copies git-tracked files only (never untracked snapshots like fstab) |
@@ -80,8 +79,8 @@ Python runs on mise's pinned interpreter (`mise exec -- python3`), never the sys
 
 ## Packages
 
-`packages.json` holds `tools` and `apps`. Fields are documented in
-`schemas/packages.schema.json` (`platforms`, `brew`, `pacman`, `dnf`, `aur`, `copr`,
+`packages/packages.json` holds `tools` and `apps`. Fields are documented in
+`packages/schema.json` (`platforms`, `brew`, `pacman`, `dnf`, `aur`, `copr`,
 `flatpak`, `cask`, `tap`, `arch`). A tool lives in `mise.toml` **or** `packages.json`,
 never both (`tests/test_mise.py`). Edits rerun the packages script on the next apply.
 
