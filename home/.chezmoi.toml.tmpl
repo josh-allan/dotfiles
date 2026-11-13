@@ -11,9 +11,9 @@
 {{- if $asahi }}{{ $hyprHost = "asahi" }}{{ end -}}
 {{- if $sunshine }}{{ $hyprHost = "sunshine" }}{{ end -}}
 
-{{- $privatePkgs := list "private_user" "opencode" "claude" "augment" -}}
-{{- if eq $host "EverythingMacbook" }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "macos" "scripts" }}{{ end -}}
-{{- if $sunshine }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "systemd" "etc_josh_desktop" }}{{ end -}}
+{{- $privatePkgs := list "private_user" "opencode" "claude" "augment" "please" -}}
+{{- if eq $host "EverythingMacbook" }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "please" "macos" "scripts" }}{{ end -}}
+{{- if $sunshine }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "please" "systemd" "etc_josh_desktop" }}{{ end -}}
 {{- if $work }}{{ $privatePkgs = list "private_user" "private_work" "opencode" "please" "augment" }}{{ end -}}
 {{- if $server }}{{ $privatePkgs = list "private_user" "opencode" "claude" "augment" "please" }}{{ end -}}
 
