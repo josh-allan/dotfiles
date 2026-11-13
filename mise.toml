@@ -60,10 +60,6 @@ run = "chezmoi apply"
 description = "Show what chezmoi apply would change"
 run = "chezmoi diff"
 
-[tasks.migrate]
-description = "One-time cutover of a stow-managed machine to chezmoi"
-run = "mise exec chezmoi@latest -- ./scripts/migrate-from-stow.sh"
-
 [tasks.store-gpg-key]
 description = "Upload the git signing key to 1Password for other machines"
 run = "./scripts/store-gpg-key.sh"

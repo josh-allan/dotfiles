@@ -44,7 +44,7 @@ def run(cmd, dry_run=False, *, capture_on_fail=True):
 
 def load_packages():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    path = os.path.join(script_dir, "..", "packages.json")
+    path = os.path.join(script_dir, "..", "packages", "packages.json")
     with open(path) as f:
         return json.load(f)
 

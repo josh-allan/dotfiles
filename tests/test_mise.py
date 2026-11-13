@@ -8,7 +8,7 @@ import pytest
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
-REQUIRED_TASKS = {"bootstrap", "install-tools", "install-apps", "sync", "diff", "migrate", "store-gpg-key"}
+REQUIRED_TASKS = {"bootstrap", "install-tools", "install-apps", "sync", "diff", "store-gpg-key"}
 
 
 @pytest.fixture(scope="module")
@@ -19,7 +19,7 @@ def mise_config():
 
 @pytest.fixture(scope="module")
 def packages_json():
-    with open(_REPO_ROOT / "packages.json") as f:
+    with open(_REPO_ROOT / "packages/packages.json") as f:
         return json.load(f)
 
 

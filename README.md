@@ -1,7 +1,7 @@
 # dotfiles
 
 My machines, managed by [chezmoi](https://www.chezmoi.io/) in symlink mode. Packages live in
-`packages.json` (brew / pacman / dnf) and `mise.toml` (CLI tools). Repo layout and
+`packages/packages.json` (brew / pacman / dnf) and `mise.toml` (CLI tools). Repo layout and
 conventions are in `AGENTS.md`.
 
 ## New machine
@@ -18,7 +18,6 @@ packages → 1Password and GitHub SSH check → `chezmoi init --apply`.
 - `chezmoi init` asks for the host name once (stored in `~/.config/chezmoi/chezmoi.toml`).
   An unlisted name gets the defaults.
 - Already cloned: `mise run bootstrap`. Other branch: `DOTFILES_BRANCH=<branch>`.
-- Still on stow: `mise run migrate`.
 
 ## Day to day
 
