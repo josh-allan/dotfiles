@@ -42,6 +42,9 @@ An unknown host gets the defaults: all flags false, `Personal` vault, default `p
 The OS always comes from `.chezmoi.os`. To add a machine-specific behaviour, add the host
 name to the flag expressions in `.chezmoi.toml.tmpl`.
 
+Fix a wrong value at its source: the template or `.chezmoi.toml.tmpl` (signing key, host
+flags), never the rendered target file, which the next apply overwrites.
+
 ---
 
 ## Adding Files
