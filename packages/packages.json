@@ -30,6 +30,7 @@
     {"name": "pavucontrol",     "platforms": ["arch", "fedora"]},
     {"name": "pinentry-mac",    "platforms": ["macos"]},
     {"name": "pipx",            "pacman": "python-pipx", "dnf": "pipx"},
+    {"name": "rsync",           "platforms": ["macos"]},
     {"name": "slurp",           "platforms": ["arch", "fedora"]},
     {"name": "telnet",          "pacman": "inetutils", "dnf": "telnet"},
     {"name": "trash",           "pacman": "trash-cli", "dnf": "trash-cli"},
