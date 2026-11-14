@@ -15,6 +15,12 @@ end
 
 export PATH="$HOME/.local/bin:$PATH"
 
+# macOS path_helper appends Homebrew after /usr/bin, so Apple's git (too old for hk's
+# config-based hooks) would shadow Homebrew's. Runs before mise so mise tools stay first.
+if test -d /opt/homebrew/bin
+    fish_add_path --global --move --path /opt/homebrew/bin /opt/homebrew/sbin
+end
+
 # mise-managed tools (chezmoi, zoxide, direnv, ...). Homebrew's mise activates itself via
 # vendor_conf.d; the curl-installed mise in ~/.local/bin does not.
 if command -v mise >/dev/null
