@@ -60,6 +60,12 @@ flags), never the rendered target file, which the next apply overwrites.
 5. Belongs in `private/`? Follow `private/AGENTS.md`.
 6. Check with `chezmoi diff` (agents: read-only commands only, subcommand first). The user runs `chezmoi apply`.
 
+Agents may run only read-only chezmoi commands (CORE.md bans the writing ones): `status`,
+`diff`, `verify`, `cat`, `execute-template`, `data`, `dump`, `managed`, `unmanaged`,
+`ignored`, `source-path`, `target-path`, `doctor`, `cat-config`, `dump-config`,
+`state dump|get|get-bucket|data`, `help`. Put the subcommand first
+(`chezmoi diff --config …`); a command that starts with a flag is refused.
+
 Executables in `home/` keep their git mode and are linked, so no `executable_` prefix.
 
 ---
