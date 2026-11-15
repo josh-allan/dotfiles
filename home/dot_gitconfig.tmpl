@@ -31,6 +31,11 @@
 	gpgSign = {{ ne .gitSigningKey "" }}
 [submodule]
 	recurse = true
+# /opt/homelab is owned by the rootless docker user; without this git refuses
+# it ("dubious ownership") and hk hooks never run. Absent paths are harmless.
+[safe]
+	directory = /opt/homelab
+	directory = /opt/homelab/*
 [delta]
   navigate = true
   features = decorations
