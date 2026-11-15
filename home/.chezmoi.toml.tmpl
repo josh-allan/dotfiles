@@ -15,7 +15,7 @@
 {{- if eq $host "EverythingMacbook" }}{{ $privatePkgs = list "private_user" "opencode" "claude" "please" "macos" "scripts" }}{{ end -}}
 {{- if $sunshine }}{{ $privatePkgs = list "private_user" "opencode" "claude" "please" "systemd" "etc_josh_desktop" }}{{ end -}}
 {{- if $work }}{{ $privatePkgs = list "private_user" "private_work" "opencode" "please" }}{{ end -}}
-{{- if $server }}{{ $privatePkgs = list "private_user" "opencode" "claude" "please" }}{{ end -}}
+{{- if $server }}{{ $privatePkgs = list "private_user" "opencode" "claude" "please" "etc_everythingcomputer" }}{{ end -}}
 
 {{- /* Read from 1Password once, at `chezmoi init`, so routine applies don't need it unlocked.
        Without a signed-in op (headless host, app closed), keep the previous values or leave
