@@ -1,0 +1,63 @@
+# The single source for terminal, editor and CLI colours. Edit this file, then `chezmoi apply`.
+#
+# Rendered from it: Ghostty (ghostty/themes/dotfiles), Rex (run_onchange_after_60-rex-settings),
+# fish (fish/themes/dotfiles.theme, conf.d/00-prompt-colours.fish), bat and delta
+# (bat/themes/dotfiles.tmTheme via .chezmoitemplates/tmTheme.tmpl), Neovim (~/.config/theme/nvim.lua).
+# btop, fzf, lazygit and eza use ANSI themes, so they follow `terminal`.
+# Not covered: Zen and Vesktop (Catppuccin CSS themes).
+#
+# Colours are 6 lowercase hex digits without `#`.
+
+[theme]
+name = "nightfly"
+
+# Neovim installs `src` with vim.pack under `name`, then runs `:colorscheme <colorscheme>`.
+[theme.nvim]
+colorscheme = "nightfly"
+name = "nightfly"
+src = "https://github.com/bluz71/vim-nightfly-colors"
+
+[theme.terminal]
+background = "011627"
+foreground = "bdc1c6"
+cursor = "9ca1aa"
+cursor_text = "011627"
+selection_background = "b2ceee"
+selection_foreground = "080808"
+# 0-7 normal, 8-15 bright: black red green yellow blue magenta cyan white.
+ansi = [
+  "1d3b53", "fc514e", "a1cd5e", "e3d18a", "82aaff", "c792ea", "7fdbca", "a1aab8",
+  "7c8f8f", "ff5874", "21c7a8", "ecc48d", "82aaff", "ae81ff", "7fdbca", "d6deeb",
+]
+
+# Interface roles: fish pager and prompt, TextMate gutter and selection.
+[theme.ui]
+text = "c3ccdc"     # primary text
+muted = "7c8f8f"    # descriptions, secondary prompt text
+subtle = "768799"   # prompt clock
+faint = "4b6479"    # autosuggestions, gutter, separators
+surface = "1d3b53"  # selection and search-match background
+line = "092236"     # current-line background
+accent = "82aaff"   # prompt caret, pager prefix
+accent2 = "c792ea"  # second prompt accent
+cyan = "7fdbca"     # user name
+green = "a1cd5e"
+red = "fc514e"
+yellow = "e3d18a"
+orange = "f78c6c"   # host name, find highlight
+
+# Syntax roles: bat and delta (TextMate scopes) and fish command-line highlighting.
+[theme.syntax]
+comment = "7c8f8f"
+keyword = "c792ea"
+string = "ecc48d"
+function = "82aaff"
+type = "21c7a8"
+constant = "f78c6c"
+operator = "ff5874"
+variable = "c3ccdc"
+property = "b0b2f4"
+tag = "7fdbca"
+inserted = "a1cd5e"
+deleted = "fc514e"
+changed = "e3d18a"
