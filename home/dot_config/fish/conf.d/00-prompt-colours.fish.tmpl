@@ -1,0 +1,7 @@
+# Rendered from home/.chezmoidata/theme.toml; edit that file, not this one.
+# Sourced before prompt.fish (conf.d runs in name order) and in non-interactive shells too,
+# so the prompt functions and their tests see the same colours.
+{{- $ui := .theme.ui }}
+{{- range $role := list "text" "muted" "subtle" "faint" "accent" "accent2" "green" "red" "yellow" "orange" }}
+set -g _prompt_{{ $role }} {{ index $ui $role }}
+{{- end }}

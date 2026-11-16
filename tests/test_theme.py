@@ -93,3 +93,54 @@ def test_ghostty_theme_renders_the_palette(tmp_path: Path) -> None:
     for i, colour in enumerate(t["ansi"]):
         assert f"palette = {i}=#{colour}\n" in out
     assert "theme = dotfiles\n" in (HOME / "dot_config/ghostty/config").read_text()
+
+
+PROMPT_ROLES = ["text", "muted", "subtle", "faint", "accent", "accent2", "green", "red", "yellow", "orange"]
+
+
+def fish_theme_vars(tmp: Path) -> dict[str, str]:
+    """Load the rendered theme with fish_config, as public_user/theme.fish does."""
+    themes = tmp / "cfg/fish/themes"
+    themes.mkdir(parents=True)
+    (themes / "dotfiles.theme").write_text(render("dot_config/fish/themes/dotfiles.theme.tmpl", tmp))
+    out = subprocess.run(
+        ["fish", "--no-config", "-c",
+         "fish_config theme choose dotfiles; for v in (set -n | string match -r '^fish_(pager_)?color_.*'); echo $v $$v; end"],
+        env={"HOME": str(tmp), "XDG_CONFIG_HOME": str(tmp / "cfg"), "PATH": "/usr/bin:/bin:/opt/homebrew/bin:/usr/local/bin"},
+        capture_output=True, text=True, check=True,
+    ).stdout
+    # fish appends " --theme=dotfiles" to every value it loads from a theme file.
+    return {k: v.removesuffix(" --theme=dotfiles") for k, _, v in (l.partition(" ") for l in out.splitlines())}
+
+
+def test_fish_theme_file_sets_syntax_colours(tmp_path: Path) -> None:
+    t = theme()
+    s, ui = t["syntax"], t["ui"]
+    colours = fish_theme_vars(tmp_path)
+    assert colours["fish_color_normal"] == t["terminal"]["foreground"]
+    assert colours["fish_color_command"] == s["function"]
+    assert colours["fish_color_keyword"] == s["keyword"]
+    assert colours["fish_color_quote"] == s["string"]
+    assert colours["fish_color_comment"] == f"{s['comment']} --italics"
+    assert colours["fish_color_autosuggestion"] == ui["faint"]
+    assert colours["fish_pager_color_selected_background"] == f"--background={ui['surface']}"
+    assert (HOME / "dot_config/fish/public_user/theme.fish").read_text().count("fish_config theme choose dotfiles") == 1
+
+
+def test_prompt_colours_come_from_the_ui_roles(tmp_path: Path) -> None:
+    ui = theme()["ui"]
+    out = render("dot_config/fish/conf.d/00-prompt-colours.fish.tmpl", tmp_path)
+    for role in PROMPT_ROLES:
+        assert f"set -g _prompt_{role} {ui[role]}\n" in out
+
+
+def test_prompt_has_no_hard_coded_colours() -> None:
+    fish = HOME / "dot_config/fish"
+    prompt_files = [fish / "conf.d/prompt.fish", *(fish / "functions").glob("*prompt*.fish")]
+    old = re.compile(r"_prompt_(overlay[01]|surface2|lavender|mauve|peach)\b")
+    for path in prompt_files:
+        text = path.read_text()
+        assert not old.search(text), f"{path.name} still uses a Catppuccin colour name"
+        assert not re.search(r"^set -g _prompt_\w+ [0-9a-f]{6}$", text, re.M), path.name
+    assert not list((fish / "themes").glob("Catppuccin*.theme"))
+    assert ".config/fish/themes/Catppuccin *.theme" in (HOME / ".chezmoiremove").read_text()

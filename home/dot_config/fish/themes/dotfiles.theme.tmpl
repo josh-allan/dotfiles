@@ -1,0 +1,39 @@
+# name: 'dotfiles'
+# Rendered from home/.chezmoidata/theme.toml; edit that file, not this one.
+# Loaded by public_user/theme.fish with `fish_config theme choose dotfiles`.
+{{- $t := .theme }}
+{{- $s := $t.syntax }}
+{{- $ui := $t.ui }}
+
+fish_color_normal {{ $t.terminal.foreground }}
+fish_color_command {{ $s.function }}
+fish_color_keyword {{ $s.keyword }}
+fish_color_param {{ $s.variable }}
+fish_color_option {{ $s.property }}
+fish_color_quote {{ $s.string }}
+fish_color_redirection {{ $s.type }}
+fish_color_operator {{ $s.operator }}
+fish_color_end {{ $s.operator }}
+fish_color_escape {{ $s.constant }}
+fish_color_comment {{ $s.comment }} --italics
+fish_color_error {{ $ui.red }}
+fish_color_autosuggestion {{ $ui.faint }}
+fish_color_cancel {{ $ui.faint }}
+fish_color_cwd {{ $ui.green }}
+fish_color_cwd_root {{ $ui.red }}
+fish_color_user {{ $ui.cyan }}
+fish_color_host {{ $ui.text }}
+fish_color_host_remote {{ $ui.orange }}
+fish_color_status {{ $ui.red }}
+fish_color_valid_path --underline
+fish_color_history_current {{ $ui.text }} --background={{ $ui.surface }}
+fish_color_match {{ $ui.text }} --background={{ $ui.surface }}
+fish_color_search_match --background={{ $ui.surface }}
+fish_color_selection --background={{ $ui.surface }}
+fish_pager_color_completion {{ $ui.text }}
+fish_pager_color_description {{ $ui.muted }}
+fish_pager_color_prefix {{ $ui.accent }}
+fish_pager_color_progress {{ $ui.muted }}
+fish_pager_color_selected_background --background={{ $ui.surface }}
+fish_pager_color_selected_completion {{ $ui.text }}
+fish_pager_color_selected_description {{ $ui.text }}

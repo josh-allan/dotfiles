@@ -19,3 +19,6 @@
 
 # Async diffstat worker, renamed to functions/_prompt_git_worker.fish.
 .config/fish/functions/_prompt_diff_worker.fish
+
+# Catppuccin theme files, superseded by home/.chezmoidata/theme.toml.
+.config/fish/themes/Catppuccin *.theme
