@@ -30,6 +30,39 @@ pin rex.server.automatic-restart-enabled bool true
 pin rex.server.block-plugin-reload-enabled bool false
 pin rex.server.run-mode string bundled
 
+# Terminal theme, built from home/.chezmoidata/theme.toml (Ghostty renders the same palette
+# as themes/dotfiles). Replaces Rex's custom-theme list with this one theme. paletteBase is
+# the standard xterm cube and grey ramp for colours 16-255, as Rex stores them.
+{{- $t := .theme.terminal }}
+theme_json=$(awk \
+	-v name={{ .theme.name | quote }} \
+	-v bg={{ $t.background }} -v fg={{ $t.foreground }} \
+	-v cur={{ $t.cursor }} -v curtext={{ $t.cursor_text }} \
+	-v selbg={{ $t.selection_background }} -v selfg={{ $t.selection_foreground }} \
+	-v ansi={{ join "," $t.ansi }} '
+function byte(s) { return (index("0123456789abcdef", substr(s, 1, 1)) - 1) * 16 + index("0123456789abcdef", substr(s, 2, 1)) - 1 }
+function rgb(r, g, b) { return sprintf("{\"red\":%.6f,\"green\":%.6f,\"blue\":%.6f,\"alpha\":1,\"colorSpace\":\"srgb\"}", r / 255, g / 255, b / 255) }
+function col(h) { return rgb(byte(substr(h, 1, 2)), byte(substr(h, 3, 2)), byte(substr(h, 5, 2))) }
+BEGIN {
+	n = split(ansi, a, ",")
+	out = col(a[1])
+	for (i = 2; i <= n; i++) out = out "," col(a[i])
+	split("0 95 135 175 215 255", lv, " ")
+	base = ""
+	for (c = 16; c < 232; c++) {
+		k = c - 16
+		base = base (c > 16 ? "," : "") "\"" c "\":" rgb(lv[int(k / 36) + 1], lv[int(k / 6) % 6 + 1], lv[k % 6 + 1])
+	}
+	for (c = 232; c < 256; c++) { v = 8 + 10 * (c - 232); base = base ",\"" c "\":" rgb(v, v, v) }
+	printf "[{\"id\":\"custom-dotfiles\",\"name\":\"%s\",\"appearance\":\"dark\",\"createdAt\":0,", name
+	printf "\"source\":{\"ghosttyFile\":{\"fileName\":\"dotfiles\"}},\"palette\":{\"ansi\":[%s],", out
+	printf "\"background\":%s,\"foreground\":%s,\"cursor\":%s,\"cursorText\":%s,", col(bg), col(fg), col(cur), col(curtext)
+	printf "\"selectionBackground\":%s,\"selectionForeground\":%s,", col(selbg), col(selfg)
+	printf "\"paletteBase\":{%s},\"paletteGenerate\":false,\"paletteHarmonious\":false,\"paletteOverrides\":\"{}\"}}]", base
+}')
+defaults write "$domain" Workspace.customThemes -data "$(printf '%s' "$theme_json" | xxd -p | tr -d '\n')"
+pin Workspace.darkThemeID string custom-dotfiles
+
 # Rex reads its settings at launch and does not watch for outside writes.
 if pgrep -x Rex >/dev/null 2>&1; then
 	echo "rex: settings written; quit and reopen Rex to load them" >&2
