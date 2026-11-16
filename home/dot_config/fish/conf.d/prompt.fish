@@ -1,14 +1,5 @@
-# Prompt colours: Catppuccin Mocha. Change these hex values to switch flavour.
-set -g _prompt_text cdd6f4
-set -g _prompt_overlay1 7f849c
-set -g _prompt_overlay0 6c7086
-set -g _prompt_surface2 585b70
-set -g _prompt_lavender b4befe
-set -g _prompt_mauve cba6f7
-set -g _prompt_green a6e3a1
-set -g _prompt_red f38ba8
-set -g _prompt_yellow f9e2af
-set -g _prompt_peach fab387
+# Prompt colours (_prompt_text, _prompt_accent, ...) come from conf.d/00-prompt-colours.fish,
+# rendered from home/.chezmoidata/theme.toml.
 
 status is-interactive || return
 

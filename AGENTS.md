@@ -14,6 +14,7 @@ chezmoi source, applied after this one; its conventions live in `private/AGENTS.
 | `home/.chezmoi.toml.tmpl` | Host prompt (asked once) and derived per-host data flags |
 | `home/.chezmoiignore` | Gating by `.chezmoi.os` and host flags |
 | `home/.chezmoiexternal.toml.tmpl` | git-repo externals (nvim config, go-git) |
+| `home/.chezmoidata/theme.toml` | Single colour source (terminal, UI and syntax roles) for Ghostty, Rex, fish, bat/delta (`.chezmoitemplates/tmTheme.tmpl`) and Neovim; btop/fzf/lazygit/eza follow the terminal palette |
 | `home/.chezmoiscripts/` | `run_` scripts: git hooks path, packages, system files, gpg import, 45: Zen profile links, 46: Vesktop links, `private/` pull and apply; 60–63: Rex settings, config reload, terminfo, skill setup (see `.chezmoitemplates/rex-bin.sh`); 64: loads the Rex done-chime launch agent |
 | `home/.linked/` | Directories linked whole via `symlink_` templates (chezmoi ignores dot-dirs in the source) (karabiner, zen) |
 | `system/linux/`, `system/asahi/` | System files, deployed with `scripts/deploy-system-files.sh` |
@@ -118,5 +119,6 @@ never both (`tests/test_mise.py`). Edits rerun the packages script on the next a
 - `tests/test_vesktop_links.py`: `uvx pytest tests/test_vesktop_links.py` (runs the Vesktop link script against a fake HOME)
 - `tests/test_fish_prompt.py`: `uvx pytest tests/test_fish_prompt.py` (runs the fish prompt functions with `fish --no-config` against a fake HOME and throwaway repos, plus pty tests of the async diffstat and the vi mode caret)
 - `tests/test_chezmoi_diff_pager.py`: `uvx pytest tests/test_chezmoi_diff_pager.py` (runs chezmoi's diff pager against fake `rex`/`delta`, with a stand-in chezmoi holding a prompt open)
+- `tests/test_theme.py`: `uvx pytest tests/test_theme.py` (renders every template that reads theme.toml, loads the fish theme with `fish_config`, parses the TextMate theme, runs the btop modify script)
 - Shell: `shellcheck` every script; render `run_` templates with
   `chezmoi execute-template < file | shellcheck -s bash -`

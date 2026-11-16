@@ -1,0 +1,11 @@
+# Rendered from home/.chezmoidata/theme.toml; edit that file, not this one.
+{{- $t := .theme.terminal }}
+background = #{{ $t.background }}
+foreground = #{{ $t.foreground }}
+cursor-color = #{{ $t.cursor }}
+cursor-text = #{{ $t.cursor_text }}
+selection-background = #{{ $t.selection_background }}
+selection-foreground = #{{ $t.selection_foreground }}
+{{ range $i, $c := $t.ansi -}}
+palette = {{ $i }}=#{{ $c }}
+{{ end -}}

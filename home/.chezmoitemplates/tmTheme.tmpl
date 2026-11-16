@@ -1,0 +1,57 @@
+{{- /* TextMate theme for bat and delta, drawn from .theme. Called with the root context. */ -}}
+{{- $t := .theme.terminal -}}
+{{- $ui := .theme.ui -}}
+{{- $s := .theme.syntax -}}
+{{- $scopes := list
+  (list "Comments" "comment, punctuation.definition.comment" $s.comment "italic")
+  (list "Strings" "string, punctuation.definition.string" $s.string "")
+  (list "Constants and numbers" "constant, support.constant, meta.diff.range, meta.diff.header" $s.constant "")
+  (list "Keywords and storage" "keyword, storage, storage.modifier" $s.keyword "")
+  (list "Operators" "keyword.operator, punctuation.separator.key-value" $s.operator "")
+  (list "Functions" "entity.name.function, support.function, meta.function-call variable.function" $s.function "")
+  (list "Types" "entity.name.type, entity.name.class, entity.other.inherited-class, support.type, support.class, storage.type" $s.type "")
+  (list "Variables" "variable, variable.parameter, variable.other" $s.variable "")
+  (list "Properties and attributes" "variable.other.member, meta.property-name, support.type.property-name, entity.other.attribute-name, entity.name.tag.yaml" $s.property "")
+  (list "Tags, links, headings" "entity.name.tag, markup.underline.link, markup.heading, entity.name.section" $s.tag "bold")
+  (list "Inserted" "markup.inserted" $s.inserted "")
+  (list "Deleted and invalid" "markup.deleted, invalid" $s.deleted "")
+  (list "Changed" "markup.changed" $s.changed "")
+-}}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Rendered from home/.chezmoidata/theme.toml through .chezmoitemplates/tmTheme.tmpl. -->
+<plist version="1.0">
+<dict>
+  <key>name</key>
+  <string>{{ .theme.name }}</string>
+  <key>uuid</key>
+  <string>5b1f6f0e-3c2d-4d6a-9a63-6f1d2c9e7a41</string>
+  <key>settings</key>
+  <array>
+    <dict>
+      <key>settings</key>
+      <dict>
+        <key>background</key><string>#{{ $t.background }}</string>
+        <key>foreground</key><string>#{{ $t.foreground }}</string>
+        <key>caret</key><string>#{{ $t.cursor }}</string>
+        <key>selection</key><string>#{{ $ui.surface }}</string>
+        <key>lineHighlight</key><string>#{{ $ui.line }}</string>
+        <key>gutterForeground</key><string>#{{ $ui.faint }}</string>
+        <key>invisibles</key><string>#{{ $ui.faint }}</string>
+        <key>findHighlight</key><string>#{{ $ui.orange }}</string>
+      </dict>
+    </dict>
+{{- range $scopes }}
+    <dict>
+      <key>name</key><string>{{ index . 0 }}</string>
+      <key>scope</key><string>{{ index . 1 }}</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>#{{ index . 2 }}</string>
+        <key>fontStyle</key><string>{{ index . 3 }}</string>
+      </dict>
+    </dict>
+{{- end }}
+  </array>
+</dict>
+</plist>

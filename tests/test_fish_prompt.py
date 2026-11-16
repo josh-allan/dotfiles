@@ -7,7 +7,9 @@ import select
 import shutil
 import socket
 import subprocess
+import tempfile
 import time
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -20,6 +22,25 @@ SSH = "set -gx SSH_CONNECTION '10.0.0.2 51000 10.0.0.1 22';"
 HOST = re.escape(socket.gethostname().split(".")[0])
 # Strip SSH variables so the suite renders the local prompt even when run over SSH.
 LOCAL_ENV = {k: v for k, v in os.environ.items() if k not in ("SSH_CONNECTION", "SSH_TTY", "SSH_CLIENT")}
+# Prompt colours come from the ui roles in theme.toml.
+UI = tomllib.loads((REPO / "home/.chezmoidata/theme.toml").read_text())["theme"]["ui"]
+
+
+def _render_prompt_colours() -> Path:
+    """Render conf.d/00-prompt-colours.fish once; the prompt functions read it."""
+    out = Path(tempfile.mkdtemp())
+    config = out / "chezmoi.toml"
+    config.write_text("")
+    colours = out / "00-prompt-colours.fish"
+    colours.write_text(subprocess.run(
+        ["chezmoi", "execute-template", "--config", str(config), "--source", str(REPO)],
+        input=(FISH / "conf.d/00-prompt-colours.fish.tmpl").read_text(),
+        capture_output=True, text=True, check=True,
+    ).stdout)
+    return colours
+
+
+PROMPT_COLOURS = _render_prompt_colours()
 
 pytestmark = pytest.mark.skipif(shutil.which("fish") is None, reason="fish not installed")
 
@@ -51,7 +72,7 @@ def repo(home: Path) -> Path:
 
 def fish_raw(home: Path, script: str, cwd: Path | None = None) -> str:
     """Load the prompt files non-interactively, run script, return output with colours."""
-    setup = f"set fish_function_path {FISH}/functions $fish_function_path; source {FISH}/conf.d/prompt.fish; true; "
+    setup = f"set fish_function_path {FISH}/functions $fish_function_path; source {PROMPT_COLOURS}; source {FISH}/conf.d/prompt.fish; true; "
     result = subprocess.run(
         ["fish", "--no-config", "-c", setup + script],
         cwd=cwd or home,
@@ -295,8 +316,8 @@ def test_ssh_tty_alone_prefixes_host(home: Path) -> None:
     assert re.fullmatch(rf"{HOST}  ~ +{TIME}", line1)
 
 
-def test_ssh_host_is_peach(home: Path) -> None:
-    assert rgb("fab387") + "m" + socket.gethostname().split(".")[0] in fish_raw(home, SSH + " fish_prompt")
+def test_ssh_host_is_orange(home: Path) -> None:
+    assert rgb(UI["orange"]) + "m" + socket.gethostname().split(".")[0] in fish_raw(home, SSH + " fish_prompt")
 
 
 def test_ssh_host_kept_at_narrowest_width(home: Path, repo: Path) -> None:
@@ -312,7 +333,7 @@ def test_ssh_final_rendering(home: Path, repo: Path) -> None:
 def test_async_diffstat_repaints_prompt(home: Path, repo: Path) -> None:
     (repo / "x").write_text("c\nd\ne\n")
     init = (
-        f"set fish_function_path {FISH}/functions $fish_function_path; source {FISH}/conf.d/prompt.fish; "
+        f"set fish_function_path {FISH}/functions $fish_function_path; source {PROMPT_COLOURS}; source {FISH}/conf.d/prompt.fish; "
         "set -g prompts 0; function _count --on-event fish_prompt; set -g prompts (math $prompts + 1); end"
     )
     env = {**LOCAL_ENV, "HOME": str(home), "XDG_CONFIG_HOME": str(home / "cfg"), "TERM": "xterm-256color"}
@@ -361,11 +382,11 @@ def caret(home: Path, mode: str, bindings: str = "fish_hybrid_key_bindings", fai
 @pytest.mark.parametrize(
     ("mode", "glyph", "color"),
     [
-        ("insert", "›", "b4befe"),
-        ("default", "‹", "a6e3a1"),
-        ("visual", "‹", "cba6f7"),
-        ("replace_one", "›", "fab387"),
-        ("replace", "›", "fab387"),
+        ("insert", "›", UI["accent"]),
+        ("default", "‹", UI["green"]),
+        ("visual", "‹", UI["accent2"]),
+        ("replace_one", "›", UI["orange"]),
+        ("replace", "›", UI["orange"]),
     ],
 )
 def test_caret_per_vi_mode(home: Path, mode: str, glyph: str, color: str) -> None:
@@ -377,13 +398,13 @@ def test_caret_per_vi_mode(home: Path, mode: str, glyph: str, color: str) -> Non
 def test_caret_red_after_failure_keeps_mode_glyph(home: Path) -> None:
     out = caret(home, "default", failed=True)
     assert ANSI.sub("", out) == "‹ "
-    assert rgb("f38ba8") in out
+    assert rgb(UI["red"]) in out
 
 
 def test_caret_ignores_bind_mode_with_default_bindings(home: Path) -> None:
     out = caret(home, "default", bindings="fish_default_key_bindings")
     assert ANSI.sub("", out) == "› "
-    assert rgb("b4befe") in out
+    assert rgb(UI["accent"]) in out
 
 
 def test_key_bindings_conf_sets_hybrid_and_cursors(home: Path) -> None:
@@ -394,7 +415,7 @@ def test_key_bindings_conf_sets_hybrid_and_cursors(home: Path) -> None:
 def test_escape_switches_live_caret_to_normal_mode(home: Path) -> None:
     init = (
         f"set fish_function_path {FISH}/functions $fish_function_path; "
-        f"source {FISH}/conf.d/prompt.fish; source {FISH}/conf.d/key_bindings.fish; "
+        f"source {PROMPT_COLOURS}; source {FISH}/conf.d/prompt.fish; source {FISH}/conf.d/key_bindings.fish; "
         # --no-config skips fish's interactive setup, which is what loads $fish_key_bindings.
         "$fish_key_bindings"
     )

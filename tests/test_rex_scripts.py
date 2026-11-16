@@ -1,8 +1,10 @@
 """Render the Rex run scripts and run them against fake rex/defaults/pgrep binaries."""
 
+import json
 import os
 import platform
 import subprocess
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -84,7 +86,7 @@ def test_settings_pins_every_key(tmp_path: Path) -> None:
     script = render(tmp_path, "run_onchange_after_60-rex-settings.sh.tmpl")
     calls, stderr = run(script, fakes(tmp_path))
     writes = [c for c in calls if c.startswith("defaults write com.superlogical.rex ")]
-    assert len(writes) == 17
+    assert len(writes) == 20
     assert (
         "defaults write com.superlogical.rex Workspace.showsKeySequenceHints -bool true"
         in writes
@@ -94,6 +96,38 @@ def test_settings_pins_every_key(tmp_path: Path) -> None:
         in writes
     )
     assert "quit and reopen Rex" not in stderr
+
+
+@darwin_only
+def test_settings_writes_the_theme_from_theme_toml(tmp_path: Path) -> None:
+    script = render(tmp_path, "run_onchange_after_60-rex-settings.sh.tmpl")
+    calls, _ = run(script, fakes(tmp_path))
+    write = next(c for c in calls if " Workspace.customThemes -data " in c)
+    [rex] = json.loads(bytes.fromhex(write.rsplit(" ", 1)[1]))
+    theme = tomllib.loads((REPO / "home/.chezmoidata/theme.toml").read_text())["theme"]
+    term = theme["terminal"]
+
+    def hexof(colour: dict) -> str:
+        return "".join(f"{round(colour[c] * 255):02x}" for c in ("red", "green", "blue"))
+
+    assert rex["id"] == "custom-dotfiles"
+    assert rex["name"] == theme["name"]
+    assert rex["source"] == {"ghosttyFile": {"fileName": "dotfiles"}}
+    palette = rex["palette"]
+    assert hexof(palette["background"]) == term["background"]
+    assert hexof(palette["foreground"]) == term["foreground"]
+    assert hexof(palette["cursor"]) == term["cursor"]
+    assert hexof(palette["cursorText"]) == term["cursor_text"]
+    assert hexof(palette["selectionBackground"]) == term["selection_background"]
+    assert hexof(palette["selectionForeground"]) == term["selection_foreground"]
+    assert [hexof(c) for c in palette["ansi"]] == term["ansi"]
+    base = palette["paletteBase"]
+    assert sorted(map(int, base)) == list(range(16, 256))
+    assert hexof(base["16"]) == "000000" and hexof(base["231"]) == "ffffff"
+    assert hexof(base["67"]) == "5f87af" and hexof(base["232"]) == "080808"
+    assert palette["paletteGenerate"] is False
+    assert "defaults write com.superlogical.rex Workspace.darkThemeID -string custom-dotfiles" in calls
+    assert "defaults write com.superlogical.rex Workspace.lightThemeID -string custom-dotfiles" in calls
 
 
 @darwin_only

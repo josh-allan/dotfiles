@@ -11,11 +11,11 @@ function _prompt_breadcrumb --argument-names mode
 
     switch $mode
         case full
-            set -l sep (set_color $_prompt_surface2)' / '
-            set -l dim (set_color $_prompt_overlay1)
+            set -l sep (set_color $_prompt_faint)' / '
+            set -l dim (set_color $_prompt_muted)
             printf '%s' (string join -- $sep $dim$parents $leaf)
         case short
-            set -l dim (set_color $_prompt_overlay1)
+            set -l dim (set_color $_prompt_muted)
             set -l abbrev (string match -r -- '^/?\.?.' $parents)
             printf '%s' $dim(string join -- / $abbrev $leaf)
         case leaf

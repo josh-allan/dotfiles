@@ -1,7 +1,7 @@
 function fish_prompt
     set -l last_status $status
     if contains -- --final-rendering $argv
-        printf '%s%s%s %s› %s' (_prompt_host ' ') (set_color $_prompt_overlay0) (date +%H:%M:%S) (set_color -o $_prompt_lavender) (set_color normal)
+        printf '%s%s%s %s› %s' (_prompt_host ' ') (set_color $_prompt_subtle) (date +%H:%M:%S) (set_color -o $_prompt_accent) (set_color normal)
         return
     end
 
