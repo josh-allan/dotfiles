@@ -236,3 +236,12 @@ def test_btop_modify_adds_the_theme_when_absent(tmp_path: Path) -> None:
     out = btop(tmp_path, "update_ms = 2000\n")
     assert out.startswith('color_theme = "TTY"\n')
     assert "update_ms = 2000" in out
+
+
+def test_nvim_theme_file_names_the_colorscheme(tmp_path: Path) -> None:
+    nvim = theme()["nvim"]
+    out = render("dot_config/theme/nvim.lua.tmpl", tmp_path)
+    assert f'colorscheme = "{nvim["colorscheme"]}",\n' in out
+    assert f'name = "{nvim["name"]}",\n' in out
+    assert f'src = "{nvim["src"]}",\n' in out
+    assert out.splitlines()[1] == "return {"
