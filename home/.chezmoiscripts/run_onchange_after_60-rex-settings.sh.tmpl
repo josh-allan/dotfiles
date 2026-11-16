@@ -62,6 +62,7 @@ BEGIN {
 }')
 defaults write "$domain" Workspace.customThemes -data "$(printf '%s' "$theme_json" | xxd -p | tr -d '\n')"
 pin Workspace.darkThemeID string custom-dotfiles
+pin Workspace.lightThemeID string custom-dotfiles
 
 # Rex reads its settings at launch and does not watch for outside writes.
 if pgrep -x Rex >/dev/null 2>&1; then

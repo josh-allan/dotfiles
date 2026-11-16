@@ -86,7 +86,7 @@ def test_settings_pins_every_key(tmp_path: Path) -> None:
     script = render(tmp_path, "run_onchange_after_60-rex-settings.sh.tmpl")
     calls, stderr = run(script, fakes(tmp_path))
     writes = [c for c in calls if c.startswith("defaults write com.superlogical.rex ")]
-    assert len(writes) == 19
+    assert len(writes) == 20
     assert (
         "defaults write com.superlogical.rex Workspace.showsKeySequenceHints -bool true"
         in writes
@@ -127,6 +127,7 @@ def test_settings_writes_the_theme_from_theme_toml(tmp_path: Path) -> None:
     assert hexof(base["67"]) == "5f87af" and hexof(base["232"]) == "080808"
     assert palette["paletteGenerate"] is False
     assert "defaults write com.superlogical.rex Workspace.darkThemeID -string custom-dotfiles" in calls
+    assert "defaults write com.superlogical.rex Workspace.lightThemeID -string custom-dotfiles" in calls
 
 
 @darwin_only
