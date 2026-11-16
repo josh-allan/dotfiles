@@ -144,3 +144,32 @@ def test_prompt_has_no_hard_coded_colours() -> None:
         assert not re.search(r"^set -g _prompt_\w+ [0-9a-f]{6}$", text, re.M), path.name
     assert not list((fish / "themes").glob("Catppuccin*.theme"))
     assert ".config/fish/themes/Catppuccin *.theme" in (HOME / ".chezmoiremove").read_text()
+
+
+def tm_theme(tmp: Path) -> dict:
+    return plistlib.loads(render("dot_config/bat/themes/dotfiles.tmTheme.tmpl", tmp).encode())
+
+
+def test_tm_theme_draws_only_from_the_palette(tmp_path: Path) -> None:
+    t = theme()
+    tm = tm_theme(tmp_path)
+    assert tm["name"] == t["name"]
+    general = tm["settings"][0]["settings"]
+    assert general["background"] == f"#{t['terminal']['background']}"
+    assert general["foreground"] == f"#{t['terminal']['foreground']}"
+    assert general["lineHighlight"] == f"#{t['ui']['line']}"
+    by_scope = {s["scope"].split(",")[0]: s["settings"] for s in tm["settings"][1:]}
+    assert by_scope["comment"]["foreground"] == f"#{t['syntax']['comment']}"
+    assert by_scope["keyword"]["foreground"] == f"#{t['syntax']['keyword']}"
+    assert by_scope["string"]["foreground"] == f"#{t['syntax']['string']}"
+    assert by_scope["markup.inserted"]["foreground"] == f"#{t['syntax']['inserted']}"
+    used = set(re.findall(r"#([0-9a-f]{6})", render("dot_config/bat/themes/dotfiles.tmTheme.tmpl", tmp_path)))
+    assert used <= palette()
+
+
+def test_bat_and_delta_select_the_theme(tmp_path: Path) -> None:
+    assert (HOME / "dot_config/bat/config").read_text().strip() == "--theme=dotfiles"
+    assert "  syntax-theme = dotfiles\n" in (HOME / "dot_gitconfig.tmpl").read_text()
+    script = render(".chezmoiscripts/run_onchange_after_65-bat-cache.sh.tmpl", tmp_path)
+    assert "bat cache --build" in script
+    assert len(re.findall(r"\b[0-9a-f]{64}\b", script)) == 2, "hashes of the theme data and the shared template"
