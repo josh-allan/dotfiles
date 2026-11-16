@@ -22,3 +22,7 @@
 
 # Catppuccin theme files, superseded by home/.chezmoidata/theme.toml.
 .config/fish/themes/Catppuccin *.theme
+.config/bat/themes/Catppuccin Mocha.tmTheme
+.config/btop/themes/catppuccin_mocha.theme
+.config/lazygit/catppuccin-mocha-blue.yml
+.config/eza/theme.yml

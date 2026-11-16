@@ -173,3 +173,66 @@ def test_bat_and_delta_select_the_theme(tmp_path: Path) -> None:
     script = render(".chezmoiscripts/run_onchange_after_65-bat-cache.sh.tmpl", tmp_path)
     assert "bat cache --build" in script
     assert len(re.findall(r"\b[0-9a-f]{64}\b", script)) == 2, "hashes of the theme data and the shared template"
+
+
+THEMED = [
+    "dot_config/bat/config",
+    "dot_gitconfig.tmpl",
+    "dot_config/btop/modify_btop.conf",
+    "dot_config/fish/public_user/fzf.fish",
+    "dot_config/fish/public_user/theme.fish",
+    "dot_config/fish/conf.d/prompt.fish",
+    "dot_config/ghostty/config",
+    ".chezmoiexternal.toml.tmpl",
+]
+
+
+def test_fzf_uses_the_ansi_palette() -> None:
+    fzf = (HOME / "dot_config/fish/public_user/fzf.fish").read_text()
+    assert fzf.count("--color=16") == 2
+    assert not re.search(r"#[0-9A-Fa-f]{6}", fzf)
+
+
+def test_no_catppuccin_left_in_themed_files(tmp_path: Path) -> None:
+    for name in THEMED:
+        text = (HOME / name).read_text().lower()
+        assert "catppuccin" not in text and "mocha" not in text, name
+    externals = tomllib.loads(render(".chezmoiexternal.toml.tmpl", tmp_path))
+    assert not [k for k, v in externals.items() if v.get("type") == "file"]
+    remove = (HOME / ".chezmoiremove").read_text()
+    for target in [
+        ".config/bat/themes/Catppuccin Mocha.tmTheme",
+        ".config/btop/themes/catppuccin_mocha.theme",
+        ".config/lazygit/catppuccin-mocha-blue.yml",
+        ".config/eza/theme.yml",
+    ]:
+        assert target in remove
+
+
+def btop(tmp: Path, existing: str) -> str:
+    dest = tmp / "home"
+    (dest / ".config/btop").mkdir(parents=True)
+    (dest / ".config/btop/btop.conf").write_text(existing)
+    config = tmp / "chezmoi.toml"
+    config.write_text(DATA)
+    return subprocess.run(
+        [
+            "chezmoi", "cat", str(dest / ".config/btop/btop.conf"),
+            "--config", str(config), "--source", str(REPO), "--destination", str(dest),
+            "--persistent-state", str(tmp / "state.boltdb"),
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+
+
+def test_btop_modify_sets_only_the_theme(tmp_path: Path) -> None:
+    out = btop(tmp_path, 'theme_background = True\ncolor_theme = "Default"\nupdate_ms = 2000\n')
+    assert out == 'theme_background = True\ncolor_theme = "TTY"\nupdate_ms = 2000\n'
+
+
+def test_btop_modify_adds_the_theme_when_absent(tmp_path: Path) -> None:
+    out = btop(tmp_path, "update_ms = 2000\n")
+    assert out.startswith('color_theme = "TTY"\n')
+    assert "update_ms = 2000" in out
