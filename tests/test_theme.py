@@ -79,3 +79,17 @@ def test_theme_file_is_complete() -> None:
 
 def test_chezmoi_exposes_the_theme_as_data(tmp_path: Path) -> None:
     assert execute("{{ .theme.terminal.background }}", tmp_path) == theme()["terminal"]["background"]
+
+
+def test_ghostty_theme_renders_the_palette(tmp_path: Path) -> None:
+    t = theme()["terminal"]
+    out = render("dot_config/ghostty/themes/dotfiles.tmpl", tmp_path)
+    assert f"background = #{t['background']}\n" in out
+    assert f"foreground = #{t['foreground']}\n" in out
+    assert f"cursor-color = #{t['cursor']}\n" in out
+    assert f"cursor-text = #{t['cursor_text']}\n" in out
+    assert f"selection-background = #{t['selection_background']}\n" in out
+    assert f"selection-foreground = #{t['selection_foreground']}\n" in out
+    for i, colour in enumerate(t["ansi"]):
+        assert f"palette = {i}=#{colour}\n" in out
+    assert "theme = dotfiles\n" in (HOME / "dot_config/ghostty/config").read_text()
