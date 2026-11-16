@@ -1,4 +1,4 @@
-# › insert, ‹ normal (green) and visual (mauve), › replace (peach); red after a failure.
+# › insert, ‹ normal (green) and visual (accent2), › replace (orange); red after a failure.
 function _prompt_caret --argument-names last_status
     set -l glyph ›
     set -l color $_prompt_accent
