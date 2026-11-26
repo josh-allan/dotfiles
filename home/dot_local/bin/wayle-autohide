@@ -1,0 +1,49 @@
+#!/bin/bash
+# Keeps the Wayle bar hidden to spare the OLED from burn-in. Shows it while the cursor touches
+# the top edge (and keeps it while the cursor stays over the bar), and for a few seconds after a
+# workspace switch. Started from hosts/sunshine.lua; exits when Hyprland's event socket closes.
+# Assumes monitors share y = 0 (the top edge is screen y 0).
+set -u
+
+wayle="$HOME/.cargo/bin/wayle"
+events="$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
+peek_ms=${WAYLE_AUTOHIDE_PEEK_MS:-3000}
+edge_px=1  # cursor y that reveals the bar
+hold_px=48 # cursor y below which a shown bar stays shown
+tick=0.15  # seconds between cursor checks
+
+state=""      # last state wayle accepted: show | hide
+peek_until=0  # ms timestamp
+
+now_ms() { local us=${EPOCHREALTIME//[!0-9]/}; echo $((us / 1000)); }
+
+cursor_y() {
+	local pos
+	pos=$(hyprctl cursorpos 2>/dev/null) || return 1
+	pos=${pos##*, }
+	[[ $pos =~ ^-?[0-9]+$ ]] && echo "$pos"
+}
+
+wanted() {
+	local y
+	(($(now_ms) < peek_until)) && { echo show; return; }
+	y=$(cursor_y) || { echo hide; return; }
+	if ((y <= edge_px)) || { [[ $state == show ]] && ((y < hold_px)); }; then
+		echo show
+	else
+		echo hide
+	fi
+}
+
+exec {ev}< <(nc -U "$events")
+
+while :; do
+	if read -r -t "$tick" -u "$ev" line; then
+		[[ $line == workspacev2\>\>* ]] && peek_until=$(($(now_ms) + peek_ms))
+	elif (($? <= 128)); then
+		exit 0 # event stream closed: Hyprland is gone
+	fi
+	want=$(wanted)
+	[[ $want == "$state" ]] && continue
+	"$wayle" panel "$want" >/dev/null 2>&1 && state=$want # failure: panel not up yet, retry next tick
+done

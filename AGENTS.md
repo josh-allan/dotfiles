@@ -35,6 +35,7 @@ Templates check flags, never host names:
 | `asahi`, `sunshine`, `hyprHost` | Linux host variants (hypr `host.*` selection, system files) |
 | `server` | Arch server (`everythingcomputer`): group-writable umask |
 | `linger` | Enable `loginctl enable-linger` |
+| `oled` | OLED display: Wayle bar overlays windows (`wayle-autohide` hides it, started from `hosts/sunshine.lua`) |
 | `fetchSshKey` | Write `~/.ssh/id_ed25519` from 1Password if missing |
 | `privatePkgs` | Packages the `private/` source applies on this host |
 | `gitName`, `gitEmail`, `gitSigningKey` | Read from 1Password at init; kept or empty when op is not signed in (signing turns off with no key). Rerun `chezmoi init` to fill |
@@ -119,6 +120,7 @@ never both (`tests/test_mise.py`). Edits rerun the packages script on the next a
 - `tests/test_vesktop_links.py`: `uvx pytest tests/test_vesktop_links.py` (runs the Vesktop link script against a fake HOME)
 - `tests/test_fish_prompt.py`: `uvx pytest tests/test_fish_prompt.py` (runs the fish prompt functions with `fish --no-config` against a fake HOME and throwaway repos, plus pty tests of the async diffstat and the vi mode caret)
 - `tests/test_chezmoi_diff_pager.py`: `uvx pytest tests/test_chezmoi_diff_pager.py` (runs chezmoi's diff pager against fake `rex`/`delta`, with a stand-in chezmoi holding a prompt open)
+- `tests/test_wayle_autohide.py`: `uvx pytest tests/test_wayle_autohide.py` (runs `wayle-autohide` against fake `hyprctl`/`nc`/`wayle`: top-edge hover, workspace peek, retry, exit on socket close)
 - `tests/test_theme.py`: `uvx pytest tests/test_theme.py` (renders every template that reads theme.toml, loads the fish theme with `fish_config`, parses the TextMate theme, runs the btop modify script)
 - Shell: `shellcheck` every script; render `run_` templates with
   `chezmoi execute-template < file | shellcheck -s bash -`

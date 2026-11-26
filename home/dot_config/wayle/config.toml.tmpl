@@ -1,0 +1,11 @@
+# Wayle configuration file
+{{- if .oled }}
+
+# OLED host: wayle-autohide keeps the bar hidden and shows it on demand. Draw it over windows
+# so they don't resize every time it appears.
+[bar]
+exclusive = false
+{{- end }}
+
+[modules.media]
+hide-when-inactive = true
