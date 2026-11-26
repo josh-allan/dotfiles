@@ -36,7 +36,7 @@ format = "%d-%m %H:%M"
 [modules.media]
 hide-when-inactive = true
 
-[modules.notification]
+[modules.notifications]
 hide-when-empty = true
 
 [modules.weather]
