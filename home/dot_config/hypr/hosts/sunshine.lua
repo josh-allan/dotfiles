@@ -9,3 +9,8 @@ hl.workspace_rule({ workspace = "9", monitor = "WAYLAND-1", default = true })
 for i = 1, 8 do
 	hl.workspace_rule({ workspace = tostring(i), monitor = "DP-3" })
 end
+
+-- OLED: keep the Wayle bar hidden except on top-edge hover and workspace switches.
+hl.on("hyprland.start", function()
+	hl.exec_cmd("/home/josh/.local/bin/wayle-autohide")
+end)
