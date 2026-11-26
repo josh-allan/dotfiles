@@ -1,5 +1,4 @@
 require("monitors")
-require("workspaces")
 require("env")
 
 -- Host-specific overrides (env, extra monitors). Optional: absent on some hosts.
