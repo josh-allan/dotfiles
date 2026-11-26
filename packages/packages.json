@@ -59,6 +59,7 @@
     {"name": "greetd",         "platforms": ["arch", "fedora"]},
     {"name": "greetd-tuigreet","platforms": ["arch", "fedora"], "dnf": "tuigreet"},
     {"name": "hyprland",       "platforms": ["arch", "fedora"], "copr": "lionheartp/Hyprland"},
+    {"name": "hypridle",       "platforms": ["arch", "fedora"]},
     {"name": "hyprlock",       "platforms": ["arch", "fedora"], "copr": "lionheartp/Hyprland"},
     {"name": "hyprpaper",      "platforms": ["arch", "fedora"], "copr": "lionheartp/Hyprland"},
     {"name": "stats",          "brew": "stats",                                    "cask": true, "platforms": ["macos"]},
