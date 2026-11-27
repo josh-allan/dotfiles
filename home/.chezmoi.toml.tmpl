@@ -9,7 +9,7 @@
 {{- $server := eq $host "everythingcomputer" -}}
 {{- $hyprHost := "" -}}
 {{- if $asahi }}{{ $hyprHost = "asahi" }}{{ end -}}
-{{- if $sunshine }}{{ $hyprHost = "sunshine" }}{{ end -}}
+{{- if $sunshine }}{{ $hyprHost = "josh-desktop" }}{{ end -}}
 
 {{- $privatePkgs := list "private_user" "opencode" "claude" "please" -}}
 {{- if eq $host "EverythingMacbook" }}{{ $privatePkgs = list "private_user" "opencode" "claude" "please" "macos" "scripts" }}{{ end -}}
