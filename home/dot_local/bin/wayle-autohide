@@ -1,7 +1,7 @@
 #!/bin/bash
 # Keeps the Wayle bar hidden to spare the OLED from burn-in. Shows it while the cursor touches
 # the top edge (and keeps it while the cursor stays over the bar), and for a few seconds after a
-# workspace switch. Started from hosts/sunshine.lua; exits when Hyprland's event socket closes.
+# workspace switch. Started from hosts/josh-desktop.lua; exits when Hyprland's event socket closes.
 # Assumes monitors share y = 0 (the top edge is screen y 0).
 set -u
 

@@ -35,7 +35,7 @@ Templates check flags, never host names:
 | `asahi`, `sunshine`, `hyprHost` | Linux host variants (hypr `host.*` selection, system files) |
 | `server` | Arch server (`everythingcomputer`): group-writable umask |
 | `linger` | Enable `loginctl enable-linger` |
-| `oled` | OLED display: Wayle bar overlays windows (`wayle-autohide` hides it, started from `hosts/sunshine.lua`) |
+| `oled` | OLED display: Wayle bar overlays windows (`wayle-autohide` hides it, started from `hosts/josh-desktop.lua`) |
 | `fetchSshKey` | Write `~/.ssh/id_ed25519` from 1Password if missing |
 | `privatePkgs` | Packages the `private/` source applies on this host |
 | `gitName`, `gitEmail`, `gitSigningKey` | Read from 1Password at init; kept or empty when op is not signed in (signing turns off with no key). Rerun `chezmoi init` to fill |

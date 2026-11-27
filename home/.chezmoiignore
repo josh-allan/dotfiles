@@ -32,7 +32,7 @@ Library/LaunchAgents/com.josh.rex-done-chime.plist
 .config/sunshine
 .config/systemd/user/Sunshine.service
 .config/systemd/user/steam-bpm.service
-.config/hypr/hosts/sunshine.*
+.config/hypr/hosts/josh-desktop.*
 .local/bin/cage-bpm
 .local/bin/cage-set-mode
 {{- end }}
