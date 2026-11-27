@@ -43,6 +43,12 @@ hl.config({
 		disable_hyprland_logo = true,
 	},
 
+	-- SDR desktop; fullscreen HDR apps switch the output to HDR on their own.
+	render = {
+		cm_enabled = true,
+		cm_auto_hdr = 1,
+	},
+
 	debug = {
 		disable_logs = false,
 	},
